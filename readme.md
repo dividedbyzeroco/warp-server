@@ -33,5 +33,5 @@ var config = {
 var api = WarpServer.initialize(config);
 
 // Apply the WarpServer router to your preferred base URL, using express' app.use() method
-app.use('api/1', api);
+app.use('/api/1', api);
 ```
