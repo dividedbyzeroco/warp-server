@@ -1,7 +1,7 @@
 WarpServer
 ==========
 
-*WarpServer* is a library for implementing the Warp Framework on Node.js. It consists of several classes similar to the ParsePlatform [https://github.com/ParsePlatform] which aim to produce endpoints easily accessible via a standard REST API. Currently, *WarpServer* uses `mysql` as its backend of choice and implements validators, parsers and formatters that can control the data coming in and out of the server.
+__WarpServer__ is a library for implementing the Warp Framework on Node.js. It consists of several classes similar to the ParsePlatform [https://github.com/ParsePlatform] which aim to produce endpoints easily accessible via a standard REST API. Currently, WarpServer uses `mysql` as its backend of choice and implements validators, parsers and formatters that can control the data coming in and out of the server.
 
 # Installation
 
