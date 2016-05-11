@@ -19,8 +19,18 @@ WarpServer is built on top of `express` and can be initialized in any `express` 
 // Require WarpServer
 var WarpServer = require('warp-server');
 
+// Prepare config; You can also use process.env or store the config in a json file
+var config = {
+    host: 'localhost',
+    port: 3306,
+    user: 'root',
+    password: 'password',
+    default: 'default_table',
+    apiKey: '12345678abcdefg'
+};
+
 // Create a WarpServer router for the API
-var api = WarpServer.initialize({ apiKey: '{YOUR_PREFERRED_API_KEY}' });
+var api = WarpServer.initialize(config);
 
 // Apply the WarpServer router to your preferred base URL, using express' app.use() method
 app.use('api/1', api);
