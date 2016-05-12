@@ -350,7 +350,7 @@ with a JSON Object that contains the modified keys of your existing Object:
 For example:
 
 ```bash
-curl -X POST \
+curl -X PUT \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 -H 'Content-Type: application/json' \
 --data '{"age": 300}' \
@@ -382,7 +382,7 @@ To delete an Object for a specific model, execute a DELETE request to:
 For example:
 
 ```bash
-curl -X POST \
+curl -X DELETE \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 http://my-warp-server.com/api/1/classes/alien/29
 ```
@@ -401,3 +401,92 @@ The expected response would be similar to the following:
     }
 }
 ```
+
+
+### Fetching Objects
+
+To fetch a single Object for a specific model, execute a GET request to:
+
+`/classes/{CLASS_NAME}/{ID}`
+
+For example:
+
+```bash
+curl -X GET \
+-G \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+http://my-warp-server.com/api/1/classes/alien/13
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "id": 13,
+        "name": "Wormwood",
+        "age": 80,
+        "type": "extraterrestrial",
+        "created_at": "2016-05-12T22:11:09Z",
+        "updated_at": "2016-05-12T23:21:18Z"
+    }
+}
+```
+
+
+## Queries
+
+There are certain scenarios when you may need to find more than one Object from a model. In these instances, it would be convenient to use Queries. Queries allow you to find specific Objects based on a set of criteria.
+
+To query Objects from a specific model, execute a GET request to:
+
+`/classes/{CLASS_NAME}`
+
+For example:
+
+```bash
+curl -X GET \
+-G \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+http://my-warp-server.com/api/1/classes/alien
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": [{
+        "id": 21,
+        "name": "The Doctor",
+        "age": 150000,
+        "type": "gallifreyan",
+        "created_at": "2016-05-12T22:11:09Z",
+        "updated_at": "2016-05-12T23:21:18Z"
+    },
+    {
+        "id": 13,
+        "name": "Wormwood",
+        "age": 80,
+        "type": "extraterrestrial",
+        "created_at": "2016-05-12T22:11:09Z",
+        "updated_at": "2016-05-12T23:21:18Z"
+    },
+    {
+        "id": 141,
+        "name": "Straxx",
+        "age": 300,
+        "type": "extraterrestrial",
+        "created_at": "2016-05-12T22:11:09Z",
+        "updated_at": "2016-05-12T23:21:18Z"
+    }]
+}
+```
+
+
+### Constraints
+
+Constraints
