@@ -3,7 +3,7 @@ WarpServer
 
 __WarpServer__ is a library for implementing the Warp Framework on Node.js. It consists of several classes which aim to produce endpoints easily accessible via a standard REST API. Currently, WarpServer uses `mysql` as its backend of choice and implements validators, parsers and formatters that can control the data coming in and out of the server.
 
-### Installation
+## Installation
 
 To install WarpServer via npm, simply use the install command to save it in your package.json:
 
@@ -11,7 +11,7 @@ To install WarpServer via npm, simply use the install command to save it in your
 npm install --save warp-server
 ```
 
-### Configuration
+## Configuration
 
 WarpServer is built on top of `express` and can be initialized in any `express` project. To do so, simply add the following configruation to the main file of your project:
 
@@ -38,7 +38,7 @@ var app = express();
 app.use('/api/1', api);
 ```
 
-### Models
+## Models
 
 Models make it easy to define the tables found in the database. They contain special parameters which allow you to control the data that comes in and out of the server.
 
@@ -169,7 +169,7 @@ var api = WarpServer.initialize(config);
 
 We can now use the REST API to operate on `alien` objects. See the section regarding the REST API for more info.
 
-### Pointers
+## Pointers
 
 Relations are a vital aspect of Relational Databases. With regards to the WarpServer, these are represented by `pointers`. Pointers are specific keys (fields) that point to a specific object from another table. This can be thought of as the `belongs_to` relationship or the `foreign_key` relationship in SQL databases. 
 
@@ -190,7 +190,7 @@ keys: {
 // Additional code defining our model
 ```
 
-### User and Session Models
+## User and Session Models
 
 In order to handle user authentication and management, a special type of model called the User model can be added. It is similar to the `WarpServer.Model` except it requires a few additional fields.
 
@@ -272,7 +272,7 @@ var api = WarpServer.initialize(config);
 
 We can now use the special user authentication and management operations made available by the REST API.
 
-### Objects
+## Objects
 
 Objects represent individual instances of models. In terms of the database, an Object can be thought of as being a `row` in a table. Throughout the Warp Framework, Objects are the basic vehicles for data to be transmitted to and fro the server.
 
@@ -284,11 +284,11 @@ Each Object contains different keys which can be set or retrieved as needed. Amo
 
 These keys are specifically set by the server and cannot be modified by the user.
 
-### REST API
+## REST API
 
 The REST API makes it easy to handle operations being made to Objects. After initializing the server by following the instructions above, the following endpoints are readily made available for use by client-side applications.
 
-#### Headers
+### Headers
 
 When making HTTP requests to the REST API, it is important that the API Key is set. To do so, remember to set the `X-Warp-API-Key` header for your request:
 
@@ -298,7 +298,7 @@ Often times, once a user has logged in, it is also important to place the `X-War
 
 `X-Warp-Session-Token: fhwcunf2uch20j631`
 
-#### Creating Objects
+### Creating Objects
 
 To create an Object for a specific model, execute a POST request to:
 
@@ -335,7 +335,7 @@ The expected response would be similar to the following:
 }
 ```
 
-#### Updating Objects
+### Updating Objects
 
 To update an Object for a specific model, execute a PUT request to:
 
@@ -370,7 +370,7 @@ The expected response would be similar to the following:
 }
 ```
 
-#### Deleting Objects
+### Deleting Objects
 
 To delete an Object for a specific model, execute a DELETE request to:
 
