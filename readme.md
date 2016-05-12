@@ -38,7 +38,7 @@ var app = express();
 app.use('/api/1', api);
 ```
 
-### Model
+### Models
 
 Models make it easy to define the tables found in the database. They contain special parameters which allow you to control the data that comes in and out of the server.
 
@@ -258,7 +258,7 @@ var api = WarpServer.initialize(config);
 
 We can now use the special user authentication and management operations made available by the REST API.
 
-### Object
+### Objects
 
 The Warp Object represents a single item in...
 
