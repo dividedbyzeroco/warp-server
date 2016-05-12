@@ -316,7 +316,7 @@ curl -X POST \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 -H 'Content-Type: application/json' \
 --data '{"name":"The Doctor", "age": 150000, "type": 4}' \
-http://my-warp-server.com/api/1/classes/alien
+http://localhost:3000/api/1/classes/alien
 ```
 
 The expected response would be similar to the following:
@@ -354,7 +354,7 @@ curl -X PUT \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 -H 'Content-Type: application/json' \
 --data '{"age": 300}' \
-http://my-warp-server.com/api/1/classes/alien/141
+http://localhost:3000/api/1/classes/alien/141
 ```
 
 The expected response would be similar to the following:
@@ -384,7 +384,7 @@ For example:
 ```bash
 curl -X DELETE \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
-http://my-warp-server.com/api/1/classes/alien/29
+http://localhost:3000/api/1/classes/alien/29
 ```
 
 The expected response would be similar to the following:
@@ -415,7 +415,7 @@ For example:
 curl -X GET \
 -G \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
-http://my-warp-server.com/api/1/classes/alien/13
+http://localhost:3000/api/1/classes/alien/13
 ```
 
 The expected response would be similar to the following:
@@ -450,7 +450,7 @@ For example:
 curl -X GET \
 -G \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
-http://my-warp-server.com/api/1/classes/alien
+http://localhost:3000/api/1/classes/alien
 ```
 
 The expected response would be similar to the following:
@@ -489,4 +489,69 @@ The expected response would be similar to the following:
 
 ### Constraints
 
-Constraints
+Constraints help filter the results of a specific query. In order to pass constraints for a Query, set a `where` parameter with a JSON string containing all the constraints you wish to apply.
+
+To specify constraints, you may do so using the following syntax:
+
+```json
+{
+    "{NAME_OF_KEY}": {
+        "{NAME_OF_CONSTRAINT}": "{VALUE}"
+    }
+}
+```
+
+The constraints available are listed below:
+
+- eq: equal to
+- neq: not equal to
+- gt: greater than
+- gte: greater than or equal to
+- lt: less than
+- lte: less than or equal to
+- ex: is null/is not null (value is either true or false)
+- in: contained in array
+- nin: not contained in array
+
+For example:
+
+```bash
+curl -X GET \
+-G \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+--data-urlencoded 'where={"age": {"gte": 20}, "type": {"in": ["dalek", "gallifreyan"]}}' \
+http://localhost:3000/api/1/classes/alien
+```
+
+### Limit
+
+By default, WarpServer limits results to the top 100 objects that satisfy the query criteria. In order to increase the limit, you can specify the desired value via the `limit` parameter. Also, in order to implement pagination for the results, you can combine the `limit` with the `skip` parameter. The `skip` parameter indicates how many items are to be skipped when executing the query. In terms of scalability, it is advisable to limit results to 1000 and use skip to determine pagination.
+
+For example:
+
+```bash
+curl -X GET \
+-G \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+--data-urlencoded 'limit=1000&skip=1000' \
+http://localhost:3000/api/1/classes/alien
+```
+
+### Sorting
+Sorting determines the order by which the results are returned. They are also crucial when using the `limit` and `skip` parameters. In the `order` parameter of the basic query, a JSON string is expected to be placed with the following format:
+
+```json
+{
+    "{NAME_OF_KEY}": "{1 (Ascending) or -1 (Descending)}"
+}
+```
+
+For example:
+
+```bash
+curl -X GET \
+-G \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+--data-urlencoded 'sort={"type":1,"age":-1}' \
+http://localhost:3000/api/1/classes/alien
+```
