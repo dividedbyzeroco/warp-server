@@ -84,6 +84,18 @@ WarpServer.Model.create({
         '{KEY2}': WarpServer.Model.Parser.Integer
     },
     
+    // Formats the values requested, and pushes them to the response
+    format: {
+        // User-defined formatter
+        '{KEY1}': function(value) {
+            // Conduct some changes to the value, as needed;
+            // Return the formatted value
+            return value;
+        },
+        // Pre-defined Formatter; See section on Pre-defined Formatters for more info
+        '{KEY2}': WarpServer.Model.Parser.Date
+    },
+    
     // Function that maniplates the keys' values before the values are saved
     beforeSave: function(keys) {
         // this.validate doesn't apply here
@@ -129,6 +141,8 @@ var Alien = WarpServer.Model.create({
                 case 1: return 'cyberman';
                 case 2: return 'zygon';
                 case 3: return 'slitheen';
+                case 4: return 'gallifreyan';
+                default: return 'extraterristrial';
             }
         }
     },
@@ -260,12 +274,127 @@ We can now use the special user authentication and management operations made av
 
 ### Objects
 
-The Warp Object represents a single item in...
+Objects represent individual instances of models. In terms of the database, an Object can be thought of as being a `row` in a table. Throughout the Warp Framework, Objects are the basic vehicles for data to be transmitted to and fro the server.
+
+Each Object contains different keys which can be set or retrieved as needed. Among these keys are three special ones:
+
+- id: a unique identifier that distinguishes an object inside a table
+- created_at: a timestamp that records the date and time when a particular object was created (UTC)
+- uppdated_at: a timestamp that records the date and time when a particular object was last modified (UTC)
+
+These keys are specifically set by the server and cannot be modified by the user.
 
 ### REST API
 
-The REST API makes it easy to handle operations being made to Warp Objects. After initializing the server by following the instructions above, the following endpoints are readily made available for use by client-side applications.
+The REST API makes it easy to handle operations being made to Objects. After initializing the server by following the instructions above, the following endpoints are readily made available for use by client-side applications.
 
-#### Creating Objects
+#### Headers
 
-To create objects, 
+When making HTTP requests to the REST API, it is important that the API Key is set. To do so, remember to set the `X-Warp-API-Key` header for your request:
+
+`X-Warp-API-Key: 12345678abcdefg`
+
+Often times, once a user has logged in, it is also important to place the `X-Warp-Session-Token` header in order to use certain operations only accessible to authorized users:
+
+`X-Warp-Session-Token: fhwcunf2uch20j631`
+
+### Creating Objects
+
+To create an Object for a specific model, execute a POST request to:
+
+`/api/1/classes/{CLASS_NAME}`
+
+with a JSON Object that contains the keys of your new Object:
+
+`{"{KEY1}": "{VALUE1}", "{KEY2}": "{VALUE2}"}`
+
+For example:
+
+```bash
+curl -X POST \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'Content-Type: application/json' \
+--data '{"name":"The Doctor", "age": 150000, "type": 4}' \
+http://my-warp-server.com/api/1/classes/alien
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "id": 21,
+        "name": "The Doctor",
+        "age": 150000,
+        "type": "gallifreyan",
+        "created_at": "2016-05-12T09:18:44Z",
+        "updated_at": "2016-05-12T09:18:44Z"
+    }
+}
+```
+
+### Updating Objects
+
+To update an Object for a specific model, execute a PUT request to:
+
+`/api/1/classes/{CLASS_NAME}/{ID}`
+
+with a JSON Object that contains the modified keys of your existing Object:
+
+`{"{KEY1}": "{VALUE1}", "{KEY2}": "{VALUE2}"}`
+
+For example:
+
+```bash
+curl -X POST \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'Content-Type: application/json' \
+--data '{"type": "supreme_dalek"}' \
+http://my-warp-server.com/api/1/classes/alien/141
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "id": 141,
+        "type": "supreme_dalek",
+        "created_at": "2016-05-12T09:18:44Z",
+        "updated_at": "2016-05-12T14:03:21Z"
+    }
+}
+```
+
+### Deleting Objects
+
+To delete an Object for a specific model, execute a DELETE request to:
+
+`/api/1/classes/{CLASS_NAME}/{ID}`
+
+For example:
+
+```bash
+curl -X POST \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+http://my-warp-server.com/api/1/classes/alien/29
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "id": 141,
+        "rows": 1,
+        "updated_at": "2016-05-12T22:11:09Z",
+        "deleted_at": "2016-05-12T22:11:09Z"
+    }
+}
+```
