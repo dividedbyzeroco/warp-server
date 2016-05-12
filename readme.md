@@ -38,11 +38,11 @@ var app = express();
 app.use('/api/1', api);
 ```
 
-### Warp Model
+### Model
 
-Warp Models make it easy to define the tables found in the database. They contain special parameters which allow you to control the data that comes in and out of the server.
+Models make it easy to define the tables found in the database. They contain special parameters which allow you to control the data that comes in and out of the server.
 
-To define a Warp Model, simply create a `WarpServer.Model` class with the following parameters:
+To define a Model, simply create a `WarpServer.Model` class with the following parameters:
 
 ```javascript
 WarpServer.Model.create({
@@ -159,7 +159,7 @@ We can now use the REST API to operate on `alien` objects. See the section regar
 
 Relations are a vital aspect of Relational Databases. With regards to the WarpServer, these are represented by `pointers`. Pointers are specific keys (fields) that point to a specific object from another table. This can be thought of as the `belongs_to` relationship or the `foreign_key` relationship in SQL databases. 
 
-To specify a `pointer` in your Warp Model, you may do so using the following syntax:
+To specify a `pointer` in your Model, you may do so using the following syntax:
 
 ```javascript
 { '{KEY_NAME}': '{FOREIGN_KEY}' }
@@ -176,16 +176,16 @@ keys: {
 // Additional code defining our model
 ```
 
-### Warp User and Warp Session
+### User and Session Models
 
-In order to handle user authentication and management, a special type of model called the Warp User can be added. It is similar to the `WarpServer.Model` except it requires a few additional fields.
+In order to handle user authentication and management, a special type of model called the User model can be added. It is similar to the `WarpServer.Model` except it requires a few additional fields.
 
-Fields required by the Warp User Model:
+Fields required by the User Model:
 - username
 - password
 - email
 
-For example, to create a Warp User using the `user` table:
+For example, to create a User model using the `user` table:
 
 ```javascript
 var User = WarpServer.Model.create({
@@ -195,7 +195,7 @@ var User = WarpServer.Model.create({
         actionable: ['username', 'password', 'email']
     },
     validate: {
-        // Pre-defined validators are available for the fields required by the Warp User Model
+        // Pre-defined validators are available for the fields required by the User Model
         // See the section on Pre-defined Validators for more info.
         'username': WarpServer.Model.Validation.FixedString(8, 16),
         'password': WarpServer.Model.Validation.Password(8),
@@ -210,7 +210,7 @@ var User = WarpServer.Model.create({
 });
 ```
 
-In order for us to use the defined model as a Warp User, we should use `.registerUser()` instead of the regular `.register()` method:
+In order for us to use the defined model as a User model, we should use `.registerUser()` instead of the regular `.register()` method:
 
 ```javascript
 // ... some config code here
@@ -220,13 +220,13 @@ var api = WarpServer.initialize(config);
 // ... additional code to initialize here
 ```
 
-Aside from the Warp User Model, we should also define a Warp Session Model that, like the Warp User Model, has special required fields:
+Aside from the User Model, we should also define a Session Model that, like the User Model, has special required fields:
 
 - user (pointer)
 - origin
 - session_token
 
-An example of a Warp Session Model would be as follows:
+An example of a Session Model would be as follows:
 
 ```javascript
 var Session = WarpServer.Model.create({
@@ -258,7 +258,7 @@ var api = WarpServer.initialize(config);
 
 We can now use the special user authentication and management operations made available by the REST API.
 
-### Warp Object
+### Object
 
 The Warp Object represents a single item in...
 
