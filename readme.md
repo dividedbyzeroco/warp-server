@@ -1,7 +1,7 @@
 WarpServer
 ==========
 
-__WarpServer__ is a library for implementing the Warp Framework on Node.js. It consists of several classes similar to the ParsePlatform [https://github.com/ParsePlatform] which aim to produce endpoints easily accessible via a standard REST API. Currently, WarpServer uses `mysql` as its backend of choice and implements validators, parsers and formatters that can control the data coming in and out of the server.
+__WarpServer__ is a library for implementing the Warp Framework on Node.js. It consists of several classes which aim to produce endpoints easily accessible via a standard REST API. Currently, WarpServer uses `mysql` as its backend of choice and implements validators, parsers and formatters that can control the data coming in and out of the server.
 
 ### Installation
 
@@ -16,7 +16,8 @@ npm install --save warp-server
 WarpServer is built on top of `express` and can be initialized in any `express` project. To do so, simply add the following configruation to the main file of your project:
 
 ```javascript
-// Require WarpServer
+// References
+var express = require('express');
 var WarpServer = require('warp-server');
 
 // Prepare config; You can also use process.env or store the config in a json file
@@ -33,6 +34,7 @@ var config = {
 var api = WarpServer.initialize(config);
 
 // Apply the WarpServer router to your preferred base URL, using express' app.use() method
+var app = express();
 app.use('/api/1', api);
 ```
 
@@ -44,16 +46,16 @@ To define a Warp Model, simply create a `WarpServer.Model` class with the follow
 
 ```javascript
 WarpServer.Model.create({
-    // Unique name assigned to the endpoint; table name
+    // Unique name assigned to the endpoint; is usally the same as the table name
     className: '{CLASS_NAME}',
     
-    // If the assigned className is not the same as the actual table name, specify the real table name here, OPTIONAL
+    // If the assigned className is not the same as the table name, specify the real table name here, OPTIONAL
     source: '{SOURCE}',
     
-    // Define keys/columns available in the table
+    // Define keys/fields available in the table
     keys: {
         viewable: ['{KEY1}', '{KEY2}'], // REQUIRED: Fields viewable in queries
-        actionable: ['{KEY1}'] // REQUIRED: Fields editable in queries
+        actionable: ['{KEY1}', '{KEY2}'] // REQUIRED: Fields editable in queries
     },
     
     // Validates values that are sent to the server
@@ -101,6 +103,7 @@ WarpServer.Model.create({
     }
 });
 ```
+
 For example, if we want to make a model for an `alien` table, we can write it as:
 
 ```javascript
@@ -140,6 +143,7 @@ var Alien = WarpServer.Model.create({
     }
 });
 ```
+
 In order to tell WarpServer to use the model we just created, we must register it before we initialize WarpServer:
 
 ```javascript
@@ -148,6 +152,111 @@ WarpServer.Model.register(Alien);
 var api = WarpServer.initialize(config);
 // ... additional code to initialize here
 ```
+
+We can now use the REST API to operate on `alien` objects. See the section regarding the REST API for more info.
+
+### Pointers
+
+Relations are a vital aspect of Relational Databases. With regards to the WarpServer, these are represented by `pointers`. Pointers are specific keys (fields) that point to a specific object from another table. This can be thought of as the `belongs_to` relationship or the `foreign_key` relationship in SQL databases. 
+
+To specify a `pointer` in your Warp Model, you may do so using the following syntax:
+
+```javascript
+{ '{KEY_NAME}': '{FOREIGN_KEY}' }
+```
+
+So if, for example, inside our `Alien` model, we would like to add pointers to a `Planet` model. We can do so by adding the following code to our `Model.create()` method:
+
+```javascript
+// Some code defining our model
+keys: {
+    viewable: ['name', 'age', 'type', { 'planet': 'planet_id' }],
+    actionable: ['name', 'age', 'type', { 'planet': 'planet_id' }]
+},
+// Additional code defining our model
+```
+
+### Warp User and Warp Session
+
+In order to handle user authentication and management, a special type of model called the Warp User can be added. It is similar to the `WarpServer.Model` except it requires a few additional fields.
+
+Fields required by the Warp User Model:
+- username
+- password
+- email
+
+For example, to create a Warp User using the `user` table:
+
+```javascript
+var User = WarpServer.Model.create({
+    className: 'user',
+    keys: {
+        viewable: ['username', 'email'], // Note that password should not be viewable by the REST API
+        actionable: ['username', 'password', 'email']
+    },
+    validate: {
+        // Pre-defined validators are available for the fields required by the Warp User Model
+        // See the section on Pre-defined Validators for more info.
+        'username': WarpServer.Model.Validation.FixedString(8, 16),
+        'password': WarpServer.Model.Validation.Password(8),
+        'email': WarpServer.Model.Validation.Email
+    },
+    parse: {
+        // Pre-defined Parsers
+        // See the section on Pre-defined Parsers for more info.
+        'username': WarpServer.Model.Parser.NoSpaces,
+        'password': WarpServer.Model.Parser.Password
+    }
+});
+```
+
+In order for us to use the defined model as a Warp User, we should use `.registerUser()` instead of the regular `.register()` method:
+
+```javascript
+// ... some config code here
+WarpServer.Model.registerUser(User);
+WarpServer.Model.register(Alien);
+var api = WarpServer.initialize(config);
+// ... additional code to initialize here
+```
+
+Aside from the Warp User Model, we should also define a Warp Session Model that, like the Warp User Model, has special required fields:
+
+- user (pointer)
+- origin
+- session_token
+
+An example of a Warp Session Model would be as follows:
+
+```javascript
+var Session = WarpServer.Model.create({
+    className: 'session',
+    keys: {
+        viewable: [{ 'user': 'user_id' }, 'origin', 'session_token'], // Note that the user field is a pointer to the 'user' table
+        actionable: [{ 'user': 'user_id'}, 'origin']
+    },
+    validate: {
+        'user': WarpServer.Model.Validation.Pointer
+    },
+    
+    // In order for us to generate special session tokens, we must use the Pre-defined PreSave function.
+    // For more info on these pre-defined functions, please see the secion on PreSave functions.
+    beforeSave: WarpServer.Model.PreSave.Session
+});
+```
+
+Then, we register the created model by using the `.registerSession()` method:
+
+```javascript
+// ... some config code here
+WarpServer.Model.registerUser(User);
+WarpServer.Model.registerSession(Session);
+WarpServer.Model.register(Alien);
+var api = WarpServer.initialize(config);
+// ... additional code to initialize here
+```
+
+We can now use the special user authentication and management operations made available by the REST API.
 
 ### Warp Object
 
