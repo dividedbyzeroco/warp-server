@@ -142,7 +142,7 @@ var Alien = WarpServer.Model.create({
                 case 2: return 'zygon';
                 case 3: return 'slitheen';
                 case 4: return 'gallifreyan';
-                default: return 'extraterristrial';
+                default: return 'extraterrestrial';
             }
         }
     },
