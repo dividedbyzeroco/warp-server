@@ -105,7 +105,7 @@ For example, if we want to make a model for an `alien` table, we can write it as
 
 ```javascript
 var Alien = Warp.Model.extend({
-    className: 'robot',
+    className: 'alien',
     keys: {
         viewable: ['name', 'age', 'type'],
         actionable: ['name', 'age', 'type']
