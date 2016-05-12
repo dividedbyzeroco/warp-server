@@ -40,10 +40,10 @@ app.use('/api/1', api);
 
 Warp Models make it easy to define the tables found in the database. They contain special parameters which allow you to control the data that comes in and out of the server.
 
-To define a Warp Model, simply create a `Warp.Model` class with the following parameters:
+To define a Warp Model, simply create a `WarpServer.Model` class with the following parameters:
 
 ```javascript
-Warp.Model.create({
+WarpServer.Model.create({
     // Unique name assigned to the endpoint; table name
     className: '{CLASS_NAME}',
     
