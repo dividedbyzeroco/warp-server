@@ -353,7 +353,7 @@ For example:
 curl -X POST \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 -H 'Content-Type: application/json' \
---data '{"type": "supreme_dalek"}' \
+--data '{"age": 300}' \
 http://my-warp-server.com/api/1/classes/alien/141
 ```
 
@@ -365,7 +365,7 @@ The expected response would be similar to the following:
     "message": "Success",
     "result": {
         "id": 141,
-        "type": "supreme_dalek",
+        "age": 300,
         "created_at": "2016-05-12T09:18:44Z",
         "updated_at": "2016-05-12T14:03:21Z"
     }
