@@ -303,7 +303,7 @@ Often times, once a user has logged in, it is also important to place the `X-War
 
 To create an Object for a specific model, execute a POST request to:
 
-`/api/1/classes/{CLASS_NAME}`
+`/classes/{CLASS_NAME}`
 
 with a JSON Object that contains the keys of your new Object:
 
@@ -341,7 +341,7 @@ The expected response would be similar to the following:
 
 To update an Object for a specific model, execute a PUT request to:
 
-`/api/1/classes/{CLASS_NAME}/{ID}`
+`/classes/{CLASS_NAME}/{ID}`
 
 with a JSON Object that contains the modified keys of your existing Object:
 
@@ -377,7 +377,7 @@ The expected response would be similar to the following:
 
 To delete an Object for a specific model, execute a DELETE request to:
 
-`/api/1/classes/{CLASS_NAME}/{ID}`
+`/classes/{CLASS_NAME}/{ID}`
 
 For example:
 
