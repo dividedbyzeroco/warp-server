@@ -31,7 +31,7 @@ var config = {
 };
 
 // Create a Warp Server router for the API
-var api = Warp Server.initialize(config);
+var api = WarpServer.initialize(config);
 
 // Apply the Warp Server router to your preferred base URL, using express' app.use() method
 var app = express();
@@ -42,10 +42,10 @@ app.use('/api/1', api);
 
 Models make it easy to define the tables found in the database. They contain special parameters which allow you to control the data that comes in and out of the server.
 
-To define a Model, simply create a `Warp Server.Model` class with the following parameters:
+To define a Model, simply create a `WarpServer.Model` class with the following parameters:
 
 ```javascript
-Warp Server.Model.create({
+WarpServer.Model.create({
     // Unique name assigned to the endpoint; is usally the same as the table name
     className: '{CLASS_NAME}',
     
@@ -69,7 +69,7 @@ Warp Server.Model.create({
             return;
         },
         // Pre-defined Validation; See section on Pre-defined Validations for more info
-        '{KEY2}': Warp Server.Model.Validation.FixedString(8)
+        '{KEY2}': WarpServer.Model.Validation.FixedString(8)
     },
     
     // Parses the values received, and pushes them to the backend for saving
@@ -81,7 +81,7 @@ Warp Server.Model.create({
             return value;
         },
         // Pre-defined Parser; See section on Pre-defined Parsers for more info
-        '{KEY2}': Warp Server.Model.Parser.Integer
+        '{KEY2}': WarpServer.Model.Parser.Integer
     },
     
     // Formats the values requested, and pushes them to the response
@@ -93,7 +93,7 @@ Warp Server.Model.create({
             return value;
         },
         // Pre-defined Formatter; See section on Pre-defined Formatters for more info
-        '{KEY2}': Warp Server.Model.Parser.Date
+        '{KEY2}': WarpServer.Model.Parser.Date
     },
     
     // Function that maniplates the keys' values before the values are saved
@@ -119,7 +119,7 @@ Warp Server.Model.create({
 For example, if we want to make a model for an `alien` table, we can write it as:
 
 ```javascript
-var Alien = Warp Server.Model.create({
+var Alien = WarpServer.Model.create({
     className: 'alien',
     keys: {
         viewable: ['name', 'age', 'type'],
@@ -130,10 +130,10 @@ var Alien = Warp Server.Model.create({
             if(value.length < 8) return 'name must be 8 or more characters';
             return;
         },
-        'age': Warp Server.Model.Validation.PositiveInteger
+        'age': WarpServer.Model.Validation.PositiveInteger
     },
     parse: {
-        'age': Warp Server.Model.Parser.Integer,
+        'age': WarpServer.Model.Parser.Integer,
         'type': function(value) {
             switch(value)
             {
@@ -162,8 +162,8 @@ In order to tell Warp Server to use the model we just created, we must register 
 
 ```javascript
 // ... some config code here
-Warp Server.Model.register(Alien);
-var api = Warp Server.initialize(config);
+WarpServer.Model.register(Alien);
+var api = WarpServer.initialize(config);
 // ... additional code to initialize here
 ```
 
@@ -192,7 +192,7 @@ keys: {
 
 ## User and Session Models
 
-In order to handle user authentication and management, a special type of model called the User model can be added. It is similar to the `Warp Server.Model` except it requires a few additional fields.
+In order to handle user authentication and management, a special type of model called the User model can be added. It is similar to the `WarpServer.Model` except it requires a few additional fields.
 
 Fields required by the User Model:
 - username
@@ -202,7 +202,7 @@ Fields required by the User Model:
 For example, to create a User model using the `user` table:
 
 ```javascript
-var User = Warp Server.Model.create({
+var User = WarpServer.Model.create({
     className: 'user',
     keys: {
         viewable: ['username', 'email'], // Note that password should not be viewable by the REST API
@@ -211,15 +211,15 @@ var User = Warp Server.Model.create({
     validate: {
         // Pre-defined validators are available for the fields required by the User Model
         // See the section on Pre-defined Validators for more info.
-        'username': Warp Server.Model.Validation.FixedString(8, 16),
-        'password': Warp Server.Model.Validation.Password(8),
-        'email': Warp Server.Model.Validation.Email
+        'username': WarpServer.Model.Validation.FixedString(8, 16),
+        'password': WarpServer.Model.Validation.Password(8),
+        'email': WarpServer.Model.Validation.Email
     },
     parse: {
         // Pre-defined Parsers
         // See the section on Pre-defined Parsers for more info.
-        'username': Warp Server.Model.Parser.NoSpaces,
-        'password': Warp Server.Model.Parser.Password
+        'username': WarpServer.Model.Parser.NoSpaces,
+        'password': WarpServer.Model.Parser.Password
     }
 });
 ```
@@ -228,9 +228,9 @@ In order for us to use the defined model as a User model, we should use `.regist
 
 ```javascript
 // ... some config code here
-Warp Server.Model.registerUser(User);
-Warp Server.Model.register(Alien);
-var api = Warp Server.initialize(config);
+WarpServer.Model.registerUser(User);
+WarpServer.Model.register(Alien);
+var api = WarpServer.initialize(config);
 // ... additional code to initialize here
 ```
 
@@ -243,19 +243,19 @@ Aside from the User Model, we should also define a Session Model that, like the 
 An example of a Session Model would be as follows:
 
 ```javascript
-var Session = Warp Server.Model.create({
+var Session = WarpServer.Model.create({
     className: 'session',
     keys: {
         viewable: [{ 'user': 'user_id' }, 'origin', 'session_token'], // Note that the user field is a pointer to the 'user' table
         actionable: [{ 'user': 'user_id'}, 'origin']
     },
     validate: {
-        'user': Warp Server.Model.Validation.Pointer
+        'user': WarpServer.Model.Validation.Pointer
     },
     
     // In order for us to generate special session tokens, we must use the Pre-defined PreSave function.
     // For more info on these pre-defined functions, please see the secion on PreSave functions.
-    beforeSave: Warp Server.Model.PreSave.Session
+    beforeSave: WarpServer.Model.PreSave.Session
 });
 ```
 
@@ -263,10 +263,10 @@ Then, we register the created model by using the `.registerSession()` method:
 
 ```javascript
 // ... some config code here
-Warp Server.Model.registerUser(User);
-Warp Server.Model.registerSession(Session);
-Warp Server.Model.register(Alien);
-var api = Warp Server.initialize(config);
+WarpServer.Model.registerUser(User);
+WarpServer.Model.registerSession(Session);
+WarpServer.Model.register(Alien);
+var api = WarpServer.initialize(config);
 // ... additional code to initialize here
 ```
 
