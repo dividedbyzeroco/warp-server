@@ -28,7 +28,7 @@ module.exports = {
         });
     },
     first: function(req, res, next) {
-        var id = parseInt(req.params.int);
+        var id = parseInt(req.params.id);
         var first = this.Model.getSession().first(id);
         
         // View object
@@ -55,7 +55,7 @@ module.exports = {
     },
     update: function(req, res, next) {
         var params = _.extend({}, req.body);
-        var id = parseInt(req.params.int);
+        var id = parseInt(req.params.id);
         var update = this.Model.getSession().update({ id: id, fields: params });
         
         // Update object
@@ -69,7 +69,7 @@ module.exports = {
         });
     },
     destroy: function(req, res, next) {
-        var id = parseInt(req.params.int);
+        var id = parseInt(req.params.id);
         var destroy = this.Model.getSession().destroy({ id: id });
         
         // Delete object

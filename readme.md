@@ -499,7 +499,7 @@ To specify constraints, you may do so using the following syntax:
 }
 ```
 
-The constraints available are listed below:
+Available constraints:
 
 - eq: equal to
 - neq: not equal to
@@ -536,6 +536,7 @@ http://localhost:3000/api/1/classes/alien
 ```
 
 ### Sorting
+
 Sorting determines the order by which the results are returned. They are also crucial when using the `limit` and `skip` parameters. In the `order` parameter of the basic query, a JSON string is expected to be placed with the following format:
 
 ```json
@@ -553,4 +554,30 @@ curl -X GET \
 --data-urlencoded 'sort={"type":1,"age":-1}' \
 http://localhost:3000/api/1/classes/alien
 ```
+
+## User API
+
+User accounts are often an essential part of an application. In Warp, these are represented by User Objects. Unlike regular Objects, User Objects have a special endpoint to manage operations applied to them:
+
+`/users`
+
+Thus, all the endpoints for the User object are the same as the endpoints for regular Objects, except for a few minor adjustments:
+
+Create: POST `/users`
+Update: PUT `/users/{ID}`
+Delete: DELETE `/users/{ID}`
+Fetch: GET `/users/{ID}`
+Query: GET `/users`
+
+Also, aside from these endpoints, the User Object has additional operations that can help in user management and authentication. These include logins, registration and session management endpoints.
+
+### Logging In
+
+To log in to an existing user account, execute a POST request to:
+
+`/login`
+
+with a JSON Object that contains the user's username and password:
+
+`{ "username": "{USERNAME}", "password": "{PASSWORD}" }`
 
