@@ -377,7 +377,7 @@ The expected response would be similar to the following:
 
 In order to pass `pointers` as a key when creating or updating an object, the key must be passed as:
 
-`{ "{KEY_NAME}": { "type": "Pointer", "id": "{ID}" }`
+`{ "{KEY_NAME}": { "type": "Pointer", "id": "{ID}" } }`
 
 For example:
 
