@@ -373,6 +373,23 @@ The expected response would be similar to the following:
 ```
 
 
+### Pointers as Keys
+
+In order to pass `pointers` as a key when creating or updating an object, the key must be passed as:
+
+`{ "{KEY_NAME}": { "type": "Pointer", "id": "{ID}" }`
+
+For example:
+
+```bash
+curl -X POST \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'Content-Type: application/json' \
+--data '{"name":"The Doctor", "planet": { "type": "Pointer", "id": 8 }}' \
+http://localhost:3000/api/1/classes/alien
+```
+
+
 ### Deleting Objects
 
 To delete an Object for a specific model, execute a DELETE request to:
@@ -577,7 +594,160 @@ To log in to an existing user account, execute a POST request to:
 
 `/login`
 
-with a JSON Object that contains the user's username and password:
+with a JSON Object that contains the specified user's username and password:
 
 `{ "username": "{USERNAME}", "password": "{PASSWORD}" }`
 
+Also, if you would like to track where the user logged in from, you can use the following header:
+
+`X-Warp-Origin: {ORIGIN}`
+
+For example:
+
+```bash
+curl -X POST \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'X-Warp-Origin: android` \
+--data '{"username": "sarajanesmith", "password": "k9_and_luke"}'
+http://localhost:3000/api/1/login
+```
+
+You will receive a JSON response that contains the user and the session token for the successful login, similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "user": {
+            "type": "Pointer",
+            "id": 5
+        },
+        "origin": "android",
+        "session_token": "981Tu3R831dHdh81s",
+        "created_at": "2016-05-12T22:11:09Z",
+        "updated_at": "2016-05-12T22:11:09Z"
+    }
+}
+```
+
+Once received, it is important to securely store the session token and use it in succeeding queries for as long as the user is logged in:
+
+```bash
+-H 'X-Warp-Session-Key: 981Tu3R831dHdh81s'
+```
+
+### Validating Users/Fetching Current User
+
+To validate if a user session token is valid or to fetch the current user associated with a session token, execute a GET request to:
+
+`users/me`
+
+with the session token included in the header:
+
+`X-Warp-Session-Key: 981Tu3R831dHdh81s`
+
+For example:
+
+```bash
+curl -X GET \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'X-Warp-Session-Token: 981Tu3R831dHdh81s` \
+http://localhost:3000/api/1/users/me
+```
+
+The expected response would be similar to the following, if the session token is valid:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "id": 5,
+        "username": "sarajanesmith",
+        "email": "sarajanesmith@tardis.com",
+        "created_at": "2016-05-12T22:11:09Z",
+        "updated_at": "2016-05-12T22:11:09Z"
+    }
+}
+```
+
+Otherwise, it will return a Warp Error in the JSON response. For more info, please see the corresponding section regarding Warp Errors.
+
+### Signing Up
+
+To register a new user, execute a POST request to:
+
+`users`
+
+with a JSON Object that contains the desired keys of your new Object, including `username`, `password` and `email`:
+
+```json
+{
+    "username": "{USERNAME}",
+    "password": "{PASSWORD}",
+    "email": "{EMAIL}",
+    "{KEY1}": "{VALUE1}", 
+    "{KEY2}": "{VALUE2}"
+}
+```
+
+For example:
+
+```bash
+curl -X POST \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+--data '{"username": "marthajones", "password": "doctorjones", "email": "martha@unit.com.uk"}' \
+http://localhost:3000/api/1/users
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "id": 9,
+        "username": "marthajones",
+        "email": "martha@unit.com.uk",
+        "created_at": "2016-05-12T22:11:09Z",
+        "updated_at": "2016-05-12T22:11:09Z"
+    }
+}
+```
+
+After creating the user, it is often a good practice to chain another request to log in to the newly created user account automatically.
+
+### Logging Out
+
+To log out of an existing user session, execute a POST request to:
+
+`logout`
+
+with the session token included in the header:
+
+`X-Warp-Session-Key: 981Tu3R831dHdh81s`
+
+For example:
+
+```bash
+curl -X POST \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'X-Warp-Session-Token: 981Tu3R831dHdh81s` \
+http://localhost:3000/api/1/logout
+```
+
+The expected response would be similar to the following, if the session token is valid:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "id": 9,
+        "updated_at": "2016-05-12T22:11:09Z",
+        "deleted_at": "2016-05-12T22:11:09Z"
+    }
+}
+```
