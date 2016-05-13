@@ -563,11 +563,11 @@ User accounts are often an essential part of an application. In Warp, these are 
 
 Thus, all the endpoints for the User object are the same as the endpoints for regular Objects, except for a few minor adjustments:
 
-Create: POST `/users`
-Update: PUT `/users/{ID}`
-Delete: DELETE `/users/{ID}`
-Fetch: GET `/users/{ID}`
-Query: GET `/users`
+- Create: POST `/users`
+- Update: PUT `/users/{ID}`
+- Delete: DELETE `/users/{ID}`
+- Fetch: GET `/users/{ID}`
+- Query: GET `/users`
 
 Also, aside from these endpoints, the User Object has additional operations that can help in user management and authentication. These include logins, registration and session management endpoints.
 

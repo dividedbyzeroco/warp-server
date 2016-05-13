@@ -23,7 +23,7 @@ module.exports = {
             next(err);
         });
     },
-    first: function(req, next) {
+    first: function(req, res, next) {
         var className = req.params.className;
         var id = parseInt(req.params.id);
         var first = this.Model.getByClassName(className).first(id);
