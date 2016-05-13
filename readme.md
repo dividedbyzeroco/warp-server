@@ -723,7 +723,7 @@ After creating the user, it is often a good practice to chain another request to
 
 To log out of an existing user session, execute a POST request to:
 
-`logout`
+`/logout`
 
 with the session token included in the header:
 
