@@ -1,11 +1,11 @@
-WarpServer
-==========
+Warp Server
+===========
 
-__WarpServer__ is a library for implementing the Warp Framework on Node.js. It consists of several classes which aim to produce endpoints easily accessible via a standard REST API. Currently, WarpServer uses `mysql` as its backend of choice and implements validators, parsers and formatters that can control the data coming in and out of the server.
+__Warp Server__ is a library for implementing the Warp Framework on Node.js. It consists of several classes which aim to produce endpoints easily accessible via a standard REST API. Currently, Warp Server uses `mysql` as its backend of choice and implements validators, parsers and formatters that can control the data coming in and out of the server.
 
 ## Installation
 
-To install WarpServer via npm, simply use the install command to save it in your package.json:
+To install Warp Server via npm, simply use the install command to save it in your package.json:
 
 ```javascript
 npm install --save warp-server
@@ -13,12 +13,12 @@ npm install --save warp-server
 
 ## Configuration
 
-WarpServer is built on top of `express` and can be initialized in any `express` project. To do so, simply add the following configruation to the main file of your project:
+Warp Server is built on top of `express` and can be initialized in any `express` project. To do so, simply add the following configruation to the main file of your project:
 
 ```javascript
 // References
 var express = require('express');
-var WarpServer = require('warp-server');
+var Warp Server = require('warp-server');
 
 // Prepare config; You can also use process.env or store the config in a json file
 var config = {
@@ -30,10 +30,10 @@ var config = {
     apiKey: '12345678abcdefg'
 };
 
-// Create a WarpServer router for the API
-var api = WarpServer.initialize(config);
+// Create a Warp Server router for the API
+var api = Warp Server.initialize(config);
 
-// Apply the WarpServer router to your preferred base URL, using express' app.use() method
+// Apply the Warp Server router to your preferred base URL, using express' app.use() method
 var app = express();
 app.use('/api/1', api);
 ```
@@ -42,10 +42,10 @@ app.use('/api/1', api);
 
 Models make it easy to define the tables found in the database. They contain special parameters which allow you to control the data that comes in and out of the server.
 
-To define a Model, simply create a `WarpServer.Model` class with the following parameters:
+To define a Model, simply create a `Warp Server.Model` class with the following parameters:
 
 ```javascript
-WarpServer.Model.create({
+Warp Server.Model.create({
     // Unique name assigned to the endpoint; is usally the same as the table name
     className: '{CLASS_NAME}',
     
@@ -69,7 +69,7 @@ WarpServer.Model.create({
             return;
         },
         // Pre-defined Validation; See section on Pre-defined Validations for more info
-        '{KEY2}': WarpServer.Model.Validation.FixedString(8)
+        '{KEY2}': Warp Server.Model.Validation.FixedString(8)
     },
     
     // Parses the values received, and pushes them to the backend for saving
@@ -81,7 +81,7 @@ WarpServer.Model.create({
             return value;
         },
         // Pre-defined Parser; See section on Pre-defined Parsers for more info
-        '{KEY2}': WarpServer.Model.Parser.Integer
+        '{KEY2}': Warp Server.Model.Parser.Integer
     },
     
     // Formats the values requested, and pushes them to the response
@@ -93,7 +93,7 @@ WarpServer.Model.create({
             return value;
         },
         // Pre-defined Formatter; See section on Pre-defined Formatters for more info
-        '{KEY2}': WarpServer.Model.Parser.Date
+        '{KEY2}': Warp Server.Model.Parser.Date
     },
     
     // Function that maniplates the keys' values before the values are saved
@@ -119,7 +119,7 @@ WarpServer.Model.create({
 For example, if we want to make a model for an `alien` table, we can write it as:
 
 ```javascript
-var Alien = WarpServer.Model.create({
+var Alien = Warp Server.Model.create({
     className: 'alien',
     keys: {
         viewable: ['name', 'age', 'type'],
@@ -130,10 +130,10 @@ var Alien = WarpServer.Model.create({
             if(value.length < 8) return 'name must be 8 or more characters';
             return;
         },
-        'age': WarpServer.Model.Validation.PositiveInteger
+        'age': Warp Server.Model.Validation.PositiveInteger
     },
     parse: {
-        'age': WarpServer.Model.Parser.Integer,
+        'age': Warp Server.Model.Parser.Integer,
         'type': function(value) {
             switch(value)
             {
@@ -158,12 +158,12 @@ var Alien = WarpServer.Model.create({
 });
 ```
 
-In order to tell WarpServer to use the model we just created, we must register it before we initialize WarpServer:
+In order to tell Warp Server to use the model we just created, we must register it before we initialize Warp Server:
 
 ```javascript
 // ... some config code here
-WarpServer.Model.register(Alien);
-var api = WarpServer.initialize(config);
+Warp Server.Model.register(Alien);
+var api = Warp Server.initialize(config);
 // ... additional code to initialize here
 ```
 
@@ -171,7 +171,7 @@ We can now use the REST API to operate on `alien` objects. See the section regar
 
 ## Pointers
 
-Relations are a vital aspect of Relational Databases. With regards to the WarpServer, these are represented by `pointers`. Pointers are specific keys (fields) that point to a specific object from another table. This can be thought of as the `belongs_to` relationship or the `foreign_key` relationship in SQL databases. 
+Relations are a vital aspect of Relational Databases. With regards to the Warp Server, these are represented by `pointers`. Pointers are specific keys (fields) that point to a specific object from another table. This can be thought of as the `belongs_to` relationship or the `foreign_key` relationship in SQL databases. 
 
 To specify a `pointer` in your Model, you may do so using the following syntax:
 
@@ -192,7 +192,7 @@ keys: {
 
 ## User and Session Models
 
-In order to handle user authentication and management, a special type of model called the User model can be added. It is similar to the `WarpServer.Model` except it requires a few additional fields.
+In order to handle user authentication and management, a special type of model called the User model can be added. It is similar to the `Warp Server.Model` except it requires a few additional fields.
 
 Fields required by the User Model:
 - username
@@ -202,7 +202,7 @@ Fields required by the User Model:
 For example, to create a User model using the `user` table:
 
 ```javascript
-var User = WarpServer.Model.create({
+var User = Warp Server.Model.create({
     className: 'user',
     keys: {
         viewable: ['username', 'email'], // Note that password should not be viewable by the REST API
@@ -211,15 +211,15 @@ var User = WarpServer.Model.create({
     validate: {
         // Pre-defined validators are available for the fields required by the User Model
         // See the section on Pre-defined Validators for more info.
-        'username': WarpServer.Model.Validation.FixedString(8, 16),
-        'password': WarpServer.Model.Validation.Password(8),
-        'email': WarpServer.Model.Validation.Email
+        'username': Warp Server.Model.Validation.FixedString(8, 16),
+        'password': Warp Server.Model.Validation.Password(8),
+        'email': Warp Server.Model.Validation.Email
     },
     parse: {
         // Pre-defined Parsers
         // See the section on Pre-defined Parsers for more info.
-        'username': WarpServer.Model.Parser.NoSpaces,
-        'password': WarpServer.Model.Parser.Password
+        'username': Warp Server.Model.Parser.NoSpaces,
+        'password': Warp Server.Model.Parser.Password
     }
 });
 ```
@@ -228,9 +228,9 @@ In order for us to use the defined model as a User model, we should use `.regist
 
 ```javascript
 // ... some config code here
-WarpServer.Model.registerUser(User);
-WarpServer.Model.register(Alien);
-var api = WarpServer.initialize(config);
+Warp Server.Model.registerUser(User);
+Warp Server.Model.register(Alien);
+var api = Warp Server.initialize(config);
 // ... additional code to initialize here
 ```
 
@@ -243,19 +243,19 @@ Aside from the User Model, we should also define a Session Model that, like the 
 An example of a Session Model would be as follows:
 
 ```javascript
-var Session = WarpServer.Model.create({
+var Session = Warp Server.Model.create({
     className: 'session',
     keys: {
         viewable: [{ 'user': 'user_id' }, 'origin', 'session_token'], // Note that the user field is a pointer to the 'user' table
         actionable: [{ 'user': 'user_id'}, 'origin']
     },
     validate: {
-        'user': WarpServer.Model.Validation.Pointer
+        'user': Warp Server.Model.Validation.Pointer
     },
     
     // In order for us to generate special session tokens, we must use the Pre-defined PreSave function.
     // For more info on these pre-defined functions, please see the secion on PreSave functions.
-    beforeSave: WarpServer.Model.PreSave.Session
+    beforeSave: Warp Server.Model.PreSave.Session
 });
 ```
 
@@ -263,10 +263,10 @@ Then, we register the created model by using the `.registerSession()` method:
 
 ```javascript
 // ... some config code here
-WarpServer.Model.registerUser(User);
-WarpServer.Model.registerSession(Session);
-WarpServer.Model.register(Alien);
-var api = WarpServer.initialize(config);
+Warp Server.Model.registerUser(User);
+Warp Server.Model.registerSession(Session);
+Warp Server.Model.register(Alien);
+var api = Warp Server.initialize(config);
 // ... additional code to initialize here
 ```
 
@@ -525,7 +525,7 @@ http://localhost:3000/api/1/classes/alien
 
 ### Limit
 
-By default, WarpServer limits results to the top 100 objects that satisfy the query criteria. In order to increase the limit, you can specify the desired value via the `limit` parameter. Also, in order to implement pagination for the results, you can combine the `limit` with the `skip` parameter. The `skip` parameter indicates how many items are to be skipped when executing the query. In terms of scalability, it is advisable to limit results to 1000 and use skip to determine pagination.
+By default, Warp Server limits results to the top 100 objects that satisfy the query criteria. In order to increase the limit, you can specify the desired value via the `limit` parameter. Also, in order to implement pagination for the results, you can combine the `limit` with the `skip` parameter. The `skip` parameter indicates how many items are to be skipped when executing the query. In terms of scalability, it is advisable to limit results to 1000 and use skip to determine pagination.
 
 For example:
 
