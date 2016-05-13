@@ -608,7 +608,7 @@ For example:
 curl -X POST \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 -H 'X-Warp-Origin: android` \
---data '{"username": "sarajanesmith", "password": "k9_and_luke"}'
+--data '{"username": "sarajanesmith", "password": "k9_and_luke"}' \
 http://localhost:3000/api/1/login
 ```
 
