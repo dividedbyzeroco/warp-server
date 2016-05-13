@@ -641,7 +641,7 @@ Once received, it is important to securely store the session token and use it in
 
 To validate if a user session token is valid or to fetch the current user associated with a session token, execute a GET request to:
 
-`users/me`
+`/users/me`
 
 with the session token included in the header:
 
@@ -652,7 +652,7 @@ For example:
 ```bash
 curl -X GET \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
--H 'X-Warp-Session-Token: 981Tu3R831dHdh81s` \
+-H 'X-Warp-Session-Token: 981Tu3R831dHdh81s' \
 http://localhost:3000/api/1/users/me
 ```
 
@@ -678,7 +678,7 @@ Otherwise, it will return a Warp Error in the JSON response. For more info, plea
 
 To register a new user, execute a POST request to:
 
-`users`
+`/users`
 
 with a JSON Object that contains the desired keys of your new Object, including `username`, `password` and `email`:
 
