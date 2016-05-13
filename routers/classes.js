@@ -25,7 +25,7 @@ module.exports = {
     },
     first: function(req, next) {
         var className = req.params.className;
-        var id = req.params.id;
+        var id = parseInt(req.params.int);
         var first = this.Model.getByClassName(className).first(id);
         
         // View object
@@ -55,7 +55,7 @@ module.exports = {
     update: function(req, res, next) {
         var className = req.params.className;
         var params = _.extend({}, req.body);
-        var id = req.params.id;
+        var id = parseInt(req.params.int);
         var update = this.Model.getByClassName(className).update({ id: id, fields: params });
         
         // Update object
@@ -70,7 +70,7 @@ module.exports = {
     },
     destroy: function(req, res, next) {
         var className = req.params.className;
-        var id = req.params.id;
+        var id = parseInt(req.params.int);
         var destroy = this.Model.getByClassName(className).destroy({ id: id });
         
         // Delete object

@@ -25,7 +25,7 @@ module.exports = {
         });
     },
     first: function(req, res, next) {
-        var id = req.params.id;
+        var id = parseInt(req.params.int);
         var first = this.Model.getUser().first(id);
         
         // View object
@@ -74,7 +74,7 @@ module.exports = {
     },
     update: function(req, res, next) {
         var params = _.extend({}, req.body);
-        var id = req.params.id;
+        var id = parseInt(req.params.int);
         var sessionToken = req.sessionToken;
         var query = new this.Query.View(this.Model.getSession().className);
         
@@ -100,7 +100,7 @@ module.exports = {
         });
     },
     destroy: function(req, res, next) {
-        var id = req.params.id;
+        var id = parseInt(req.params.int);
         var sessionToken = req.sessionToken;
         var query = new this.Query.View(this.Model.getSession().className);
         

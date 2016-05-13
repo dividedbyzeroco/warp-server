@@ -435,7 +435,6 @@ The expected response would be similar to the following:
 }
 ```
 
-
 ## Queries
 
 There are certain scenarios when you may need to find more than one Object from a model. In these instances, it would be convenient to use Queries. Queries allow you to find specific Objects based on a set of criteria.
@@ -485,7 +484,6 @@ The expected response would be similar to the following:
     }]
 }
 ```
-
 
 ### Constraints
 
@@ -555,3 +553,4 @@ curl -X GET \
 --data-urlencoded 'sort={"type":1,"age":-1}' \
 http://localhost:3000/api/1/classes/alien
 ```
+
