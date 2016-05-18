@@ -23,7 +23,7 @@ module.exports = {
             'id': 'id',
             'up': 'up',
             'down': 'down',
-            'commited_at': 'commited_at',
+            'committed_at': 'commited_at',
             'created_at': 'created_at',
             'updated_at': 'updated_at'
         })
@@ -52,7 +52,7 @@ module.exports = {
             'id': 'id',
             'up': 'up',
             'down': 'down',
-            'commited_at': 'commited_at',
+            'committed_at': 'commited_at',
             'created_at': 'created_at',
             'updated_at': 'updated_at'
         })
