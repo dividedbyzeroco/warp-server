@@ -106,6 +106,24 @@ _.extend(ViewQuery.prototype, {
         var config = config || {};
         return ViewQuery.getDatabase().query(this._getFindViewQuery());
     },
+    _addChain: function(query, next, fail) {  
+        // Ensure a WarpError is returned if it fails 
+        query = query.catch(function(err) {
+            if(err.name !== 'WarpError')
+                throw new WarpError(WarpError.Code.QueryError, 'invalid query request');
+            else
+                throw err;
+        });
+        
+        // Check if next and fail exist
+        if(typeof next === 'function')
+            query = query.then(next);
+        if(typeof fail === 'function')
+            query = query.catch(fail);
+            
+        // Return the modified query
+        return query;
+    },
     select: function(select) {
         this._keys = select;
         return this;
@@ -129,21 +147,9 @@ _.extend(ViewQuery.prototype, {
     find: function(next, fail) {
         // Retrieve query
         var query = this._execute();
-                
-        // Ensure a WarpError is returned if it fails        
-        query = query.catch(function(err) {
-            if(err.name !== 'WarpError')
-                throw new WarpError(WarpError.Code.QueryError, 'invalid query request');
-            else
-                throw err;
-        });
-        
-        // Check function params
-        if(typeof next === 'function')
-            query = query.then(next);
-        if(typeof fail === 'function')
-            query = query.catch(fail);
-        return query;
+                        
+        // Modify the query chain       
+        return this._addChain(query, next, fail);
     },
     first: function(next, fail) {
         // Limit query to only one result
@@ -153,22 +159,10 @@ _.extend(ViewQuery.prototype, {
         var query = this._execute()
         .then(function(result) {
             return result[0];    
-        });
+        });        
         
-        // Ensure a WarpError is returned if it fails        
-        query = query.catch(function(err) {
-            if(err.name !== 'WarpError')
-                throw new WarpError(WarpError.Code.QueryError, 'invalid query request');
-            else
-                throw err;
-        });
-        
-        // Check function params
-        if(typeof next === 'function')
-            query = query.then(next);
-        if(typeof fail === 'function')
-            query = query.catch(fail);
-        return query;
+        // Modify the query chain       
+        return this._addChain(query, next, fail);
     }
 });
 

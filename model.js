@@ -26,9 +26,9 @@ _.extend(Model, {
     _subclasses: {},
     _user: null,
     _session: null,
-    initialize: function(viewQuery, actionQuery) {
-        this._viewQuery = viewQuery;
-        this._actionQuery = actionQuery;
+    initialize: function(query) {
+        this._viewQuery = query.View;
+        this._actionQuery = query.Action;
         return this;
     },
     getInternalKeys: function() {
