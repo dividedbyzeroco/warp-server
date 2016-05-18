@@ -42,6 +42,16 @@ _.extend(Migration.prototype, {
         })
         .update();
     },
+    destroy: function() {
+        // Update a migration
+        var now = moment().tz('UTC');
+        var action = new Migration._actionQuery(Migration.className, this.id);        
+        return action.fields({
+            'updated_at': now.format('YYYY-MM-DD HH:mm:ss'),
+            'deleted_at': now.format('YYYY-MM-DD HH:mm:ss')
+        })
+        .update();
+    },
     commit: function() {
         // Execute Up
     },
