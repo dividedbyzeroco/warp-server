@@ -78,7 +78,7 @@ module.exports = {
         var migration = new this.Migration(options);
         
         // Create object
-        migration.create(function(result)
+        migration.create().then(function(result)
         {
             res.json({ status: 200, message: 'Success', result: result });    
         })
@@ -94,7 +94,7 @@ module.exports = {
         var migration = new this.Migration(options);
         
         // Update object
-        migration.update(function(result)
+        migration.update().then(function(result)
         {
             res.json({ status: 200, message: 'Success', result: result });
         })
@@ -108,7 +108,7 @@ module.exports = {
         var migration = new this.Migration({ id: id });
         
         // Delete object
-        migration.destroy(function(result)
+        migration.destroy().then((function(result)
         {
             res.json({ status: 200, message: 'Success', result: result });
         })
