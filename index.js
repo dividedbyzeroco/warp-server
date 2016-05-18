@@ -17,19 +17,22 @@ var WarpServer = {
 // Static methods
 _.extend(WarpServer, {
     initialize: function(config) {        
-        if(!config.host) throw new this.Error(this.Error.Code.MissingConfiguration, 'DB Host must be set');
-        if(!config.user) throw new this.Error(this.Error.Code.MissingConfiguration, 'DB User must be set');
-        if(!config.password) throw new this.Error(this.Error.Code.MissingConfiguration, 'DB Password must be set');
-        if(!config.apiKey) throw new this.Error(this.Error.Code.MissingConfiguration, 'API Key must be set');
-        if(!config.masterKey) throw new this.Error(this.Error.Code.MissingConfiguration, 'Master Key must be set')
+        if(!config.database) throw new this.Error(this.Error.Code.MissingConfiguration, 'DB configuration must be set');
+        if(!config.database.host) throw new this.Error(this.Error.Code.MissingConfiguration, 'DB Host must be set');
+        if(!config.database.user) throw new this.Error(this.Error.Code.MissingConfiguration, 'DB User must be set');
+        if(!config.database.password) throw new this.Error(this.Error.Code.MissingConfiguration, 'DB Password must be set');
+        if(!config.security) throw new this.Error(this.Error.Code.MissingConfiguration, 'Security keys must be set');
+        if(!config.security.apiKey) throw new this.Error(this.Error.Code.MissingConfiguration, 'API Key must be set');
+        if(!config.security.masterKey) throw new this.Error(this.Error.Code.MissingConfiguration, 'Master Key must be set')
                 
-        this._database = require('./services/database').initialize(config);
+        this._database = require('./services/database').initialize(config.database);
+        this._security = require('./services/security');
         this.Query.View.initialize(this._database);
         this.Query.Action.initialize(this._database);
         this.Query.Schema.initialize(this._database);
-        this.Model.initialize(this.Query);
+        this.Model.initialize(this._security, this.Query);
         this.Migration.initialize(config, this.Query);
-
+        
         // Prepare routers
         var router = express.Router();
         var middleware = require('./routers/middleware');

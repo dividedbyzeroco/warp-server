@@ -206,7 +206,10 @@ _.extend(SchemaQuery.prototype, {
         // Ensure a WarpError is returned if it fails 
         query = query.catch(function(err) {
             if(err.name !== 'WarpError')
+            {
+                console.error('[Warp Query] Invalid query request', err.message, err.stack);
                 throw new WarpError(WarpError.Code.QueryError, 'invalid query request');
+            }
             else
                 throw err;
         });

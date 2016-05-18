@@ -721,7 +721,7 @@ After creating the user, it is often good practice to chain another request to l
 
 ### Logging Out
 
-To log out of an existing user session, execute a POST request to:
+To log out of an existing user session, execute a GET request to:
 
 `/logout`
 
@@ -732,7 +732,7 @@ with the session token included in the header:
 For example:
 
 ```bash
-curl -X POST \
+curl -X GET \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 -H 'X-Warp-Session-Token: 981Tu3R831dHdh81s` \
 http://localhost:3000/api/1/logout

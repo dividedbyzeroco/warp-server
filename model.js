@@ -2,7 +2,6 @@
 var moment = require('moment-timezone');
 var _ = require('underscore');
 var WarpError = require('./error');
-var security = require('./services/security');
 
 /******************************************************/
 
@@ -26,7 +25,8 @@ _.extend(Model, {
     _subclasses: {},
     _user: null,
     _session: null,
-    initialize: function(query) {
+    initialize: function(security, query) {
+        this._security = security;
         this._viewQuery = query.View;
         this._actionQuery = query.Action;
         return this;
@@ -344,7 +344,7 @@ Model.Parser = {
         return value.split(' ').join('');
     },
     Password: function(value) {
-        return security.hash(value, 8);
+        return this._security.hash(value, 8);
     },
     Integer: function(value) {
         return parseInt(value, 10);

@@ -11,10 +11,27 @@ module.exports = {
             skip: req.query.skip || 0
         };
         
-        var find = this.Model.getByClassName(className).find(options);
-            
+        // Remove all deleted migrations
+        options.where.deleted_at = {
+            'ex': false
+        };
+        
+        var query = new this.Query.View(this.Migration.className);
+                
         // View objects
-        find.then(function(result)
+        query.select({
+            'id': 'id',
+            'up': 'up',
+            'down': 'down',
+            'commited_at': 'commited_at',
+            'created_at': 'created_at',
+            'updated_at': 'updated_at'
+        })
+        .where(options.where)
+        .sort(options.sort)
+        .limit(options.limit)
+        .skip(options.skip)
+        .find(function(result)
         {
             res.json({ status: 200, message: 'Success', result: result });
         })
@@ -25,11 +42,29 @@ module.exports = {
     },
     first: function(req, res, next) {
         var className = req.params.className;
-        var id = parseInt(req.params.id);
-        var first = this.Model.getByClassName(className).first(id);
+        var id = req.params.id;
         
         // View object
-        first.then(function(result) 
+        var query = new this.Query.View(this.Migration.className);
+                
+        // View objects
+        query.select({
+            'id': 'id',
+            'up': 'up',
+            'down': 'down',
+            'commited_at': 'commited_at',
+            'created_at': 'created_at',
+            'updated_at': 'updated_at'
+        })
+        .where({
+            'id': {
+                'eq': id
+            },
+            'deleted_at': {
+                'ex': false
+            }
+        })
+        .first(function(result) 
         {        
             res.json({ status: 200, message: 'Success', result: result });
         })
@@ -39,11 +74,11 @@ module.exports = {
         });
     },
     create: function(req, res, next) {
-        var className = req.params.className;
-        var fields = _.extend({}, req.body);
-        var create = this.Model.getByClassName(className).create({ fields: fields });
+        var options = _.extend({}, req.body);
+        var migration = new this.Migration(options);
+        
         // Create object
-        create.then(function(result)
+        migration.create(function(result)
         {
             res.json({ status: 200, message: 'Success', result: result });    
         })
@@ -53,13 +88,13 @@ module.exports = {
         });
     },
     update: function(req, res, next) {
-        var className = req.params.className;
-        var params = _.extend({}, req.body);
-        var id = parseInt(req.params.id);
-        var update = this.Model.getByClassName(className).update({ id: id, fields: params });
+        var options = _.extend({}, req.body);
+        var id = req.params.id;
+        options.id = id;
+        var migration = new this.Migration(options);
         
         // Update object
-        update.then(function(result)
+        migration.update(function(result)
         {
             res.json({ status: 200, message: 'Success', result: result });
         })
@@ -69,12 +104,11 @@ module.exports = {
         });
     },
     destroy: function(req, res, next) {
-        var className = req.params.className;
-        var id = parseInt(req.params.id);
-        var destroy = this.Model.getByClassName(className).destroy({ id: id });
+        var id = req.params.id;
+        var migration = new this.Migration({ id: id });
         
         // Delete object
-        destroy.then(function(result)
+        migration.destroy(function(result)
         {
             res.json({ status: 200, message: 'Success', result: result });
         })
