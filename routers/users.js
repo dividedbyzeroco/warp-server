@@ -1,4 +1,4 @@
-var moment = require('moment');
+var moment = require('moment-timezone');
 var _ = require('underscore');
 var security = require('../services/security');
 
@@ -79,7 +79,7 @@ module.exports = {
         var query = new this.Query.View(this.Model.getSession().className);
         
         // Check session
-        query.where({ 'session_token': { 'eq' : sessionToken }, 'deleted_at': { 'gt': moment().format('YYYY-MM-DD HH:mm:ss') } })
+        query.where({ 'session_token': { 'eq' : sessionToken }, 'deleted_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } })
         .first(function(result) 
         {
             if(!result)
@@ -105,7 +105,7 @@ module.exports = {
         var query = new this.Query.View(this.Model.getSession().className);
         
         // Check session
-        query.where({ 'session_token': { 'eq' : sessionToken }, 'deleted_at': { 'gt': moment().format('YYYY-MM-DD HH:mm:ss') } })
+        query.where({ 'session_token': { 'eq' : sessionToken }, 'deleted_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } })
         .first(function(result) 
         {
             if(!result)
@@ -129,7 +129,7 @@ module.exports = {
         var sessionToken = req.sessionToken;
         var query = new this.Query.View(this.Model.getSession().className);
         
-        query.where({ 'session_token': { 'eq' : sessionToken }, 'deleted_at': { 'gt': moment().format('YYYY-MM-DD HH:mm:ss') } })
+        query.where({ 'session_token': { 'eq' : sessionToken }, 'deleted_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } })
         .first(function(result) 
         {
             if(!result)
@@ -193,7 +193,7 @@ module.exports = {
         var sessionToken = req.sessionToken;
         var query = new this.Query.View(this.Model.getSession().className);
         
-        query.where({ 'session_token': { 'eq' : sessionToken }, 'deleted_at': { 'gt': moment().format('YYYY-MM-DD HH:mm:ss') } })
+        query.where({ 'session_token': { 'eq' : sessionToken }, 'deleted_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } })
         .first(function(session) 
         {
             if(!session)
@@ -203,7 +203,7 @@ module.exports = {
             
             var action = new this.Query.Action(this.Model.getSession().className, session.id);
             
-            return action.fields({ deleted_at: moment().format('YYYY-MM-DD HH:mm:ss') })
+            return action.fields({ deleted_at: moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') })
             .update(function(result) {
                 res.json({ status: 200, message: 'Success', result: result });
             });

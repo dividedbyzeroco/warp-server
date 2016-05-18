@@ -355,7 +355,7 @@ Model.Parser = {
         }
     },
     Date: function(value) {
-        return moment(value).format('YYYY-MM-DD HH:mm:ss');
+        return moment(value).tz('UTC').format('YYYY-MM-DD HH:mm:ss');
     },
     Pointer: function(pointer) {
         return typeof pointer === 'object' ? pointer.id : JSON.parse(pointer).id;
@@ -383,7 +383,7 @@ Model.PreSave = {
         {
             // Generate session token
             keys.session_token = (keys.user_id * 1024 * 1024).toString(36) + '+' + (Math.random()*1e32).toString(36) + parseInt(keys.user_id*1e32).toString(36);
-            keys.deleted_at = moment().add(30, 'days').format('YYYY-MM-DD HH:mm:ss');
+            keys.deleted_at = moment().tz('UTC').add(30, 'days').format('YYYY-MM-DD HH:mm:ss');
         }
         
         return keys;
