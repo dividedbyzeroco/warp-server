@@ -43,7 +43,7 @@ _.extend(WarpServer, {
         
         // Apply routers
         router.use(middleware.enableCors);
-        router.use(middleware.requireAPIKey(config.apiKey));
+        router.use(middleware.requireAPIKey(config.security.apiKey));
         router.use(middleware.sessionToken);
         classRouter.apply(this, router);
         userRouter.apply(this, router);
