@@ -118,11 +118,11 @@ module.exports = {
         });
     },
     apply: function(context, router) {
-        router.get('/migrations/:className', this.find.bind(context));
-        router.get('/migrations/:className/:id', this.first.bind(context));
-        router.post('/migrations/:className', this.create.bind(context));
-        router.put('/migrations/:className/:id', this.update.bind(context));
-        router.delete('/migrations/:className/:id', this.destroy.bind(context));
+        router.get('/migrations', this.find.bind(context));
+        router.get('/migrations/:id', this.first.bind(context));
+        router.post('/migrations', this.create.bind(context));
+        router.put('/migrations/:id', this.update.bind(context));
+        router.delete('/migrations/:id', this.destroy.bind(context));
         return router;
     }
 };
