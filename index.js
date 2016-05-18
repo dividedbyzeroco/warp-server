@@ -1,5 +1,6 @@
 // References
 var express = require('express');
+var bodyParser = require('body-parser');
 var _ = require('underscore');
 
 // Define Warp Server
@@ -41,13 +42,20 @@ _.extend(WarpServer, {
         var sessionRouter = require('./routers/sessions');
         var migrationRouter = require('./routers/migrations');
         
-        // Apply routers
+        // Apply middleware
+        router.use(bodyParser.json());
+        router.use(bodyParser.urlencoded({ extended: false }));
         router.use(middleware.enableCors);
-        router.use(middleware.requireAPIKey(config.security.apiKey));
         router.use(middleware.sessionToken);
+        
+        // Apply apiKey-only routers
+        router.use(middleware.requireAPIKey(config.security.apiKey));
         classRouter.apply(this, router);
         userRouter.apply(this, router);
         sessionRouter.apply(this, router);
+        
+        // Apply masterKey-required routers
+        router.use(middleware.requireMasterKey(config.security.masterKey));
         migrationRouter.apply(this, router);
         
         return router;

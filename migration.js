@@ -52,7 +52,6 @@ _.extend(Migration.prototype, {
 
 // Static methods
 _.extend(Migration, {
-    _masterKey: null,
     _viewQuery: null,
     _actionQuery: null,
     _schemaQuery: null,
@@ -85,7 +84,6 @@ _.extend(Migration, {
     className: 'migration',
     activated: false,
     initialize: function(config, query) {
-        this._masterKey = config.security.masterKey;
         this._viewQuery = query.View;
         this._actionQuery = query.Action;
         this._schemaQuery = query.Schema;

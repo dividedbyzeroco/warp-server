@@ -18,7 +18,20 @@ module.exports = {
             }
             else
                 next();
-        }
+        };
+    },
+    requireMasterKey: function(masterKey) {
+        return function (req, res, next) {
+            var key = req.get('X-Warp-Master-Key');
+            
+            if(!key || key !== masterKey)
+            {
+                var error = new WarpError(WarpError.Code.ForbiddenOperation, 'Forbidden Master Operation');
+                next(error);
+            }
+            else
+                next();
+        };
     },
     sessionToken: function(req, res, next) {
         req.sessionToken = req.get('X-Warp-Session-Token');
