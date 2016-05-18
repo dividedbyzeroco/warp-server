@@ -108,7 +108,7 @@ module.exports = {
         var migration = new this.Migration({ id: id });
         
         // Delete object
-        migration.destroy().then((function(result)
+        migration.destroy().then(function(result)
         {
             res.json({ status: 200, message: 'Success', result: result });
         })
