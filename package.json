@@ -24,7 +24,6 @@
     "bcryptjs": "^2.3.0",
     "body-parser": "^1.15.1",
     "express": "^4.13.4",
-    "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
     "mysql": "^2.10.2",
     "promise": "^7.1.1",
