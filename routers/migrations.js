@@ -173,8 +173,8 @@ module.exports = {
         router.put('/migrations/:id', this.update.bind(context));
         router.delete('/migrations/:id', this.destroy.bind(context));
         router.post('/migrations/commit', this.commit.bind(context));
-        router.post('/migrations/revert', this.commit.bind(context));
-        router.post('/migrations/reset', this.commit.bind(context));
+        router.post('/migrations/revert', this.revert.bind(context));
+        router.post('/migrations/reset', this.reset.bind(context));
         return router;
     }
 };
