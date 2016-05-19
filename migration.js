@@ -122,7 +122,13 @@ _.extend(Migration.prototype, {
     },
     commit: function() {
         // Create base promise
-        var promise = new Promise(function(resolve) { resolve(); });
+        var now = moment().tz('UTC');
+        var action = new Migration._actionQuery(Migration.className, this.id);        
+        var promise = action.fields({
+            'updated_at': now.format('YYYY-MM-DD HH:mm:ss'),
+            'committed_at': now.format('YYYY-MM-DD HH:mm:ss')
+        })
+        .update();
         
         // Iterate through each action
         for(var action in this.up)
@@ -145,7 +151,13 @@ _.extend(Migration.prototype, {
     },
     revert: function() {
         // Create base promise
-        var promise = new Promise(function(resolve) { resolve(); });
+        var now = moment().tz('UTC');
+        var action = new Migration._actionQuery(Migration.className, this.id);        
+        var promise = action.fields({
+            'updated_at': now.format('YYYY-MM-DD HH:mm:ss'),
+            'committed_at': null
+        })
+        .update();
         
         // Iterate through each action
         for(var action in this.down)
