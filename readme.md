@@ -557,9 +557,9 @@ http://localhost:3000/api/1/classes/alien
 Sorting determines the order by which the results are returned. They are also crucial when using the `limit` and `skip` parameters. In the `order` parameter of the basic query, a JSON string is expected to be placed with the following format:
 
 ```json
-{
-    "{NAME_OF_KEY}": "{1 (Ascending) or -1 (Descending)}"
-}
+[
+    { "{NAME_OF_KEY}": "{1 (Ascending) or -1 (Descending)}" }
+]
 ```
 
 For example:
@@ -568,7 +568,7 @@ For example:
 curl -X GET \
 -G \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
---data-urlencoded 'sort={"type":1,"age":-1}' \
+--data-urlencoded 'sort=[{"type":1},{"age":-1}]' \
 http://localhost:3000/api/1/classes/alien
 ```
 

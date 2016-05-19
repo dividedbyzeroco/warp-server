@@ -86,7 +86,9 @@ _.extend(ViewQuery.prototype, {
         var where = constraints.length? ('WHERE ' + constraints.join(' AND ')) : '';
         
         // Get order
-        var sort = Object.keys(this._order).map(function(direction, key) {
+        var sort = this._order.map(function(item) {
+            var key = Object.keys(item)[0];
+            var direction = item[key];
             return this._parseOrder(key, direction)
         }.bind(this));
         var order = sort.length? 'ORDER BY ' + sort.join(', ') : '';
