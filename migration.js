@@ -9,6 +9,9 @@ var WarpError = require('./error');
 var Migration = function(def) {
     // Check if migrations are activated
     if(!Migration.activated) throw Migration._deactivatedError;
+    
+    // Check if id is valid
+    if(def.id === 'current') throw new WarpError(WarpError.Code.InvalidObjectKey, '`current` cannot be used as a migration id');
       
     // Initialize keys    
     this.id = def.id;

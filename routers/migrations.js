@@ -40,6 +40,21 @@ module.exports = {
             next(err);
         });
     },
+    current: function(req, res, next) {
+        var className = req.params.className;
+        var id = req.params.id;
+                        
+        // Get current migration
+        this.Migration.current()
+        .then(function(migration) 
+        {
+            res.json({ status: 200, message: 'Success', result: migration.id });
+        }.bind(this))
+        .catch(function(err) 
+        {
+            next(err);
+        });
+    },
     first: function(req, res, next) {
         var className = req.params.className;
         var id = req.params.id;
@@ -47,7 +62,7 @@ module.exports = {
         // View object
         var query = new this.Query.View(this.Migration.className);
                 
-        // View objects
+        // View object
         query.select({
             'id': 'id',
             'up': 'up',
@@ -119,6 +134,7 @@ module.exports = {
     },
     apply: function(context, router) {
         router.get('/migrations', this.find.bind(context));
+        router.get('/migrations/current', this.current.bind(context));
         router.get('/migrations/:id', this.first.bind(context));
         router.post('/migrations', this.create.bind(context));
         router.put('/migrations/:id', this.update.bind(context));
