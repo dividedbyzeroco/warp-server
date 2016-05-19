@@ -27,7 +27,7 @@ _.extend(Migration.prototype, {
         if(source)
         {
             // If the action is 'drop'
-            if(action === 'drop')
+            if(action === 'drop' || action === 'dropOnce')
             {
                 // Iterate through each table
                 for(var index in source)
@@ -40,7 +40,7 @@ _.extend(Migration.prototype, {
                         // Add the drop action to the promise chain
                         promise = promise.then(function() {
                             var query = new Migration._schemaQuery(table);
-                            return query.drop();
+                            return query[action]();
                         }.bind(this));
                 }
             }
@@ -147,7 +147,9 @@ _.extend(Migration.prototype, {
         }
         
         // Execute Up
-        return promise;
+        return promise.then(function() {
+            return this;
+        }.bind(this));
     },
     revert: function() {
         // Create base promise
@@ -177,7 +179,9 @@ _.extend(Migration.prototype, {
         }
         
         // Execute Down
-        return promise;
+        return promise.then(function() {
+            return this;
+        }.bind(this));
     }
 });
 
