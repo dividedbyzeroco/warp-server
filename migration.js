@@ -39,7 +39,7 @@ _.extend(Migration.prototype, {
                     if(table)
                         // Add the drop action to the promise chain
                         promise = promise.then(function() {
-                            var query = new this._schemaQuery(table);
+                            var query = new Migration._schemaQuery(table);
                             return query.drop();
                         }.bind(this));
                 }
@@ -56,7 +56,7 @@ _.extend(Migration.prototype, {
                     if(fields)
                         // Add table action to the promise chain
                         promise = promise.then(function() {
-                            var query = new this._schemaQuery(table);
+                            var query = new Migration._schemaQuery(table);
                             return query.fields(fields)[action]();
                         }.bind(this));
                 }
