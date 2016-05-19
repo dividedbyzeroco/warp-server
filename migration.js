@@ -273,14 +273,15 @@ _.extend(Migration, {
                 
                 // Append a new promise to the base promise
                 promise = promise.then(function(previous) {
-                    if(previous) migrated.push(previous);
+                    if(previous) migrated.push(previous.id);
                     return migration.commit();
                 });
             }
             
             // Return the chained promises
             // When completed, return the list of migrated items
-            return promise.then(function() {
+            return promise.then(function(previous) {
+                if(previous) migrated.push(previous.id);
                 return migrated;
             });
         }.bind(this))
@@ -338,6 +339,12 @@ _.extend(Migration, {
             // Attempt to revert the migration
             return migration.revert();
         }.bind(this))
+        .then(function(previous) {
+            // Return reverted migration
+            return {
+                id: previous.id
+            };
+        })
         .catch(function(error) {
             console.error('[Warp Migration] Could not revert latest migration', error.message, error.stack);
             throw new WarpError(WarpError.Code.InternalServerError, 'Could not revert latest migration: ' + error.message);
@@ -388,7 +395,8 @@ _.extend(Migration, {
             
             // Return the chained promises
             // When completed, return the list of migrated items
-            return promise.then(function() {
+            return promise.then(function(previous) {
+                if(previous) reverted.push(previous.id);
                 return reverted;
             });
         }.bind(this))
