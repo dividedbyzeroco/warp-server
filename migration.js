@@ -1,4 +1,5 @@
 // References
+var Promise = require('promise');
 var moment = require('moment-timezone');
 var _ = require('underscore');
 var WarpError = require('./error');
@@ -21,6 +22,50 @@ var Migration = function(def) {
 
 // Instance methods
 _.extend(Migration.prototype, {
+    _addActionChain: function(promise, source, action) {
+        // Check if source exists
+        if(source)
+        {
+            // If the action is 'drop'
+            if(action === 'drop')
+            {
+                // Iterate through each table
+                for(var index in source)
+                {
+                    // Retrieve table
+                    var table = source[index];
+                    
+                    // Check if table exists
+                    if(table)
+                        // Add the drop action to the promise chain
+                        promise = promise.then(function() {
+                            var query = this._schemaQuery(table);
+                            return query.drop();
+                        }.bind(this));
+                }
+            }
+            else
+            {
+                // Iterate through each table
+                for(var table in source)
+                {
+                    // Retrieve the fields from the table
+                    var fields = source[table];
+                    
+                    // Check if fields exist
+                    if(fields)
+                        // Add table action to the promise chain
+                        promise = promise.then(function() {
+                            var query = this._schemaQuery(table);
+                            return query.fields(fields)[action]();
+                        }.bind(this));
+                }
+            }
+        }
+                    
+        // Return the promise
+        return promise;
+    },
     create: function() {
         // Insert a migration
         var now = moment().tz('UTC');
@@ -76,10 +121,51 @@ _.extend(Migration.prototype, {
         }.bind(this));
     },
     commit: function() {
+        // Create base promise
+        var promise = new Promise(function(resolve) { resolve(); });
+        
+        // Iterate through each action
+        for(var action in this.up)
+        {
+            if(action !== 'create' && action !== 'alter' && action !== 'drop')
+            {
+                console.error('[Warp Migration] Migration is invalid: action provided does not exist', action);    
+                throw new WarpError(WarpError.Code.ForbiddenOperation, 'Migration is invalid');
+            }
+                
+            // Get action source
+            var source = this.up[action];
+            
+            // Append actions to the promise chain
+            promise = this._addActionChain(promise, source, action);
+        }
+        
         // Execute Up
+        return promise;
     },
     revert: function() {
+        // Create base promise
+        var promise = new Promise(function(resolve) { resolve(); });
+        
+        // Iterate through each action
+        for(var action in this.down)
+        {
+            if(action !== 'create' && action !== 'alter' && action !== 'drop')
+            {
+                console.error('[Warp Migration] Migration is invalid: action provided does not exist', action);    
+                throw new WarpError(WarpError.Code.ForbiddenOperation, 'Migration is invalid');
+            }
+                
+            // Get action source
+            var source = this.down[action];
+            
+            // Append actions to the promise chain; To ensure that a revert can be performed
+            // in the event of a corrupted commit, the Once modifier has been added
+            promise = this._addActionChain(promise, source, action + 'Once');
+        }
+        
         // Execute Down
+        return promise;
     }
 });
 
@@ -160,9 +246,7 @@ _.extend(Migration, {
             if(migrations.length == 0) throw new WarpError(WarpError.Code.QueryError, 'No pending migrations found');
             
             // Create base promise
-            var promise = new Promise(function(resolve, reject) {
-                resolve();
-            });
+            var promise = new Promise(function(resolve) { resolve(); });
             
             // Loop through each pending migration
             for(var index in migrations)
@@ -270,9 +354,7 @@ _.extend(Migration, {
             if(migrations.length == 0) throw new WarpError(WarpError.Code.QueryError, 'No migration has been committed yet');
             
             // Create base promise
-            var promise = new Promise(function(resolve, reject) {
-                resolve();
-            });
+            var promise = new Promise(function(resolve) { resolve(); });
             
             // Loop through each pending migration
             for(var index in migrations)

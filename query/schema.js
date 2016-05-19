@@ -245,6 +245,13 @@ _.extend(SchemaQuery.prototype, {
         // Modify the query chain       
         return this._addChain(query, next, fail);
     },
+    alterOnce: function(next, fail) {
+        // Added the Once alias for the Migration class
+        var query = this._execute(this._getAlterSchemaQuery());
+        
+        // Modify the query chain
+        return this._addChain(query, next, fail);
+    },
     drop: function(next, fail) {
         var query = this._execute(this._getDropSchemaQuery());
         
