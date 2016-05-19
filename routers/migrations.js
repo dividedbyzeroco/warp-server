@@ -132,6 +132,39 @@ module.exports = {
             next(err);
         });
     },
+    commit: function(req, res, next) {
+        // Commit pending migrations
+        this.Migration.commit().then(function(result) 
+        {
+            res.json({ status: 200, message: 'Success', result: result });    
+        })
+        .catch(function(err) 
+        {
+            next(err);
+        });
+    },
+    revert: function(req, res, next) {
+        // Revert current migration
+        this.Migration.revert().then(function(result) 
+        {
+            res.json({ status: 200, message: 'Success', result: result });    
+        })
+        .catch(function(err) 
+        {
+            next(err);
+        });
+    },
+    reset: function(req, res, next) {
+        // Reset all migrations
+        this.Migration.reset().then(function(result) 
+        {
+            res.json({ status: 200, message: 'Success', result: result });    
+        })
+        .catch(function(err) 
+        {
+            next(err);
+        });
+    },
     apply: function(context, router) {
         router.get('/migrations', this.find.bind(context));
         router.get('/migrations/current', this.current.bind(context));

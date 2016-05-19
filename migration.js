@@ -39,7 +39,7 @@ _.extend(Migration.prototype, {
                     if(table)
                         // Add the drop action to the promise chain
                         promise = promise.then(function() {
-                            var query = this._schemaQuery(table);
+                            var query = new this._schemaQuery(table);
                             return query.drop();
                         }.bind(this));
                 }
@@ -56,7 +56,7 @@ _.extend(Migration.prototype, {
                     if(fields)
                         // Add table action to the promise chain
                         promise = promise.then(function() {
-                            var query = this._schemaQuery(table);
+                            var query = new this._schemaQuery(table);
                             return query.fields(fields)[action]();
                         }.bind(this));
                 }
@@ -304,7 +304,7 @@ _.extend(Migration, {
             // Return the latest committed migration
             return migration;
         }.bind(this))
-        .catch(function() {            
+        .catch(function(error) {            
             console.error('[Warp Migration] Could not fetch the latest migration', error.message, error.stack);
             throw new WarpError(WarpError.Code.InternalServerError, 'Could not fetch the latest migration: ' + error.message);
         });
@@ -376,7 +376,7 @@ _.extend(Migration, {
                 return reverted;
             });
         }.bind(this))
-        .catch(function() {            
+        .catch(function(error) {            
             console.error('[Warp Migration] Could not reset migrations', error.message, error.stack);
             throw new WarpError(WarpError.Code.InternalServerError, 'Could not reset migrations: ' + error.message);
         });
