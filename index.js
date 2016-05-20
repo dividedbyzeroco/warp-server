@@ -13,7 +13,7 @@ var WarpServer = {
     Model: require('./model'),
     Error: require('./error'),
     Migration: require('./migration'),
-    File: required('./file')
+    File: require('./file')
 };
 
 // Static methods
