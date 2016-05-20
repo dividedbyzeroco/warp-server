@@ -612,7 +612,8 @@ For example:
 ```bash
 curl -X POST \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
--H 'X-Warp-Origin: android` \
+-H 'X-Warp-Origin: android' \
+-H 'Content-Type: application/json' \
 --data '{"username": "sarajanesmith", "password": "k9_and_luke"}' \
 http://localhost:3000/api/1/login
 ```
@@ -702,6 +703,7 @@ For example:
 ```bash
 curl -X POST \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'Content-Type: application/json' \
 --data '{"username": "marthajones", "password": "doctorjones", "email": "martha@unit.com.uk"}' \
 http://localhost:3000/api/1/users
 ```
