@@ -25,6 +25,7 @@
     "body-parser": "^1.15.1",
     "express": "^4.13.4",
     "moment-timezone": "^0.5.4",
+    "multer": "^1.1.0",
     "mysql": "^2.10.2",
     "promise": "^7.1.1",
     "underscore": "^1.8.3"

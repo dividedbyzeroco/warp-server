@@ -344,7 +344,7 @@ Model.Parser = {
         return value.split(' ').join('');
     },
     Password: function(value) {
-        return this._security.hash(value, 8);
+        return Model._security.hash(value, 8);
     },
     Integer: function(value) {
         return parseInt(value, 10);

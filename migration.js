@@ -224,7 +224,7 @@ _.extend(Migration, {
         this._schemaQuery = query.Schema;
         
         // Check if the migrations feature is activated
-        if(!config.migrations || typeof config.migrations.activated === 'undefined' ||  config.migrations.activated)
+        if(config.migrations && config.migrations.activated)
         {
             this.className = config.className || this.className;
             this._activate();

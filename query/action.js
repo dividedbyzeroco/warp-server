@@ -99,17 +99,6 @@ _.extend(ActionQuery.prototype, {
         return ActionQuery.getDatabase().query(command);
     },
     _addChain: function(query, next, fail) {        
-        // Ensure a WarpError is returned if it fails 
-        query = query.catch(function(err) {
-            if(err.name !== 'WarpError')
-            {
-                console.error('[Warp Query] Invalid query request', err.message, err.stack);
-                throw new WarpError(WarpError.Code.QueryError, 'invalid query request');
-            }
-            else
-                throw err;
-        });
-        
         // Check if next and fail exist
         if(typeof next === 'function')
             query = query.then(next);

@@ -2,8 +2,7 @@
 var mysql = require('mysql');
 var Promise = require('promise');
 var _ = require('underscore');
-
-/******************************************************/
+var WarpError = require('../error');
 
 // Class constructor
 var Database = {};
@@ -16,7 +15,11 @@ _.extend(Database, {
         return new Promise(function(resolve ,reject) {
             this._pool.getConnection(function(err, connection) {
                 if(err)
-                    return reject(err);
+                {
+                    console.error('[Warp Database] Could not connect to the database', err.message, err.stack);
+                    var error = new WarpError(WarpError.Code.QueryError, 'Could not connect to the database');
+                    return reject(error);
+                }
                 else
                     return resolve(connection);
             }.bind(this));
@@ -31,7 +34,11 @@ _.extend(Database, {
                 connection.query(query, function(err, rows) {
                     connection.release();
                     if(err)
-                        return reject(err);
+                    {
+                        console.error('[Warp Database] Query Error', err.message, err.stack);
+                        var error = new WarpError(WarpError.Code.QueryError, 'Invalid query request');
+                        return reject(error);
+                    }
                     else
                     {
                         // Prepare result

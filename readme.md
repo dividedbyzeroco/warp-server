@@ -22,12 +22,17 @@ var Warp Server = require('warp-server');
 
 // Prepare config; You can also use process.env or store the config in a json file
 var config = {
-    host: 'localhost',
-    port: 3306,
-    user: 'root',
-    password: 'password',
-    default: 'default_table',
-    apiKey: '12345678abcdefg'
+    security: {
+        apiKey: '12345678abcdefg',
+        masterKey: 'abcdefg12345678'
+    },
+    database: {
+        host: 'localhost',
+        port: 3306,
+        user: 'root',
+        password: 'password',
+        default: 'default_table',    
+    }
 };
 
 // Create a Warp Server router for the API
