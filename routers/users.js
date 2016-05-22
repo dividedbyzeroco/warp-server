@@ -166,6 +166,7 @@ module.exports = {
                 var fields = {
                     'user': {
                         type: 'Pointer',
+                        className: this.Model.getUser().className,
                         id: user.id
                     },
                     'origin': origin
