@@ -88,7 +88,7 @@ _.extend(Model, {
             var pointer = ModelSubclass.keys.pointers[key];
             
             if(!ModelSubclass.validate[key])
-                ModelSubclass.validate[key] == Model.Validation.Pointer(pointer.className);
+                ModelSubclass.validate[key] = Model.Validation.Pointer(pointer.className);
             if(!ModelSubclass.parse[key])
                 ModelSubclass.parse[key] = Model.Parser.Pointer;
             if(!ModelSubclass.format[key])
@@ -101,7 +101,7 @@ _.extend(Model, {
             var file = ModelSubclass.keys.files[key];
             
             if(!ModelSubclass.validate[key])
-                ModelSubclass.validate[key] == Model.Validation.File;
+                ModelSubclass.validate[key] = Model.Validation.File;
             if(!ModelSubclass.parse[key])
                 ModelSubclass.parse[key] = Model.Parser.File;
             if(!ModelSubclass.format[key])
