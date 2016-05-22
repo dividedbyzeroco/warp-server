@@ -77,17 +77,35 @@ _.extend(Model, {
             beforeSave: config.beforeSave,
             afterSave: config.afterSave
         };
+                
+        // Set defaults for pointers and files
+        ModelSubclass.keys.pointers = ModelSubclass.keys.pointers || {};
+        ModelSubclass.keys.files = ModelSubclass.keys.files || [];
         
-        // Prepare parsers and formatters based on validations
-        for(var key in ModelSubclass.validate)
+        // Prepare parsers and formatters for pointers
+        for(var key in ModelSubclass.keys.pointers)
         {
-            if(ModelSubclass.validate[key] == Model.Validation.Pointer)
-            {
-                if(!ModelSubclass.parse[key])
-                    ModelSubclass.parse[key] = Model.Parser.Pointer;
-                if(!ModelSubclass.format[key])
-                    ModelSubclass.format[key] = Model.Formatter.Pointer;
-            }
+            var pointer = ModelSubclass.keys.pointers[key];
+            
+            if(!ModelSubclass.validate[key])
+                ModelSubclass.validate[key] == Model.Validation.Pointer(pointer.className);
+            if(!ModelSubclass.parse[key])
+                ModelSubclass.parse[key] = Model.Parser.Pointer;
+            if(!ModelSubclass.format[key])
+                ModelSubclass.format[key] = Model.Formatter.Pointer(pointer.className);
+        }
+        
+        // Prepare parsers and formatters for files
+        for(var key in ModelSubclass.keys.files)
+        {
+            var file = ModelSubclass.keys.files[key];
+            
+            if(!ModelSubclass.validate[key])
+                ModelSubclass.validate[key] == Model.Validation.File;
+            if(!ModelSubclass.parse[key])
+                ModelSubclass.parse[key] = Model.Parser.File;
+            if(!ModelSubclass.format[key])
+                ModelSubclass.format[key] = Model.Formatter.File;
         }
         
         // Prepare formatters for timestamps
@@ -108,17 +126,18 @@ _.extend(Model, {
                     var alias = key;
                     var source = key;
                     
-                    // Check if key is object
-                    if(typeof key === 'object')
+                    // Check if key is a pointer
+                    if(this.keys.pointers[key])
                     {
-                        alias = Object.keys(key)[0];
-                        source = key[alias];
+                        var pointer = this.keys.pointers[key];
+                        alias = key;
+                        source = pointer.via || pointer.className + '_id' || key + '_id';
                     }
                     
                     // Return alias
                     keysAliased[alias] = source;
                     return alias;
-                });
+                }.bind(this));
                 
                 // Get keys to view
                 var keysToView = keysSelected.length > 0 ? _.intersection(keysSelected, keysAvailable) : keysAvailable;
@@ -150,17 +169,18 @@ _.extend(Model, {
                     var alias = key;
                     var source = key;
                     
-                    // Check if key is object
-                    if(typeof key === 'object')
+                    // Check if key is a pointer
+                    if(this.keys.pointers[key])
                     {
-                        alias = Object.keys(key)[0];
-                        source = key[alias];
+                        var pointer = this.keys.pointers[key];
+                        alias = key;
+                        source = pointer.via || pointer.className + '_id' || key + '_id';
                     }
                     
                     // Return alias
                     keysAliased[alias] = source;
                     return alias;
-                });
+                }.bind(this));
                                 
                 // Get keys to act on
                 var keysToActOn = _.intersection(keysSelected, keysAvailable);
@@ -324,15 +344,30 @@ Model.Validation = {
         if(isNaN(value) || parseFloat(value) != value) return key + ' must be a float value';
         return;
     },
-    Pointer: function(value, key) {
+    Pointer: function(className) {
+        return function(value, key) {
+            try
+            {
+                var pointer = (typeof value === 'object') ? value : JSON.parse(value);
+                if(typeof pointer !== 'object' || pointer.type !== 'Pointer' || pointer.className !== className) return key + ' must be a pointer to `' + className + '`';
+            }
+            catch(ex)
+            {
+                return key + ' must be a pointer to `' + className + '`';
+            }
+            
+            return;
+        };
+    },
+    File: function(value, key) {
         try
         {
-            var pointer = (typeof value === 'object') ? value : JSON.parse(value);
-            if(typeof pointer !== 'object' || pointer.type !== 'Pointer') return key + ' must be a pointer';
+            var file = (typeof value === 'object') ? value : JSON.parse(value);
+            if(typeof file !== 'object' || file.type !== 'File') return key + ' must be a Warp File';
         }
         catch(ex)
         {
-            return key + ' must be a pointer';
+            return key + ' must be a Warp File';
         }
         
         return;
@@ -359,6 +394,9 @@ Model.Parser = {
     },
     Pointer: function(pointer) {
         return typeof pointer === 'object' ? pointer.id : JSON.parse(pointer).id;
+    },
+    File: function(file) {
+        return typeof file === 'object' ? file.key : JSON.parse(file).key;
     }
 };
 
@@ -366,13 +404,24 @@ Model.Formatter = {
     Date: function(value) {
         return moment(value).tz('UTC').format();
     },
-    Pointer: function(value) {
-        var pointer = {
-            type: 'Pointer',
-            id: value
+    Pointer: function(className) {
+        return function(value) {
+            var pointer = {
+                type: 'Pointer',
+                className: className,
+                id: value
+            };
+            
+            return pointer;
+        }
+    },
+    File: function(key) {
+        var file = {
+            type: 'File',
+            key: key
         };
         
-        return pointer;
+        return file;
     }
 };
 

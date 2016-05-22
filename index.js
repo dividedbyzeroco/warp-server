@@ -13,7 +13,7 @@ var WarpServer = {
     Model: require('./model'),
     Error: require('./error'),
     Migration: require('./migration'),
-    File: require('./file')
+    Storage: require('./storage')
 };
 
 // Static methods
@@ -34,6 +34,7 @@ _.extend(WarpServer, {
         this.Query.Schema.initialize(this._database);
         this.Model.initialize(this._security, this.Query);
         this.Migration.initialize(config, this.Query);
+        this.Storage.initialize(config, this.Query);
         
         // Prepare routers
         var router = express.Router();
@@ -42,6 +43,7 @@ _.extend(WarpServer, {
         var userRouter = require('./routers/users');
         var sessionRouter = require('./routers/sessions');
         var migrationRouter = require('./routers/migrations');
+        var fileRouter = require('./routers/files');
         
         // Apply middleware
         router.use(bodyParser.json());
@@ -54,6 +56,7 @@ _.extend(WarpServer, {
         classRouter.apply(this, router);
         userRouter.apply(this, router);
         sessionRouter.apply(this, router);
+        fileRouter.apply(this, router);
         
         // Apply masterKey-required routers
         router.use(middleware.requireMasterKey(config.security.masterKey));

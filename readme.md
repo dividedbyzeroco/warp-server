@@ -59,8 +59,21 @@ WarpServer.Model.create({
     
     // Define keys/fields available in the table
     keys: {
-        viewable: ['{KEY1}', '{KEY2}'], // REQUIRED: Fields viewable in queries
-        actionable: ['{KEY1}', '{KEY2}'] // REQUIRED: Fields editable in queries
+        viewable: ['{KEY1}', '{KEY2}', '{KEY3}'], // REQUIRED: Fields viewable in queries
+        actionable: ['{KEY1}', '{KEY2}', '{KEY3}'], // REQUIRED: Fields editable in queries
+        
+        // To define pointers (i.e. foreign key relations), declare them via the `pointers` option, OPTIONAL
+        // For more info, please see section on Pointers
+        pointers: {
+            '{KEY2}': {
+                className: '{CLASS_NAME_OF_POINTER}',
+                via: '{FOREIGN_KEY}' // OPTIONAL, if `via` is not set, it is assumed to be `className`_id
+            }
+        },
+        
+        // To define file keys (i.e. fields for storing file URL's), declare them via the `files` option, OPTIONAL
+        // For more info, please see section on Files
+        files: ['{KEY3']
     },
     
     // Validates values that are sent to the server
@@ -178,10 +191,21 @@ We can now use the REST API to operate on `alien` objects. See the section regar
 
 Relations are a vital aspect of Relational Databases. With regards to the Warp Server, these are represented by `pointers`. Pointers are specific keys (fields) that point to a specific object from another table. This can be thought of as the `belongs_to` relationship or the `foreign_key` relationship in SQL databases. 
 
-To specify a `pointer` in your Model, you may do so using the following syntax:
+To specify a `pointer` in your Model, you may do so by adding a `pointers` option in your `keys` config:
 
 ```javascript
-{ '{KEY_NAME}': '{FOREIGN_KEY}' }
+{
+    keys: {
+        // Other key configurations...        
+        // Pointers configuration:
+        pointers: {
+            '{KEY_NAME}': {
+                className: '{CLASS_NAME_OF_POINTER}',
+                via: '{FOREIGN_KEY}' // OPTIONAL, if not set, the foreign key is assumed to be `className`_id
+            }
+        } 
+    }
+}
 ```
 
 So if, for example, inside our `Alien` model, we would like to add pointers to a `Planet` model. We can do so by adding the following code to our `Model.create()` method:
@@ -189,8 +213,14 @@ So if, for example, inside our `Alien` model, we would like to add pointers to a
 ```javascript
 // Some code defining our model
 keys: {
-    viewable: ['name', 'age', 'type', { 'planet': 'planet_id' }],
-    actionable: ['name', 'age', 'type', { 'planet': 'planet_id' }]
+    viewable: ['name', 'age', 'type', 'planet'],
+    actionable: ['name', 'age', 'type', 'planet'],
+    pointers: {
+        'planet': {
+            className: 'planet',
+            via: 'planet_id'
+        }
+    }
 },
 // Additional code defining our model
 ```
@@ -251,11 +281,14 @@ An example of a Session Model would be as follows:
 var Session = WarpServer.Model.create({
     className: 'session',
     keys: {
-        viewable: [{ 'user': 'user_id' }, 'origin', 'session_token'], // Note that the user field is a pointer to the 'user' table
-        actionable: [{ 'user': 'user_id'}, 'origin']
-    },
-    validate: {
-        'user': WarpServer.Model.Validation.Pointer
+        viewable: ['user', 'origin', 'session_token'], // Note that the user field is a pointer to the 'user' table
+        actionable: ['user', 'origin'],
+        pointers: {
+            'user': {
+                className: 'user',
+                via: 'user_id'
+            }
+        }
     },
     
     // In order for us to generate special session tokens, we must use the Pre-defined PreSave function.
@@ -276,6 +309,43 @@ var api = WarpServer.initialize(config);
 ```
 
 We can now use the special user authentication and management operations made available by the REST API.
+
+## Files
+
+Sometimes, you may need to upload files to your server and store them persistently. In this particular case, Warp Server helps simplify this process with the help of `Warp Files`. Warp Files allow you to define keys where you would want to store file-related content. 
+
+On the database side, it stores a `key` string which represents the file inside your desired file storage system. By default, Warp Server uses local storage, but you can define other forms of storage providers such as Amazon S3 or Azure Storage.
+
+To specify a `file` in your Model, you may do so by adding a `files` option in your `keys` config:
+
+```javascript
+{
+    keys: {
+        // Other key configurations...        
+        // Files configuration:
+        files: ['{KEY_NAME}']
+    }
+}
+```
+
+So if, for example, inside our `Alien` model, we would like to add a file named `profile_pic`. We can do so by adding the following code to our `Model.create()` method:
+
+```javascript
+// Some code defining our model
+keys: {
+    viewable: ['name', 'age', 'type', 'planet', 'profile_pic'],
+    actionable: ['name', 'age', 'type', 'planet', 'profile_pic'],
+    pointers: {
+        'planet': {
+            className: 'planet',
+            via: 'planet_id'
+        }
+    },
+    files: ['profile_pic']
+},
+// Additional code defining our model
+```
+
 
 ## Objects
 
@@ -382,7 +452,7 @@ The expected response would be similar to the following:
 
 In order to pass `pointers` as a key when creating or updating an object, the key must be passed as:
 
-`{ "{KEY_NAME}": { "type": "Pointer", "id": "{ID}" } }`
+`{ "{KEY_NAME}": { "type": "Pointer", "className": "{CLASS_NAME}", "id": "{ID}" } }`
 
 For example:
 
@@ -390,9 +460,85 @@ For example:
 curl -X POST \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 -H 'Content-Type: application/json' \
---data '{"name":"The Doctor", "planet": { "type": "Pointer", "id": 8 }}' \
+--data '{"name":"The Doctor", "planet": { "type": "Pointer", "className": "planet", "id": 8 }}' \
 http://localhost:3000/api/1/classes/alien
 ```
+
+
+### Uploading Files
+
+In order to upload `files` to the server, execute a POST request to:
+
+`/files/{FILE_NAME}`
+
+With multipart form data that contains a `file` key pointing to the desired file:
+
+`file=@{FILE_PATH}`
+
+For example:
+
+```bash
+curl -X POST \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-F 'file=@image_alien_face.jpg'
+http://localhost:3000/api/1/files/image_alien_face.jpg
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "key": "20160523005923_1dUfhw81818dh1d_image_alien_face.jpg"
+    }
+}
+```
+
+After receiving the newly named `key`, you may append this file when creating or updating an object by passing the following JSON object:
+
+`{ "type": "File", "key": "{FILE_KEY}" }`
+
+For example:
+
+```bash
+curl -X PUT \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'Content-Type: application/json' \
+--data '{"name": "Straxx", "profile_pic": { "type": "File", "key": "20160523005923_1dUfhw81818dh1d_image_alien_face.jpg" }}' \
+http://localhost:3000/api/1/classes/alien/28
+```
+
+
+### Deleting Files
+
+In order to delete `files` from the server, execute a DELETE request to:
+
+`/files/{FILE_KEY}`
+
+For example:
+
+```bash
+curl -X DELETE \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+http://localhost:3000/api/1/files/20160523005923_1dUfhw81818dh1d_image_alien_face.jpg
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "key": "20160523005923_1dUfhw81818dh1d_image_alien_face.jpg",
+        "deleted_at": "2016-05-12T22:11:09Z"
+    }
+}
+```
+
+Note: Make sure that before a file is deleted, all objects associated with it are disassociated.
 
 
 ### Deleting Objects
