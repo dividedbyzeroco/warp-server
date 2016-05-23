@@ -11,25 +11,33 @@ var localstorage = function(path) {
 
 // Instance methods
 _.extend(localstorage.prototype, {
-    _keyFormat: function(filename) {
+    _getKey: function(filename) {
         var now = moment().tz('UTC').format('YYYYMMDDHHmmss');
         var randomizer = (Math.random() * 1e32).toString(36);
         var dirname = path.dirname(filename);
         var baseFilename = now + '-' + randomizer  + '-' + path.basename(filename);
         return path.join(dirname, baseFilename);
     },
+    _getUrl: function(key) {
+        return key;
+    },
     setKeyFormat: function(keyFormat) {
-        this._keyFormat = keyFormat;
+        this._getKey = keyFormat;
+        return this;
+    },
+    setUrlFormat: function(urlFormat) {
+        this._getUrl = urlFormat;
         return this;
     },
     upload: function(filename, file) {
         return new Promise(function(resolve, reject) {
             try
             {
-                var key = this._keyFormat(filename);
+                var key = this._getKey(filename);
+                var url = this._getUrl(key);
                 var filepath = path.join(this.path, key);
                 fs.writeFileSync(filepath, file);
-                return resolve({ key: key });
+                return resolve({ key: key, url: url });
             }
             catch(ex)
             {

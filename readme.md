@@ -522,7 +522,8 @@ The expected response would be similar to the following:
     "status": 200,
     "message": "Success",
     "result": {
-        "key": "20160523005923_1dUfhw81818dh1d_image_alien_face.jpg"
+        "key": "20160523005923_1dUfhw81818dh1d_image_alien_face.jpg",
+        "url": "http://localhost:3000/public/storage/20160523005923_1dUfhw81818dh1d_image_alien_face.jpg"
     }
 }
 ```

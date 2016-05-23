@@ -25,10 +25,11 @@ _.extend(Model, {
     _subclasses: {},
     _user: null,
     _session: null,
-    initialize: function(security, query) {
+    initialize: function(security, query, storage) {
         this._security = security;
         this._viewQuery = query.View;
         this._actionQuery = query.Action;
+        this._storage = storage;
         return this;
     },
     getInternalKeys: function() {
@@ -416,9 +417,11 @@ Model.Formatter = {
         }
     },
     File: function(key) {
+        var url = Model._storage.getUrl(key); 
         var file = {
             type: 'File',
-            key: key
+            key: key,
+            url: url
         };
         
         return file;

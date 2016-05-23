@@ -4,7 +4,12 @@ var bodyParser = require('body-parser');
 var _ = require('underscore');
 
 // Define Warp Server
-var WarpServer = {
+var WarpServer = function(config) {
+    this.initialize(config)
+};
+
+// Static methods
+_.extend(WarpServer.prototype, {
     Query: {
         View: require('./query/view'),
         Action: require('./query/action'),
@@ -13,11 +18,7 @@ var WarpServer = {
     Model: require('./model'),
     Error: require('./error'),
     Migration: require('./migration'),
-    Storage: require('./storage')
-};
-
-// Static methods
-_.extend(WarpServer, {
+    Storage: require('./storage'),
     initialize: function(config) {        
         if(!config.database) throw new this.Error(this.Error.Code.MissingConfiguration, 'DB configuration must be set');
         if(!config.database.host) throw new this.Error(this.Error.Code.MissingConfiguration, 'DB Host must be set');
@@ -32,9 +33,9 @@ _.extend(WarpServer, {
         this.Query.View.initialize(this._database);
         this.Query.Action.initialize(this._database);
         this.Query.Schema.initialize(this._database);
-        this.Model.initialize(this._security, this.Query);
-        this.Migration.initialize(config, this.Query);
         this.Storage.initialize(config, this.Query);
+        this.Model.initialize(this._security, this.Query, this.Storage);
+        this.Migration.initialize(config, this.Query);
         
         // Prepare routers
         var router = express.Router();

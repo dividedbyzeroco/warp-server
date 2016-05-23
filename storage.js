@@ -60,6 +60,15 @@ _.extend(Storage, {
         
         return this._storageAdapter.setKeyFormat(keyFormat);
     },
+    setUrlFormat: function(urlFormat) {
+        if(typeof keyFormat === 'function')
+            throw new WarpError(WarpError.Code.MissingConfiguration, 'UrlFormat must be a function');
+        
+        return this._storageAdapter.setUrlFormat(urlFormat);
+    },
+    getUrl: function(key) {
+        return this._storageAdapter._getUrl(key);
+    },
     upload: function(options) {
         if(!options || !options.filename || !options.file)
             throw new WarpError(WarpError.Code.MissingConfiguration, 'Filename and file parameters are required');
