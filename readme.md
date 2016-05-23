@@ -18,7 +18,7 @@ Warp Server is built on top of `express` and can be initialized in any `express`
 ```javascript
 // References
 var express = require('express');
-var Warp Server = require('warp-server');
+var WarpServer = require('warp-server');
 
 // Prepare config; You can also use process.env or store the config in a json file
 var config = {

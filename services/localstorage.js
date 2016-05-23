@@ -19,8 +19,7 @@ _.extend(localstorage.prototype, {
         return path.join(dirname, baseFilename);
     },
     setKeyFormat: function(keyFormat) {
-        if(keyFormat)
-            this._keyFormat = keyFormat;
+        this._keyFormat = keyFormat;
         return this;
     },
     upload: function(filename, file) {

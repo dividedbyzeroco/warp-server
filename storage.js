@@ -26,7 +26,8 @@ _.extend(Storage, {
             storagePath = config.storage.path || storagePath;
         }
         
-        this.setStorageAdapter(new localstorage(storagePath));
+        // Use localstorage as the default storage adapter
+        if(!this._storageAdapter) this.setStorageAdapter(new localstorage(storagePath));
     },
     setStorageAdapter: function(storageAdapter) {
         this._storageAdapter = storageAdapter;
