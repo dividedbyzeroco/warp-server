@@ -5,7 +5,7 @@ var _ = require('underscore');
 
 // Define Warp Server
 var WarpServer = function(config) {
-    this.initialize(config)
+    return this.initialize(config);
 };
 
 // Static methods
