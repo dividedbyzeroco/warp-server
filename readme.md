@@ -676,7 +676,7 @@ Available constraints:
 - gte: greater than or equal to
 - lt: less than
 - lte: less than or equal to
-- ex: is null/is not null (value is either true or false)
+- ex: is not null/is null (value is either true or false)
 - in: contained in array
 - nin: not contained in array
 
@@ -851,7 +851,7 @@ For example:
 curl -X POST \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 -H 'Content-Type: application/json' \
---data '{"username": "marthajones", "password": "doctorjones", "email": "martha@unit.com.uk"}' \
+--data '{"username": "marthajones", "password": "doctorjones", "email": "martha@unit.co.uk"}' \
 http://localhost:3000/api/1/users
 ```
 
@@ -864,7 +864,7 @@ The expected response would be similar to the following:
     "result": {
         "id": 9,
         "username": "marthajones",
-        "email": "martha@unit.com.uk",
+        "email": "martha@unit.co.uk",
         "created_at": "2016-05-12T22:11:09Z",
         "updated_at": "2016-05-12T22:11:09Z"
     }
@@ -881,7 +881,7 @@ To log out of an existing user session, execute a GET request to:
 
 with the session token included in the header:
 
-`X-Warp-Session-Key: 981Tu3R831dHdh81s`
+`X-Warp-Session-Token: 981Tu3R831dHdh81s`
 
 For example:
 
