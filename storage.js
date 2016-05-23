@@ -53,6 +53,9 @@ _.extend(Storage, {
             });
         });
     },
+    setKeyFormat: function(keyFormat) {
+        return this._storageAdapter.setKeyFormat(keyFormat);
+    },
     upload: function(options) {
         return this._storageAdapter.upload(options.filename, options.file);
     },
