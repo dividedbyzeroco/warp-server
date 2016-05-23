@@ -54,12 +54,21 @@ _.extend(Storage, {
         });
     },
     setKeyFormat: function(keyFormat) {
+        if(typeof keyFormat === 'function')
+            throw new WarpError(WarpError.Code.MissingConfiguration, 'KeyFormat must be a function');
+        
         return this._storageAdapter.setKeyFormat(keyFormat);
     },
     upload: function(options) {
+        if(!options || !options.filename || !options.file)
+            throw new WarpError(WarpError.Code.MissingConfiguration, 'Filename and file parameters are required');
+        
         return this._storageAdapter.upload(options.filename, options.file);
     },
     destroy: function(key) {
+        if(!key)
+            throw new WarpError(WarpError.Code.MissingConfiguration, 'Key is required');
+            
         return this._storageAdapter.destroy(key);
     }
 });
