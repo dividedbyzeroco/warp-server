@@ -189,7 +189,7 @@ We can now use the REST API to operate on `alien` objects. See the section regar
 
 ## Pointers
 
-Relations are a vital aspect of Relational Databases. With regards to the Warp Server, these are represented by `pointers`. Pointers are specific keys (fields) that point to a specific object from another table. This can be thought of as the `belongs_to` relationship or the `foreign_key` relationship in SQL databases. 
+Relations are a vital aspect of Relational Databases. With regards to the Warp Server, these are represented by `pointers`. Pointers are keys (fields) which point to specific objects from another table. This can be thought of as the `belongs_to` relationship or the `foreign_key` relationship in SQL databases. 
 
 To specify a `pointer` in your Model, you may do so by adding a `pointers` option in your `keys` config:
 
@@ -359,6 +359,7 @@ Each Object contains different keys which can be set or retrieved as needed. Amo
 
 These keys are specifically set by the server and cannot be modified by the user.
 
+
 ## REST API
 
 The REST API makes it easy to handle operations being made to Objects. After initializing the server by following the instructions above, the following endpoints are readily made available for use by client-side applications.
@@ -448,11 +449,40 @@ The expected response would be similar to the following:
 ```
 
 
+### Deleting Objects
+
+To delete an Object for a specific model, execute a DELETE request to:
+
+`/classes/{CLASS_NAME}/{ID}`
+
+For example:
+
+```bash
+curl -X DELETE \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+http://localhost:3000/api/1/classes/alien/29
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "id": 29,
+        "rows": 1,
+        "updated_at": "2016-05-12T22:11:09Z",
+        "deleted_at": "2016-05-12T22:11:09Z"
+    }
+}
+```
+
 ### Pointers as Keys
 
-In order to pass `pointers` as a key when creating or updating an object, the key must be passed as:
+In order to pass `pointers` as keys when creating or updating an object, the keys must have a value similar to the following:
 
-`{ "{KEY_NAME}": { "type": "Pointer", "className": "{CLASS_NAME}", "id": "{ID}" } }`
+`{ "type": "Pointer", "className": "{CLASS_NAME}", "id": "{ID}" }`
 
 For example:
 
@@ -480,7 +510,7 @@ For example:
 ```bash
 curl -X POST \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
--F 'file=@image_alien_face.jpg'
+-F 'file=@image_alien_face.jpg' \
 http://localhost:3000/api/1/files/image_alien_face.jpg
 ```
 
@@ -496,7 +526,7 @@ The expected response would be similar to the following:
 }
 ```
 
-After receiving the newly named `key`, you may append this file when creating or updating an object by passing the following JSON object:
+After receiving the newly named `key`, you may associate this file when creating or updating an object by passing the following value:
 
 `{ "type": "File", "key": "{FILE_KEY}" }`
 
@@ -539,36 +569,6 @@ The expected response would be similar to the following:
 ```
 
 Note: Make sure that before a file is deleted, all objects associated with it are disassociated.
-
-
-### Deleting Objects
-
-To delete an Object for a specific model, execute a DELETE request to:
-
-`/classes/{CLASS_NAME}/{ID}`
-
-For example:
-
-```bash
-curl -X DELETE \
--H 'X-Warp-API-Key: 12345678abcdefg' \
-http://localhost:3000/api/1/classes/alien/29
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": {
-        "id": 29,
-        "rows": 1,
-        "updated_at": "2016-05-12T22:11:09Z",
-        "deleted_at": "2016-05-12T22:11:09Z"
-    }
-}
-```
 
 
 ### Fetching Objects

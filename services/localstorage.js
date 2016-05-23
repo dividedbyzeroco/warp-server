@@ -14,7 +14,9 @@ _.extend(localstorage.prototype, {
     _keyFormat: function(filename) {
         var now = moment().tz('UTC').format('YYYYMMDDHHmmss');
         var randomizer = (Math.random() * 1e32).toString(36);
-        return  now + '-' + randomizer  + '-' + filename;
+        var dirname = path.dirname(filename);
+        var baseFilename = now + '-' + randomizer  + '-' + path.basename(filename);
+        return path.join(dirname, baseFilename);
     },
     setKeyFormat: function(keyFormat) {
         if(keyFormat)
