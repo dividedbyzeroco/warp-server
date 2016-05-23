@@ -6,7 +6,7 @@ module.exports = {
         this.Storage.load(req, res).then(function() 
         {
             // Prepare file options
-            var filename = req.params.filename;
+            var filename = req.body.name;
             var file = req.file.buffer;
             var options = {
                 filename: filename,
@@ -26,7 +26,7 @@ module.exports = {
         });
     },
     destroy: function(req, res, next) {
-        var key = req.params.key;
+        var key = req.body.key;
         
         // Delete object
         this.Storage.destroy(key).then(function(result)
@@ -39,8 +39,8 @@ module.exports = {
         });
     },
     apply: function(context, router) {
-        router.post('/files/:filename', this.create.bind(context));
-        router.delete('/files/:key', this.destroy.bind(context));
+        router.post('/files', this.create.bind(context));
+        router.delete('/files', this.destroy.bind(context));
         return router;
     }
 };

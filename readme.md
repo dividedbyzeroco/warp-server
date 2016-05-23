@@ -501,9 +501,9 @@ In order to upload `files` to the server, execute a POST request to:
 
 `/files/{FILE_NAME}`
 
-With multipart form data that contains a `file` key pointing to the desired file:
+With multipart form data that contains a `file` key pointing to the desired file and a `name` key to set the filename:
 
-`file=@{FILE_PATH}`
+`file=@{FILE_PATH}&name={FILE_NAME}`
 
 For example:
 
@@ -511,6 +511,7 @@ For example:
 curl -X POST \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 -F 'file=@image_alien_face.jpg' \
+-F 'name=image_alien_face.jpg' \
 http://localhost:3000/api/1/files/image_alien_face.jpg
 ```
 
