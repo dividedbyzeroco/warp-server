@@ -269,6 +269,7 @@ var QueryFactory = {
             }
         });
         
+        return SchemaQuery;
     }
 };
 

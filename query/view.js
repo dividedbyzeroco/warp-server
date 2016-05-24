@@ -172,6 +172,7 @@ var QueryFactory = {
             }
         });
         
+        return ViewQuery;
     }
 };
 
