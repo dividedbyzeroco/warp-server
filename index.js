@@ -34,7 +34,7 @@ var WarpServer = function(config) {
     // Register model classes
     if(config.models && config.models.source)
     {
-        var source = config.models.path;
+        var source = config.models.source;
         var appendQueries = function(model) {
             model._viewQuery = this.Query.View;
             model._actionQuery = this.Query.Action;
@@ -44,12 +44,12 @@ var WarpServer = function(config) {
         
         if(typeof source === 'string')
         {
-            fs.readdirSync(modelPath)
+            fs.readdirSync(source)
             .filter(function(file) {
                 return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js');
             })
             .forEach(function(file) {
-                var model = require(path.join(modelPath, file));
+                var model = require(path.join(source, file));
                 model = appendQueries(model);
                 
                 if(file === config.models.user)
