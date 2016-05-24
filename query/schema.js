@@ -18,9 +18,6 @@ var QueryFactory = {
 
         // Instance methods
         _.extend(SchemaQuery.prototype, {
-            _getDatabase: function() {
-                return this._database;
-            },
             _actions: {        
                 'add': 'ADD',
                 'modify': 'MODIFY',

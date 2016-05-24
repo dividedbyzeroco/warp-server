@@ -1,5 +1,4 @@
 var _ = require('underscore');
-var security = require('../services/security');
 
 module.exports = {
     find: function(req, res, next) {

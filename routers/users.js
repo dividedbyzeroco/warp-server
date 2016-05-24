@@ -1,7 +1,7 @@
 var moment = require('moment-timezone');
 var _ = require('underscore');
-var WarpError = require('../../error');
-var WarpSecurity = require('../../security');
+var WarpError = require('../error');
+var WarpSecurity = require('../security');
 
 module.exports = {
     find: function(req, res, next) {

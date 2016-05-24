@@ -20,9 +20,6 @@ var QueryFactory = {
 
         // Instance methods
         _.extend(ViewQuery.prototype, {
-            _getDatabase: function() {
-                return this._database;
-            },
             _parseKey: function(className, value, label) {
                 className = className || this.className;
                 return '`' + className + '`.`' + value + '` AS `' + label + '`'
