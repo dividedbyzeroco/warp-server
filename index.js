@@ -22,9 +22,9 @@ var WarpServer = function(config) {
     
     // Extend query classes based on database service
     this.Query = {
-        View: WarpServer.Query.View.extend(database),
-        Action: WarpServer.Query.Action.extend(database),
-        Schema: WarpServer.Query.Schema.extend(database)
+        View: WarpServer.Query.View.extend(this._database),
+        Action: WarpServer.Query.Action.extend(this._database),
+        Schema: WarpServer.Query.Schema.extend(this._database)
     };
     
     // Extend storage class based on config
