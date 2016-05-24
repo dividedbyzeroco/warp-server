@@ -14,8 +14,8 @@ var WarpServer = function(config) {
     this._requiredConfig(!config.database.user, 'DB User');
     this._requiredConfig(!config.database.password, 'DB Password');
     this._requiredConfig(!config.security, 'Security keys');
-    this._requiredConfig(!config.apiKey, 'API Key');
-    this._requiredConfig(!config.masterKey, 'Master Key');
+    this._requiredConfig(!config.security.apiKey, 'API Key');
+    this._requiredConfig(!config.security.masterKey, 'Master Key');
             
     // Prepare database service based on config
     this._database = new require('./services/database')(config.database);
