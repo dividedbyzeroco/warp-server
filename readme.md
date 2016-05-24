@@ -231,6 +231,42 @@ keys: {
 // Additional code defining our model
 ```
 
+## Files
+
+Sometimes, you may need to upload files to your server and store them persistently. In this particular case, Warp Server helps simplify this process with the help of `Warp Files`. Warp Files allow you to define keys where you would want to store file-related content. 
+
+On the database side, it stores a `key` string which represents the file inside your desired file storage system. By default, Warp Server uses local storage, but you can define other forms of storage providers such as Amazon S3 or Azure Storage.
+
+To specify a `file` in your Model, you may do so by adding a `files` option in your `keys` config:
+
+```javascript
+{
+    keys: {
+        // Other key configurations...        
+        // Files configuration:
+        files: ['{KEY_NAME}']
+    }
+}
+```
+
+So if, for example, inside our `Alien` model, we would like to add a file named `profile_pic`. We can do so by adding the following code to our `Model.create()` method:
+
+```javascript
+// Some code defining our model
+keys: {
+    viewable: ['name', 'age', 'type', 'planet', 'profile_pic'],
+    actionable: ['name', 'age', 'type', 'planet', 'profile_pic'],
+    pointers: {
+        'planet': {
+            className: 'planet',
+            via: 'planet_id'
+        }
+    },
+    files: ['profile_pic']
+},
+// Additional code defining our model
+```
+
 ## User and Session Models
 
 In order to handle user authentication and management, a special type of model called the User model can be added. It is similar to the `WarpServer.Model` except it requires a few additional fields.
@@ -342,42 +378,6 @@ var config = {
 };
 var api = new WarpServer(config);
 // ... additional code to initialize here
-```
-
-## Files
-
-Sometimes, you may need to upload files to your server and store them persistently. In this particular case, Warp Server helps simplify this process with the help of `Warp Files`. Warp Files allow you to define keys where you would want to store file-related content. 
-
-On the database side, it stores a `key` string which represents the file inside your desired file storage system. By default, Warp Server uses local storage, but you can define other forms of storage providers such as Amazon S3 or Azure Storage.
-
-To specify a `file` in your Model, you may do so by adding a `files` option in your `keys` config:
-
-```javascript
-{
-    keys: {
-        // Other key configurations...        
-        // Files configuration:
-        files: ['{KEY_NAME}']
-    }
-}
-```
-
-So if, for example, inside our `Alien` model, we would like to add a file named `profile_pic`. We can do so by adding the following code to our `Model.create()` method:
-
-```javascript
-// Some code defining our model
-keys: {
-    viewable: ['name', 'age', 'type', 'planet', 'profile_pic'],
-    actionable: ['name', 'age', 'type', 'planet', 'profile_pic'],
-    pointers: {
-        'planet': {
-            className: 'planet',
-            via: 'planet_id'
-        }
-    },
-    files: ['profile_pic']
-},
-// Additional code defining our model
 ```
 
 
@@ -512,6 +512,40 @@ The expected response would be similar to the following:
 }
 ```
 
+
+### Fetching Objects
+
+To fetch a single Object for a specific model, execute a GET request to:
+
+`/classes/{CLASS_NAME}/{ID}`
+
+For example:
+
+```bash
+curl -X GET \
+-G \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+http://localhost:3000/api/1/classes/alien/13
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "id": 13,
+        "name": "Wormwood",
+        "age": 80,
+        "type": "extraterrestrial",
+        "created_at": "2016-05-12T22:11:09Z",
+        "updated_at": "2016-05-12T23:21:18Z"
+    }
+}
+```
+
+
 ### Pointers as Keys
 
 In order to pass `pointers` as keys when creating or updating an object, the keys must have a value similar to the following:
@@ -611,38 +645,6 @@ The expected response would be similar to the following:
 
 Note: Make sure that before a file is deleted, all objects associated with it are disassociated.
 
-
-### Fetching Objects
-
-To fetch a single Object for a specific model, execute a GET request to:
-
-`/classes/{CLASS_NAME}/{ID}`
-
-For example:
-
-```bash
-curl -X GET \
--G \
--H 'X-Warp-API-Key: 12345678abcdefg' \
-http://localhost:3000/api/1/classes/alien/13
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": {
-        "id": 13,
-        "name": "Wormwood",
-        "age": 80,
-        "type": "extraterrestrial",
-        "created_at": "2016-05-12T22:11:09Z",
-        "updated_at": "2016-05-12T23:21:18Z"
-    }
-}
-```
 
 ## Queries
 
