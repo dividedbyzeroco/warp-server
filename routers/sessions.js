@@ -4,14 +4,14 @@ var security = require('../services/security');
 module.exports = {
     find: function(req, res, next) {
         var options = {
-            select: this.Model.getSession().getViewableKeys(req.query.select || {}),
+            select: this.getSessionModel().getViewableKeys(req.query.select || {}),
             where: req.query.where? JSON.parse(req.query.where) : {},
             sort: req.query.order? JSON.parse(req.query.order) : [],
             limit: req.query.limit || 100,
             skip: req.query.skip || 0
         };
         
-        var query = new this.Query.View(this.Model.getSession().className);
+        var query = new this.Query.View(this.getSessionModel().className);
                     
         // View objects
         query.select(options.select)
@@ -29,7 +29,7 @@ module.exports = {
     },
     first: function(req, res, next) {
         var id = parseInt(req.params.id);
-        var first = this.Model.getSession().first(id);
+        var first = this.getSessionModel().first(id);
         
         // View object
         first.then(function(result) {        
@@ -41,7 +41,7 @@ module.exports = {
     },
     create: function(req, res, next) {
         var fields = _.extend({}, req.body);
-        var create = this.Model.getSession().create({ fields: fields });
+        var create = this.getSessionModel().create({ fields: fields });
         
         // Create object
         create.then(function(result)
@@ -56,7 +56,7 @@ module.exports = {
     update: function(req, res, next) {
         var params = _.extend({}, req.body);
         var id = parseInt(req.params.id);
-        var update = this.Model.getSession().update({ id: id, fields: params });
+        var update = this.getSessionModel().update({ id: id, fields: params });
         
         // Update object
         update.then(function(result)
@@ -70,7 +70,7 @@ module.exports = {
     },
     destroy: function(req, res, next) {
         var id = parseInt(req.params.id);
-        var destroy = this.Model.getSession().destroy({ id: id });
+        var destroy = this.getSessionModel().destroy({ id: id });
         
         // Delete object
         destroy.then(function(result)

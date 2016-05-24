@@ -36,7 +36,7 @@ var config = {
 };
 
 // Create a Warp Server router for the API
-var api = WarpServer.initialize(config);
+var api = new WarpServer(config);
 
 // Apply the Warp Server router to your preferred base URL, using express' app.use() method
 var app = express();
@@ -176,12 +176,18 @@ var Alien = WarpServer.Model.create({
 });
 ```
 
-In order to tell Warp Server to use the model we just created, we must register it before we initialize Warp Server:
+In order to tell Warp Server to use the model we just created, we must add it as a `source` to our config, before we initialize Warp Server:
 
 ```javascript
-// ... some config code here
-WarpServer.Model.register(Alien);
-var api = WarpServer.initialize(config);
+// ... some code here
+var config = {
+    // .. previous configs here
+    models: {
+        source: [Alien]
+    }
+};
+
+var api = new WarpServer(config);
 // ... additional code to initialize here
 ```
 
@@ -259,13 +265,18 @@ var User = WarpServer.Model.create({
 });
 ```
 
-In order for us to use the defined model as a User model, we should use `.registerUser()` instead of the regular `.register()` method:
+In order for us to use the defined model as a User model, we must add it as a `user` in our config:
 
 ```javascript
-// ... some config code here
-WarpServer.Model.registerUser(User);
-WarpServer.Model.register(Alien);
-var api = WarpServer.initialize(config);
+// ... some code here
+var config = {
+    // ... previous configs here
+    models: {
+        source: [Alien, Planet],
+        user: User
+    }
+};
+var api = new WarpServer(config);
 // ... additional code to initialize here
 ```
 
@@ -297,18 +308,41 @@ var Session = WarpServer.Model.create({
 });
 ```
 
-Then, we register the created model by using the `.registerSession()` method:
+Then, we register the created model by adding it as a `session` option in our config:
 
 ```javascript
 // ... some config code here
-WarpServer.Model.registerUser(User);
-WarpServer.Model.registerSession(Session);
-WarpServer.Model.register(Alien);
-var api = WarpServer.initialize(config);
+var config = {
+    // ... previous configs here
+    models: {
+        source: [Alien, Planet],
+        user: User,
+        session: Session
+    }
+};
+var api = new WarpServer(config);
 // ... additional code to initialize here
 ```
 
 We can now use the special user authentication and management operations made available by the REST API.
+
+NOTE: If you want to modularize your code and you plan on segregating models in different files inside a specific folder, you can opt to place the directory name in the `source` option, instead of creating an array of models. You do, however, need to declare the `user` and `session` options as filenames instead of models, if you are going to use this approach.
+
+For example:
+
+```javascript
+// ... some config code here
+var config = {
+    // ... previous configs here
+    models: {
+        source: 'app/server/models',
+        user: 'user',
+        session: 'session'
+    }
+};
+var api = new WarpServer(config);
+// ... additional code to initialize here
+```
 
 ## Files
 

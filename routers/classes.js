@@ -11,7 +11,7 @@ module.exports = {
             skip: req.query.skip || 0
         };
         
-        var find = this.Model.getByClassName(className).find(options);
+        var find = this.getModel(className).find(options);
             
         // View objects
         find.then(function(result)
@@ -26,7 +26,7 @@ module.exports = {
     first: function(req, res, next) {
         var className = req.params.className;
         var id = parseInt(req.params.id);
-        var first = this.Model.getByClassName(className).first(id);
+        var first = this.getModel(className).first(id);
         
         // View object
         first.then(function(result) 
@@ -41,7 +41,7 @@ module.exports = {
     create: function(req, res, next) {
         var className = req.params.className;
         var fields = _.extend({}, req.body);
-        var create = this.Model.getByClassName(className).create({ fields: fields });
+        var create = this.getModel(className).create({ fields: fields });
         // Create object
         create.then(function(result)
         {
@@ -56,7 +56,7 @@ module.exports = {
         var className = req.params.className;
         var params = _.extend({}, req.body);
         var id = parseInt(req.params.id);
-        var update = this.Model.getByClassName(className).update({ id: id, fields: params });
+        var update = this.getModel(className).update({ id: id, fields: params });
         
         // Update object
         update.then(function(result)
@@ -71,7 +71,7 @@ module.exports = {
     destroy: function(req, res, next) {
         var className = req.params.className;
         var id = parseInt(req.params.id);
-        var destroy = this.Model.getByClassName(className).destroy({ id: id });
+        var destroy = this.getModel(className).destroy({ id: id });
         
         // Delete object
         destroy.then(function(result)

@@ -5,10 +5,12 @@ var _ = require('underscore');
 var WarpError = require('../error');
 
 // Class constructor
-var Database = {};
+var Database = function(config) {
+    this.initialize(config);
+};
 
 // Static methods
-_.extend(Database, {
+_.extend(Database.prototype, {
     _pool: null,
     _id: 'id',
     _connect: function() {

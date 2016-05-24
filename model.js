@@ -2,6 +2,7 @@
 var moment = require('moment-timezone');
 var _ = require('underscore');
 var WarpError = require('./error');
+var WarpSecurity = require('./security');
 
 /******************************************************/
 
@@ -22,53 +23,18 @@ _.extend(Model, {
         updatedAt: 'updated_at',
         deletedAt: 'deleted_at'
     },
-    _subclasses: {},
-    _user: null,
-    _session: null,
-    initialize: function(security, query, storage) {
-        this._security = security;
-        this._viewQuery = query.View;
-        this._actionQuery = query.Action;
-        this._storage = storage;
-        return this;
-    },
     getInternalKeys: function() {
         return Object.keys(this._internalKeys).map(function(key) {
             return this._internalKeys[key];
         }.bind(this));
-    },
-    getViewQuery: function(className) {
-        return this._viewQuery.build(className);
-    },
-    getActionQuery: function(className, id) {
-        return this._actionQuery.build(className, id);
-    },    
-    register: function(subclass) {
-        this._subclasses[subclass.className] = subclass;
-    },
-    registerUser: function(subclass) {
-        this._user = subclass;
-    },
-    registerSession: function(subclass) {
-        this._session = subclass;
-    },
-    getByClassName: function(className) {
-        if(className == 'user') throw new WarpError(WarpError.Code.ForbiddenOperation, 'User operations must use appropriate route');
-        var model = this._subclasses[className];
-        if(!model) throw new WarpError(WarpError.Code.ModelNotFound, 'Model not found');
-        return this._subclasses[className];
-    },
-    getUser: function() {
-        return this._user;
-    },
-    getSession: function() {
-        return this._session;
-    },
+    },  
     create: function(config) {
         var self = this;
                 
         // Prepare subclass
         var ModelSubclass = {
+            _viewQuery: null,
+            _actionQuery: null,
             className: config.className,
             source: config.source || config.className,
             keys: config.keys || {},
@@ -223,7 +189,7 @@ _.extend(Model, {
                 return keysActionable;
             },
             find: function(options) {
-                var query = self.getViewQuery(this.source);
+                var query = new this._viewQuery(this.source);
                 query.select(this.getViewableKeys(options.select));
                                 
                 // Get where options; Remove deleted objects
@@ -252,7 +218,7 @@ _.extend(Model, {
                 }.bind(this));
             },
             first: function(id) {
-                var query = self.getViewQuery(this.source);
+                var query = new this._viewQuery(this.source);
                 query.select(this.getViewableKeys());
                 var where = {};
                 where[self._internalKeys.id] = { 'eq': id };
@@ -269,7 +235,7 @@ _.extend(Model, {
                 }.bind(this));                
             },
             create: function(options) {
-                var query = self.getActionQuery(this.source);
+                var query = new this._actionQuery(this.source);
                 var now = moment().tz('UTC');
                 var keys = this.getActionableKeys(options.fields, { isNew: true, now: now });
                 return query.fields(keys).create().then(function(result) {
@@ -281,7 +247,7 @@ _.extend(Model, {
                 }.bind(this));
             },
             update: function(options) {
-                var query = self.getActionQuery(this.source, options.id);
+                var query = new this._actionQuery(this.source, options.id);
                 var now = moment().tz('UTC');
                 var keys = this.getActionableKeys(options.fields, { now: now });
                 return query.fields(keys).update().then(function() {
@@ -293,7 +259,7 @@ _.extend(Model, {
                 
             },
             destroy: function(options) {
-                var query = self.getActionQuery(this.source, options.id);
+                var query = new this._actionQuery(this.source, options.id);
                 var now = moment().tz('UTC');
                 query.fields(this.getActionableKeys({}, { isDestroyed: true, now: now }));
                 // Only do soft deletes
@@ -380,7 +346,7 @@ Model.Parser = {
         return value.split(' ').join('');
     },
     Password: function(value) {
-        return Model._security.hash(value, 8);
+        return WarpSecurity.hash(value, 8);
     },
     Integer: function(value) {
         return parseInt(value, 10);

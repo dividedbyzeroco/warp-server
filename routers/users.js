@@ -1,6 +1,7 @@
 var moment = require('moment-timezone');
 var _ = require('underscore');
-var security = require('../services/security');
+var WarpError = require('../../error');
+var WarpSecurity = require('../../security');
 
 module.exports = {
     find: function(req, res, next) {
@@ -12,7 +13,7 @@ module.exports = {
             skip: req.query.skip || 0
         };
         
-        var find = this.Model.getUser().find(options);
+        var find = this.getUserModel().find(options);
             
         // View objects
         find.then(function(result)
@@ -26,7 +27,7 @@ module.exports = {
     },
     first: function(req, res, next) {
         var id = parseInt(req.params.id);
-        var first = this.Model.getUser().first(id);
+        var first = this.getUserModel().first(id);
         
         // View object
         first.then(function(result) {        
@@ -40,27 +41,27 @@ module.exports = {
         var fields = _.extend({}, req.body);
         
         if(!fields.username || !fields.password || !fields.email)
-            throw new this.Error(this.Error.Code.InvalidCredentials, 'Missing credentials');
+            throw new WarpError(WarpError.Code.InvalidCredentials, 'Missing credentials');
         
-        var findUsername = this.Model.getUser().find({ where: {
+        var findUsername = this.getUserModel().find({ where: {
             'username': { 'eq': fields.username }
         }});
-        var findEmail = this.Model.getUser().find({ where: {
+        var findEmail = this.getUserModel().find({ where: {
             'email': { 'eq' : fields.email }
         }})
                 
         // Create object
         findUsername.then(function(result) {
             // Check if username is taken
-            if(result.length > 0) throw new this.Error(this.Error.Code.UsernameTaken, 'Username already taken');
+            if(result.length > 0) throw new WarpError(WarpError.Code.UsernameTaken, 'Username already taken');
             return findEmail;
         }.bind(this))
         .then(function(result) {
             // Check if email is taken
-            if(result.length > 0) throw new this.Error(this.Error.Code.EmailTaken, 'Email already taken');
+            if(result.length > 0) throw new WarpError(WarpError.Code.EmailTaken, 'Email already taken');
             
             // Prepare user creation
-            var create = this.Model.getUser().create({ fields: fields });
+            var create = this.getUserModel().create({ fields: fields });
             return create;
         }.bind(this))
         .then(function(result)
@@ -76,19 +77,19 @@ module.exports = {
         var params = _.extend({}, req.body);
         var id = parseInt(req.params.id);
         var sessionToken = req.sessionToken;
-        var query = new this.Query.View(this.Model.getSession().className);
+        var query = new this.Query.View(this.getSessionModel().className);
         
         // Check session
         query.where({ 'session_token': { 'eq' : sessionToken }, 'deleted_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } })
         .first(function(result) 
         {
             if(!result)
-                throw new this.Error(this.Error.Code.InvalidSessionToken, 'Session does not exist');
+                throw new WarpError(WarpError.Code.InvalidSessionToken, 'Session does not exist');
             if(id != result.user_id)
-                throw new this.Error(this.Error.Code.ForbiddenOperation, 'Users can only edit their own data');
+                throw new WarpError(WarpError.Code.ForbiddenOperation, 'Users can only edit their own data');
             
             // Update object, if valid    
-            return this.Model.getUser().update({ id: id, fields: params });
+            return this.getUserModel().update({ id: id, fields: params });
         }.bind(this))
         .then(function(result)
         {
@@ -102,19 +103,19 @@ module.exports = {
     destroy: function(req, res, next) {
         var id = parseInt(req.params.id);
         var sessionToken = req.sessionToken;
-        var query = new this.Query.View(this.Model.getSession().className);
+        var query = new this.Query.View(this.getSessionModel().className);
         
         // Check session
         query.where({ 'session_token': { 'eq' : sessionToken }, 'deleted_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } })
         .first(function(result) 
         {
             if(!result)
-                throw new this.Error(this.Error.Code.InvalidSessionToken, 'Session does not exist');
+                throw new WarpError(WarpError.Code.InvalidSessionToken, 'Session does not exist');
             if(id != result.user_id)
-                throw new this.Error(this.Error.Code.ForbiddenOperation, 'Users can only destroy their own data');
+                throw new WarpError(WarpError.Code.ForbiddenOperation, 'Users can only destroy their own data');
             
             // Destroy object, if valid    
-            return this.Model.getUser().destroy({ id: id });
+            return this.getUserModel().destroy({ id: id });
         }.bind(this))
         .then(function(result)
         {
@@ -127,15 +128,15 @@ module.exports = {
     },
     me: function(req, res, next) {
         var sessionToken = req.sessionToken;
-        var query = new this.Query.View(this.Model.getSession().className);
+        var query = new this.Query.View(this.getSessionModel().className);
         
         query.where({ 'session_token': { 'eq' : sessionToken }, 'deleted_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } })
         .first(function(result) 
         {
             if(!result)
-                throw new this.Error(this.Error.Code.InvalidSessionToken, 'Session does not exist');
+                throw new WarpError(WarpError.Code.InvalidSessionToken, 'Session does not exist');
             
-            var first = this.Model.getUser().first(result.user_id);
+            var first = this.getUserModel().first(result.user_id);
             return first.then(function(user) {
                 res.json({ status: 200, message: 'Success', result: user });
             });
@@ -150,7 +151,7 @@ module.exports = {
         var password = req.body.password;
         var origin = req.get('X-Warp-Origin');
         
-        var query = new this.Query.View(this.Model.getUser().className);
+        var query = new this.Query.View(this.getUserModel().className);
         
         query.select({
             'id': 'id',
@@ -161,26 +162,26 @@ module.exports = {
         })
         .first(function(user) 
         {
-            if(user && security.validate(password, user.password))
+            if(user && WarpSecurity.validate(password, user.password))
             {
                 var fields = {
                     'user': {
                         type: 'Pointer',
-                        className: this.Model.getUser().className,
+                        className: this.getUserModel().className,
                         id: user.id
                     },
                     'origin': origin
                 };
                 
-                return this.Model.getSession().create({ fields: fields });
+                return this.getSessionModel().create({ fields: fields });
             }
             else
             {
-                throw new this.Error(this.Error.Code.InvalidCredentials, 'Invalid username/password');
+                throw new WarpError(WarpError.Code.InvalidCredentials, 'Invalid username/password');
             }
         }.bind(this))
         .then(function(result) {
-            return this.Model.getSession().first(result.id);
+            return this.getSessionModel().first(result.id);
         }.bind(this))
         .then(function(session) {
             res.json({ status: 200, message: 'Success', result: session });
@@ -192,17 +193,17 @@ module.exports = {
     },
     logout: function(req, res, next) {
         var sessionToken = req.sessionToken;
-        var query = new this.Query.View(this.Model.getSession().className);
+        var query = new this.Query.View(this.getSessionModel().className);
         
         query.where({ 'session_token': { 'eq' : sessionToken }, 'deleted_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } })
         .first(function(session) 
         {
             if(!session)
             {
-                throw new this.Error(this.Error.Code.InvalidSessionToken, 'Session does not exist');
+                throw new WarpError(WarpError.Code.InvalidSessionToken, 'Session does not exist');
             }
             
-            var action = new this.Query.Action(this.Model.getSession().className, session.id);
+            var action = new this.Query.Action(this.getSessionModel().className, session.id);
             
             return action.fields({ deleted_at: moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') })
             .update(function(result) {
