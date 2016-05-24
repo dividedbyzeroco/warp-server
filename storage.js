@@ -10,7 +10,7 @@ var StorageFactory = {
     extend: function(config) {
         // Set default values
         var storagePath = ''; // Default to base path
-        var storageAdapter = localStorage; // Default to use localstorage
+        var storageAdapter = localstorage; // Default to use localstorage
         var maxFileSize = 1024 * 1024 * 10; // Default to 10mb
         
         // If config is set
