@@ -533,7 +533,7 @@ http://localhost:3000/api/1/classes/alien
 
 In order to upload `files` to the server, execute a POST request to:
 
-`/files/{FILE_NAME}`
+`/files`
 
 With multipart form data that contains a `file` key pointing to the desired file and a `name` key to set the filename:
 
@@ -581,14 +581,19 @@ http://localhost:3000/api/1/classes/alien/28
 
 In order to delete `files` from the server, execute a DELETE request to:
 
-`/files/{FILE_KEY}`
+`/files`
+
+with a JSON Object that contains the key of your existing file:
+
+`key={FILE_KEY}`
 
 For example:
 
 ```bash
 curl -X DELETE \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
-http://localhost:3000/api/1/files/20160523005923_1dUfhw81818dh1d_image_alien_face.jpg
+--data 'key=20160523005923_1dUfhw81818dh1d_image_alien_face.jpg' \
+http://localhost:3000/api/1/files
 ```
 
 The expected response would be similar to the following:
