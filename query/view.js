@@ -176,4 +176,4 @@ var QueryFactory = {
 };
 
 // Export module
-module.exports = ViewQuery;
+module.exports = QueryFactory;
