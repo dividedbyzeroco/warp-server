@@ -6,7 +6,22 @@ var WarpError = require('../error');
 
 // Class constructor
 var Database = function(config) {
-    this.initialize(config);
+    var host = config.host || 'localhost';
+    var port = config.port || 3306;
+    var user = config.user;
+    var password = config.password;
+    var database = config.default;
+    var timeout = config.timeout || 30000;
+    this._id = config.id || this._id;
+    
+    this._pool = mysql.createPool({
+        host: host,
+        port: port,
+        user: user,
+        password: password,
+        database: database,
+        acquireTimeout: timeout
+    });
 };
 
 // Static methods
@@ -64,26 +79,6 @@ _.extend(Database.prototype, {
     },
     escape: function(value) {
         return this._pool.escape(value);
-    },
-    initialize: function(config) {
-        var host = config.host || 'localhost';
-        var port = config.port || 3306;
-        var user = config.user;
-        var password = config.password;
-        var database = config.default;
-        var timeout = config.timeout || 30000;
-        this._id = config.id || this._id;
-        
-        this._pool = mysql.createPool({
-            host: host,
-            port: port,
-            user: user,
-            password: password,
-            database: database,
-            acquireTimeout: timeout
-        });
-        
-        return this;
     }
 });
 
