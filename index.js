@@ -18,7 +18,8 @@ var WarpServer = function(config) {
     this._requiredConfig(config.security.masterKey, 'Master Key');
             
     // Prepare database service based on config
-    this._database = new require('./services/database')(config.database);
+    var database = require('./services/database');
+    this._database = new database(config.database);
     
     // Extend query classes based on database service
     this.Query = {
