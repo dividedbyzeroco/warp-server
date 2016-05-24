@@ -31,16 +31,18 @@ var WarpServer = function(config) {
     // Extend storage class based on config
     this.Storage = WarpServer.Storage.extend(config.storage);
     
+    // Append queries util for models
+    var appendQueries = function(model) {
+        model._viewQuery = this.Query.View;
+        model._actionQuery = this.Query.Action;
+        model._storage = this.Storage;
+        return model;    
+    }.bind(this);
+    
     // Register model classes
     if(config.models && config.models.source)
     {
         var source = config.models.source;
-        var appendQueries = function(model) {
-            model._viewQuery = this.Query.View;
-            model._actionQuery = this.Query.Action;
-            model._storage = this.Storage;
-            return model;    
-        }.bind(this);
         
         if(typeof source === 'string')
         {
@@ -51,10 +53,10 @@ var WarpServer = function(config) {
             .forEach(function(file) {
                 var model = require(path.join(source, file));
                 model = appendQueries(model);
-                
-                if(file === config.models.user)
+                                
+                if(file.replace('.js', '') === config.models.user)
                     this._user = model;
-                else if(file === config.models.session)
+                else if(file.replace('.js', '') === config.models.session)
                     this._session = model;
                 else
                     this._models[model.className] = model;
