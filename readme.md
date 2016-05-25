@@ -983,7 +983,7 @@ The expected response would be similar to the following, if the session token is
 }
 ```
 
-### Migrations API
+## Migrations API
 
 Once the `migrations` feature has been activated, you may now access the operations provided by the Migrations API. Note that the `X-Warp-Master-Key` must be set for every request done on the Migrations API. It is advised to only keep the master key in secure environments. Never make this master key publicly accessible.
 
