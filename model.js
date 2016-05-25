@@ -26,7 +26,7 @@ var KeyMap = function(keys) {
             iterator(this._keys[key]);
     };
     this.copy = function() {
-        return _.create(this._keys);
+        return _.extend({}, this._keys);
     };
 };
 
