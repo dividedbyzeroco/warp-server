@@ -11,6 +11,25 @@ var Model = function(className) {
     this.className = className;
 };
 
+// Utils classes
+var KeyMap = function(keys) {
+    this._keys = keys;
+    this.set = function(key, value) {
+        this._keys[key] = value;
+        return this;
+    };
+    this.get = function(key) {
+        return this._keys[key];
+    };
+    this.each = function(iterator) {
+        for(var key in this._keys)
+            iterator(this._keys[key]);
+    };
+    this.copy = function() {
+        return _.create(this._keys);
+    };
+};
+
 // Instance methods
 _.extend(Model.prototype, {
 });
@@ -184,9 +203,34 @@ _.extend(Model, {
                 if(options.isNew) keysActionable[self._internalKeys.createdAt] = now.format('YYYY-MM-DD HH:mm:ss');
                 if(options.isDestroyed) keysActionable[self._internalKeys.deletedAt] = now.format('YYYY-MM-DD HH:mm:ss');
                 
-                if(typeof this.beforeSave === 'function') keysActionable = this.beforeSave(keysActionable, options);
-                
-                return keysActionable;
+                // Create basic key map
+                var keyMap = new KeyMap(keysActionable);
+                                
+                // Check if beforeSave exists
+                if(typeof this.beforeSave === 'function') 
+                    return new Promise(function(resolve, reject) {
+                        
+                        // Create request object
+                        var request = {
+                            keys: keyMap,
+                            isNew: options.isNew? true : false,
+                            isDestroyed: options.isDestroyed? true : false
+                        };
+                        
+                        // Create response object
+                        var response = {
+                            success: function() {
+                                resolve(request);
+                            },
+                            error: reject
+                        };
+                        
+                        // Run before save
+                        this.beforeSave(request, response); 
+                    
+                    }.bind(this));
+                else
+                    Promise.resolve(request);
             },
             find: function(options) {
                 var query = new this._viewQuery(this.source);
@@ -237,38 +281,81 @@ _.extend(Model, {
             create: function(options) {
                 var query = new this._actionQuery(this.source);
                 var now = moment().tz('UTC');
-                var keys = this.getActionableKeys(options.fields, { isNew: true, now: now });
-                return query.fields(keys).create().then(function(result) {
-                    keys.id = result.id;
-                    keys.created_at = now.format();
-                    keys.updated_at = now.format();
-                    if(typeof this.afterSave === 'function') this.afterSave(keys);
-                    return keys;
+                var request = null;
+                
+                // Get actionable keys
+                return this.getActionableKeys(options.fields, { now: now, isNew: true })
+                .then(function(result) {
+                    request = result;
+                })
+                .then(function() {
+                    // Execute action query
+                    return query.fields(request.keys.copy()).create();
+                })
+                .then(function(result) {
+                    // Update key map
+                    request.keys.set('id', result.id);
+                    request.keys.set('created_at', now.format());
+                    request.keys.set('updated_at', now.format());
+                    
+                    // Check afterSave method
+                    if(typeof this.afterSave === 'function') this.afterSave(request);
+                    
+                    // Return a copy of the keys as a raw object
+                    return request.keys.copy();
                 }.bind(this));
             },
             update: function(options) {
                 var query = new this._actionQuery(this.source, options.id);
                 var now = moment().tz('UTC');
-                var keys = this.getActionableKeys(options.fields, { now: now });
-                return query.fields(keys).update().then(function() {
-                    keys.id = options.id;
-                    keys.updated_at = now.format();
-                    if(typeof this.afterSave === 'function') this.afterSave(keys);
-                    return keys;
-                }.bind(this));
+                var request = null;
                 
+                // Get actionable keys
+                return this.getActionableKeys(options.fields, { now: now })
+                .then(function(result) {
+                    request = result;
+                })
+                .then(function() {
+                    // Execute action query
+                    return query.fields(request.keys.copy()).update();
+                })
+                .then(function(result) {
+                    // Update key map
+                    request.keys.set('id', options.id);
+                    request.keys.set('updated_at', now.format());
+                    
+                    // Check afterSave method
+                    if(typeof this.afterSave === 'function') this.afterSave(request);
+                    
+                    // Return a copy of the keys as a raw object
+                    return request.keys.copy();
+                }.bind(this));                
             },
             destroy: function(options) {
                 var query = new this._actionQuery(this.source, options.id);
                 var now = moment().tz('UTC');
-                query.fields(this.getActionableKeys({}, { isDestroyed: true, now: now }));
-                // Only do soft deletes
-                return query.update().then(function(result) {
-                    result.id = options.id;
-                    result.updated_at = now.format();
-                    result.deleted_at = now.format();
-                    if(typeof this.afterSave === 'function') this.afterSave(result);
-                    return result;
+                var request = null;
+                
+                // Get actionable keys
+                return this.getActionableKeys(options.fields, { now: now, isDestroyed: true })
+                .then(function(result) {
+                    request = result;
+                })
+                .then(function() {
+                    // Execute action query
+                    return query.fields(request.keys.copy()).update();
+                })
+                .then(function(result) {
+                    // Update key map
+                    request.keys.set('id', options.id);
+                    request.keys.set('updated_at', now.format());
+                    request.keys.set('deleted_at', now.format());
+                    
+                    // Check afterSave method
+                    if(typeof this.afterSave === 'function') this.afterSave(request);
+                    
+                    // Return a copy of the keys as a raw object
+                    return request.keys.copy();
                 }.bind(this));
             }
         });

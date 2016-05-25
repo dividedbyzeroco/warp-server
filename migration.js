@@ -71,10 +71,7 @@ var MigrationFactory = {
                                     
                                     if(!fields['id'])
                                         fields.forEach(function(field) {
-                                            if(typeof field !== 'object') 
-                                                return;
-                                            else if(typeof fields.details !== 'object' ||
-                                                field.details.indexOf('primary') < 0)
+                                            if(typeof field !== 'object' || typeof fields.addons !== 'object' || field.addons.indexOf('primary') < 0)
                                                 return;
                                             hasPrimary = true;
                                         });
