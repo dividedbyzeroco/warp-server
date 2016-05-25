@@ -997,7 +997,7 @@ A `migration` is a JSON object that defines the operations to be made by the `mi
 
 For the `up` and `down` options, the JSON objects would be defined in the following format:
 
-```json
+```javascript
 {
     // Define schemas which are to be created
     "create": {
