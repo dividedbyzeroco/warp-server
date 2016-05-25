@@ -394,6 +394,41 @@ Each Object contains different keys which can be set or retrieved as needed. Amo
 These keys are specifically set by the server and cannot be modified by the user.
 
 
+## Migrations
+
+Managing database structures are usually handled by administrators using SQL clients. For Warp Server, these can be handled by `migrations`. Migrations make it easy to create, alter and drop database `schemas`. Not only does it manage these schemas/tables but it also allows versioning of these modifications, so you can easily `commit` or `revert` changes programmatically.
+
+To activate the `migrations` feature, simply add a migrations option in your Warp Server config:
+
+```javascript
+// ... some config code here
+var config = {
+    // ... previous configs here
+    migrations: {
+        activated: true
+    }
+};
+var api = new WarpServer(config);
+// ... additional code to initialize here
+```
+
+Once applied and the server initiates, the migrations table is automatically created in the default database. By default, the name of the table is `migration`. If you need to change this, simply add a `className` option:
+
+```javascript
+// ... some config code here
+var config = {
+    // ... previous configs here
+    migrations: {
+        activated: true,
+        className: 'migration_audit'
+    }
+};
+var api = new WarpServer(config);
+// ... additional code to initialize here
+```
+
+You can now access the `migrations` API to start creating `schemas`. Please see section on the Migrations API for more info.
+
 ## REST API
 
 The REST API makes it easy to handle operations being made to Objects. After initializing the server by following the instructions above, the following endpoints are readily made available for use by client-side applications.
@@ -948,6 +983,335 @@ The expected response would be similar to the following, if the session token is
 }
 ```
 
+### Migrations API
+
+Once the `migrations` feature has been activated, you may now access the operations provided by the Migrations API. Note that the `X-Warp-Master-Key` must be set for every request done on the Migrations API. It is advised to only keep the master key in secure environments. Never make this master key publicly accessible.
+
+### Migration
+
+A `migration` is a JSON object that defines the operations to be made by the `migrations` feature:
+
+- id: a unique identifier for the migration (You can use A-z, 0-9 and '-', '_'); a common pattern would be to usually place a timestamp at the beginning of the ID;
+- up: a JSON object that contains operations to be executed once a `commit` command is executed
+- down: a JSON object that contains operations to be executed once a `revert` command is executed
+
+For the `up` and `down` options, the JSON objects would be defined in the following format:
+
+```json
+{
+    // Define schemas which are to be created
+    "create": {
+        "{SCHEMA1}": {
+            // You can define a field with a JSON object of options
+            "{FIELD1}": {
+                "type": "{DATA_TYPE}", // Data type as defined in the Migration Data Types section
+                "size": "{SIZE}", // Field length; See Migration Data Types section for more info
+                "addons": ["{FIELD_DETAIL1}"] // A list of additional details; See Migration Details section for more info
+            }
+        },
+        "{SCHEMA2}": {
+            "{FIELD1}": "{DATA_TYPE}" // You can define a field with a string with the desired data type, as a shorthand
+        }
+    },
+    // NOTE: By default, newly created schemas have the following fields included:
+    // - id
+    // - created_at
+    // - updated_at
+    // - deleted_at
+    //
+    // In order to avoid unexpected errors, it is advised to keep these fields untouched
+    
+    // Define schemas which are to be altered
+    "alter": {
+        "{SCHEMA3}": {
+            "{FIELD1}": {
+                "action": "{add|modify|rename|drop}", // Action to be made on the selected field; See Migration Actions section for more info
+                "type": "{DATA_TYPE}", // New data type; only applicable to `add`, `modify`, and `rename` actions
+                "size": "{SIZE}", // New field length; only applicable to `add` and `modify`, and `rename` actions
+                "details": ["{FIELD_DETAIL1}"], // A list of additional details; only applicable to `add` actions
+                "to": "{NEW_FIELD_NAME}" // New field name; only applicable to `rename` actions 
+            }
+        }
+    },
+    
+    // Define schemas which are to be dropped
+    "drop": ["{SCHEMA4}", "{SCHEMA5}", "{SCHEMA6}"]
+}
+```
+
+### Creating Migrations
+
+To create a Migration, execute a POST request to:
+
+`/migrations/{CLASS_NAME}`
+
+with a JSON Object that contains the keys of your new Migration:
+
+`{"id": "{VALUE1}", "up": "{VALUE2}", "down": "{VALUE3}"}`
+
+or a reference to a `.json` file:
+
+`@{FILE_NAME}.json`
+
+For example:
+
+```bash
+curl -X POST \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'X-Warp-Master-Key: abcdefg12345678' \
+-H 'Content-Type: application/json' \
+--data @201605251325-migration.json \
+http://localhost:3000/api/1/migrations
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {        
+        "id": "201605251325-migration",
+        "updated_at": "2016-05-12T22:11:09Z",
+        "created_at": "2016-05-12T22:11:09Z"
+    }
+}
+```
+
+### Updating Migrations
+
+To update an Migration, execute a PUT request to:
+
+`/migrations/{ID}`
+
+with a JSON Object that contains the keys of your existing Migration:
+
+`{"id": "{VALUE1}", "up": "{VALUE2}", "down": "{VALUE3}"}`
+
+or a reference to a `.json` file:
+
+`@{FILE_NAME}.json`
+
+For example:
+
+```bash
+curl -X PUT \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'X-Warp-Master-Key: abcdefg12345678' \
+-H 'Content-Type: application/json' \
+--data @201605251325-migration.json \
+http://localhost:3000/api/1/migrations/201605251325-migration
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {        
+        "id": "201605251325-migration",
+        "updated_at": "2016-05-12T22:11:09Z"
+    }
+}
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "id": 141,
+        "age": 300,
+        "created_at": "2016-05-12T09:18:44Z",
+        "updated_at": "2016-05-12T14:03:21Z"
+    }
+}
+```
+
+### Deleting Migrations
+
+To delete a Migration, execute a DELETE request to:
+
+`/migrations/{ID}`
+
+For example:
+
+```bash
+curl -X DELETE \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'X-Warp-Master-Key: abcdefg12345678' \
+http://localhost:3000/api/1/migrations/201605251325-migration
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "id": "201605251325-migration",
+        "updated_at": "2016-05-12T22:11:09Z",
+        "deleted_at": "2016-05-12T22:11:09Z"
+    }
+}
+```
+
+### Fetch Migrations
+
+To fetch a Migration, execute a GET request to:
+
+`/migrations/{ID}`
+
+For example:
+
+```bash
+curl -X GET \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'X-Warp-Master-Key: abcdefg12345678' \
+http://localhost:3000/api/1/migrations/201605251325-migration
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "id": "201605251325-migration",
+        "up": {
+            "create": {
+                "user": {
+                    "type": "string",
+                    "size": 60,
+                    "details": ["primary", "increment"]
+                }
+            }
+        },
+        "down": {
+            "drop": ["user"]
+        }
+}
+```
+
+### Committing Migrations
+
+To commit pending Migrations, execute a POST request to:
+
+`/migrations/commit`
+
+For example:
+
+```bash
+curl -X POST \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'X-Warp-Master-Key: abcdefg12345678' \
+http://localhost:3000/api/1/migrations/commit
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": ["201605221332-first-migration", "201605251325-migration"]
+}
+```
+
+### Fetch Latest Migration Committed
+
+To fetch the latest Migration committed, execute a GET request to:
+
+`/migrations/current`
+
+For example:
+
+```bash
+curl -X GET \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'X-Warp-Master-Key: abcdefg12345678' \
+http://localhost:3000/api/1/migrations/current
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "id": "201605251325-migration",
+        "up": {
+            "create": {
+                "user": {
+                    "type": "string",
+                    "size": 60,
+                    "details": ["primary", "increment"]
+                }
+            }
+        },
+        "down": {
+            "drop": ["user"]
+        }
+}
+```
+
+### Reverting Migrations
+
+To revert the latest Migration, execute a POST request to:
+
+`/migrations/revert`
+
+For example:
+
+```bash
+curl -X POST \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'X-Warp-Master-Key: abcdefg12345678' \
+http://localhost:3000/api/1/migrations/revert
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": "201605251325-migration"
+}
+```
+
+### Resetting Migrations
+
+To revert all committed Migrations, execute a POST request to:
+
+`/migrations/reset`
+
+For example:
+
+```bash
+curl -X POST \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'X-Warp-Master-Key: abcdefg12345678' \
+http://localhost:3000/api/1/migrations/reset
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": ["201605221332-first-migration", "201605251325-migration"]
+}
+```
+
+
 ## References
 
 ### WarpServer.Model.Validation
@@ -992,3 +1356,31 @@ The expected response would be similar to the following, if the session token is
 - Email Taken: 108 - the provided email is already taken
 - Invalid API Key: 109 - an API Key is not set or the given key is invalid
 - Model Not Found: 110 - the requested model/class does not exist
+
+### WarpServer.Migration Data Types
+
+- string: VARCHAR; (default size: 30)
+- email: VARCHAR; (default size: 60)
+- password: VARCHAR; (default size: 250)
+- text: TEXT; (no size)
+- acl: TEXT; (no size)
+- datetime: DATETIME (no size)
+- float: FLOAT; (default size: '14, 2')
+- money: FLOAT; (default size: '14, 2')
+- geopoint: FLOAT (default size: '12, 8')
+- integer: INT (default size: 11)
+- pointer: INT (default size: 11)
+
+### WarpServer.Migration Details
+
+- primary: set the field as a PRIMARY KEY
+- increment: set the field as AUTO_INCREMENT
+- unique: set the field as UNIQUE
+- required: set the field as NOT NULL
+
+### WarpServer.Migration Actions
+
+- add: add a new field to a schema
+- modify: modify an existing field's data type
+- rename: rename an existing field's name and data type (both are required)
+- drop: drop an existing field

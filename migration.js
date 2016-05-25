@@ -55,11 +55,45 @@ var MigrationFactory = {
                             
                             // Check if fields exist
                             if(fields)
+                            {
+                                // Check if the action is 'create'
+                                if(action === 'create' || action === 'createOnce')
+                                {
+                                    // Automatically create internal keys
+                                    if(!fields['created_at'])
+                                        fields['created_at'] = 'datetime'
+                                    if(!fields['updated_at'])
+                                        fields['updated_at'] = 'datetime'
+                                    if(!fields['deleted_at'])
+                                        fields['deleted_at'] = 'datetime'
+                                    
+                                    var hasPrimary = false;
+                                    
+                                    if(!fields['id'])
+                                        fields.forEach(function(field) {
+                                            if(typeof field !== 'object') 
+                                                return;
+                                            else if(typeof fields.details !== 'object' ||
+                                                field.details.indexOf('primary') < 0)
+                                                return;
+                                            hasPrimary = true;
+                                        });
+                                    else
+                                        hasPrimary = true;
+                                    
+                                    if(!hasPrimary)
+                                        fields['id'] = {
+                                            type: 'integer',
+                                            addons: ['primary', 'increment']
+                                        };
+                                }
+                                
                                 // Add table action to the promise chain
                                 promise = promise.then(function() {
                                     var query = new Migration._schemaQuery(table);
                                     return query.fields(fields)[action]();
                                 }.bind(this));
+                            }
                         }
                     }
                 }
@@ -90,7 +124,7 @@ var MigrationFactory = {
             update: function() {
                 // Update a migration
                 var now = moment().tz('UTC');
-                var action = new Migration._actionQuery(Migration.className, this.id);        
+                var action = new Migration._actionQuery(Migration.className, this.id);     
                 return action.fields({
                     'up': JSON.stringify(this.up),
                     'down': JSON.stringify(this.down),

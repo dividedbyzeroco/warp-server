@@ -105,6 +105,7 @@ module.exports = {
     update: function(req, res, next) {
         var options = _.extend({}, req.body);
         var id = req.params.id;
+        
         options.id = id;
         var migration = new this.Migration(options);
         

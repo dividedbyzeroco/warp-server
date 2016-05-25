@@ -5,8 +5,28 @@ var WarpError = require('../error');
 
 /******************************************************/
 
+
 // Factory
 var QueryFactory = {
+    DataTypes: {
+        String: 'string',
+        Email: 'email',
+        Password: 'password',
+        Text: 'text',
+        Acl: 'acl',
+        DateTime: 'datetime',
+        Float: 'float',
+        Money: 'money',
+        GeoPoint: 'geopoint',
+        Integer: 'integer',
+        Pointer: 'pointer'
+    },
+    Addons: {
+        Primary: 'primary',
+        Increment: 'increment',
+        Unique: 'unique',
+        Required: 'required'
+    },
     extend: function(database) {
         // Class constructor
         var SchemaQuery = function(className, id) {
@@ -31,35 +51,35 @@ var QueryFactory = {
             _getDataType: function(type, length) {
                 switch(type)
                 {            
-                    case 'pointer':
-                    case 'integer':
+                    case QueryFactory.DataTypes.Pointer:
+                    case QueryFactory.DataTypes.Integer:
                         dataType = 'INT';
                         length = length? length : '11';
                         break;
                     
-                    case 'geopoint':
+                    case QueryFactory.DataTypes.GeoPoint:
                         length = length? length : '12, 8';
-                    case 'money':
-                    case 'float':
+                    case QueryFactory.DataTypes.Money:
+                    case QueryFactory.DataTypes.Float:
                         dataType = 'FLOAT';
                         length = length? length : '14, 2';
                         break;
                         
-                    case 'datetime':
+                    case QueryFactory.DataTypes.DateTime:
                         dataType = 'DATETIME';
                         length = null;
                         break;
                         
-                    case 'acl':
-                    case 'text':
+                    case QueryFactory.DataTypes.Acl:
+                    case QueryFactory.DataTypes.Text:
                         dataType = 'TEXT';
                         break;
                     
-                    case 'password':
+                    case QueryFactory.DataTypes.Password:
                         length = length? length : '250';
-                    case 'email':
+                    case QueryFactory.DataTypes.Email:
                         length = length? length : '60';
-                    case 'string':
+                    case QueryFactory.DataTypes.String:
                     default:
                         dataType = 'VARCHAR';
                         length = length? length : '30';
@@ -73,19 +93,19 @@ var QueryFactory = {
                 var listAddons = details.map(function(addon) {
                     switch(addon)
                     {                          
-                        case 'primary':
+                        case QueryFactory.Addons.Primary:
                             nullable = false;
                             return 'PRIMARY KEY';
                             
-                        case 'increment':
+                        case QueryFactory.Addons.Primary:
                             return 'AUTO_INCREMENT';
                             
-                        case 'unique':
+                        case QueryFactory.Addons.Primary:
                             nullable = false;
                             this._unique.push(key);
                             return '';
                             
-                        case 'required':
+                        case QueryFactory.Addons.Required:
                             nullable = false;
                         default:
                             return '';
@@ -109,7 +129,7 @@ var QueryFactory = {
                 
                 var type = props.type;
                 var length = props.size || null;
-                var details = props.details || [];
+                var addons = props.addons || [];
                 
                 // Check if type is set
                 if(!type) return '';
@@ -118,10 +138,10 @@ var QueryFactory = {
                 var dataType = this._getDataType(type, length);                    
                 
                 // Determine addons
-                var addons = this._getAddons(key, details);
+                var details = this._getAddons(key, addons);
                 
                 // Return attributes
-                return [dataType, addons].join(' ');
+                return [dataType, details].join(' ');
             },
             _getCreateAttributes: function(key) {
                 return ['`' + key + '`', this._getAttributes(key)].join(' ');
