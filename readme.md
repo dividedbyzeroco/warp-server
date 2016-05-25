@@ -1210,15 +1210,17 @@ The expected response would be similar to the following:
         "id": "201605251325-migration",
         "up": {
             "create": {
-                "user": {
-                    "type": "string",
-                    "size": 60,
-                    "addons": ["primary", "increment"]
+                "companion": {
+                    "name": {
+                        "type": "string",
+                        "size": 60,
+                        "addons": ["primary", "increment"]
+                    }
                 }
             }
         },
         "down": {
-            "drop": ["user"]
+            "drop": ["companion"]
         }
 }
 ```
@@ -1273,15 +1275,17 @@ The expected response would be similar to the following:
         "id": "201605251325-migration",
         "up": {
             "create": {
-                "user": {
-                    "type": "string",
-                    "size": 60,
-                    "addons": ["primary", "increment"]
+                "companion": {
+                    "name": {
+                        "type": "string",
+                        "size": 60,
+                        "addons": ["primary", "increment"]
+                    }
                 }
             }
         },
         "down": {
-            "drop": ["user"]
+            "drop": ["companion"]
         }
 }
 ```
