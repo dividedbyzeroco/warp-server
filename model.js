@@ -222,7 +222,9 @@ _.extend(Model, {
                             success: function() {
                                 resolve(request);
                             },
-                            error: reject
+                            error: function(message) {
+                                reject(new WarpError(WarpError.Code.InvalidObjectKey, message));
+                            }
                         };
                         
                         // Run before save
