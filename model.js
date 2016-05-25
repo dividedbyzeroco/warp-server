@@ -484,16 +484,17 @@ Model.Formatter = {
 };
 
 Model.PreSave = {
-    Session: function(keys, options) {
+    Session: function(request, response) {
         // Check if the item is new
-        if(options.isNew)
+        if(request.isNew)
         {
             // Generate session token
-            keys.session_token = (keys.user_id * 1024 * 1024).toString(36) + '+' + (Math.random()*1e32).toString(36) + parseInt(keys.user_id*1e32).toString(36);
-            keys.deleted_at = moment().tz('UTC').add(30, 'days').format('YYYY-MM-DD HH:mm:ss');
+            request.keys.set('session_token', (keys.user_id * 1024 * 1024).toString(36) + '+' + (Math.random()*1e32).toString(36) + parseInt(keys.user_id*1e32).toString(36));
+            request.keys.set('deleted_at', moment().tz('UTC').add(30, 'days').format('YYYY-MM-DD HH:mm:ss'));
         }
         
-        return keys;
+        // Return a successful response
+        return response.success();
     }
 };
 
