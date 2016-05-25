@@ -1384,14 +1384,14 @@ The expected response would be similar to the following:
 
 ### WarpServer.Migration Data Types
 
-- string: VARCHAR; (default size: 30)
-- email: VARCHAR; (default size: 60)
-- password: VARCHAR; (default size: 250)
-- text: TEXT; (no size)
-- acl: TEXT; (no size)
+- string: VARCHAR (default size: 30)
+- email: VARCHAR (default size: 60)
+- password: VARCHAR (default size: 250)
+- text: TEXT (no size)
+- acl: TEXT (no size)
 - datetime: DATETIME (no size)
-- float: FLOAT; (default size: '14, 2')
-- money: FLOAT; (default size: '14, 2')
+- float: FLOAT (default size: '14, 2')
+- money: FLOAT (default size: '14, 2')
 - geopoint: FLOAT (default size: '12, 8')
 - integer: INT (default size: 11)
 - pointer: INT (default size: 11)
