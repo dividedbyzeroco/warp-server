@@ -115,21 +115,46 @@ WarpServer.Model.create({
     },
     
     // Function that maniplates the keys' values before the values are saved
-    beforeSave: function(keys) {
-        // this.validate doesn't apply here
-        // this.parse doesn't apply here
-        // 'keys' is an object that contains the name of the keys and the assigned values
-        // Return the keys after manipulating
-        return keys;
-    },
-    
-    // Function that executes after the values are saved
-    afterSave: function(keys) {
+    beforeSave: function(request, response) {
         // this.validate doesn't apply here
         // this.parse doesn't apply here
         
-        // 'keys' is an object that contains the name of the keys and the assigned values
-        // Use the keys as needed
+        // Check if Object has just been newly created
+        if(request.isNew)
+            return; // Apply some logic here
+            
+        // Check if Object has just been recently destroyed
+        if(request.isDestroyed)
+            return; // Apply some logic here
+        
+        // request.keys is a map that contains the modified keys of the object
+        request.keys.set('{KEY1}', '{VALUE1}');
+        var key2 = request.keys.get('{KEY2}');
+        
+        // Call the success response after the keys have been manipulated
+        if(success)
+            response.success();
+        else
+            // Or call the error response if an error has been encountered
+            response.error(error);
+    },
+    
+    // Function that executes after the values are saved
+    afterSave: function(request) {
+        // this.validate doesn't apply here
+        // this.parse doesn't apply here
+        
+        // Check if Object has just been newly created
+        if(request.isNew)
+            return; // Apply some logic here
+            
+        // Check if Object has just been recently destroyed
+        if(request.isDestroyed)
+            return; // Apply some logic here
+        
+        // request.keys is a map that contains the modified keys of the object
+        request.keys.set('{KEY1}', '{VALUE1}');
+        var key2 = request.keys.get('{KEY2}');
     }
 });
 ```
