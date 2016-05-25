@@ -1188,7 +1188,7 @@ The expected response would be similar to the following:
                 "user": {
                     "type": "string",
                     "size": 60,
-                    "details": ["primary", "increment"]
+                    "addons": ["primary", "increment"]
                 }
             }
         },
@@ -1251,7 +1251,7 @@ The expected response would be similar to the following:
                 "user": {
                     "type": "string",
                     "size": 60,
-                    "details": ["primary", "increment"]
+                    "addons": ["primary", "increment"]
                 }
             }
         },
