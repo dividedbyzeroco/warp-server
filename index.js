@@ -128,8 +128,8 @@ _.extend(WarpServer.prototype, {
         if(!config) throw new WarpError(WarpError.Code.MissingConfiguration, name + ' must be set');
     },
     _getModel: function(className) {
-        if(className == this._user.className) throw new WarpError(WarpError.Code.ForbiddenOperation, 'User operations must use appropriate route');
-        if(className == this._session.className) throw new WarpError(WarpError.Code.ForbiddenOperation, 'Session operations must use appropriate route');
+        if(this._user && className == this._user.className) throw new WarpError(WarpError.Code.ForbiddenOperation, 'User operations must use appropriate route');
+        if(this._session && className == this._session.className) throw new WarpError(WarpError.Code.ForbiddenOperation, 'Session operations must use appropriate route');
         var model = this._models[className];
         if(!model) throw new WarpError(WarpError.Code.ModelNotFound, 'Model not found');
         return model;
