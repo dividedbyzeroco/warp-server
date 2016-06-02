@@ -13,7 +13,7 @@ module.exports = {
             skip: req.query.skip || 0
         };
         
-        var find = this.getUserModel().find(options);
+        var find = this._getUserModel().find(options);
             
         // View objects
         find.then(function(result)
@@ -27,7 +27,7 @@ module.exports = {
     },
     first: function(req, res, next) {
         var id = parseInt(req.params.id);
-        var first = this.getUserModel().first(id);
+        var first = this._getUserModel().first(id);
         
         // View object
         first.then(function(result) {        
@@ -43,10 +43,10 @@ module.exports = {
         if(!fields.username || !fields.password || !fields.email)
             throw new WarpError(WarpError.Code.InvalidCredentials, 'Missing credentials');
         
-        var findUsername = this.getUserModel().find({ where: {
+        var findUsername = this._getUserModel().find({ where: {
             'username': { 'eq': fields.username }
         }});
-        var findEmail = this.getUserModel().find({ where: {
+        var findEmail = this._getUserModel().find({ where: {
             'email': { 'eq' : fields.email }
         }})
                 
@@ -61,7 +61,7 @@ module.exports = {
             if(result.length > 0) throw new WarpError(WarpError.Code.EmailTaken, 'Email already taken');
             
             // Prepare user creation
-            var create = this.getUserModel().create({ fields: fields });
+            var create = this._getUserModel().create({ fields: fields });
             return create;
         }.bind(this))
         .then(function(result)
@@ -89,7 +89,7 @@ module.exports = {
                 throw new WarpError(WarpError.Code.ForbiddenOperation, 'Users can only edit their own data');
             
             // Update object, if valid    
-            return this.getUserModel().update({ id: id, fields: params });
+            return this._getUserModel().update({ id: id, fields: params });
         }.bind(this))
         .then(function(result)
         {
@@ -115,7 +115,7 @@ module.exports = {
                 throw new WarpError(WarpError.Code.ForbiddenOperation, 'Users can only destroy their own data');
             
             // Destroy object, if valid    
-            return this.getUserModel().destroy({ id: id });
+            return this._getUserModel().destroy({ id: id });
         }.bind(this))
         .then(function(result)
         {
@@ -136,7 +136,7 @@ module.exports = {
             if(!result)
                 throw new WarpError(WarpError.Code.InvalidSessionToken, 'Session does not exist');
             
-            var first = this.getUserModel().first(result.user_id);
+            var first = this._getUserModel().first(result.user_id);
             return first.then(function(user) {
                 res.json({ status: 200, message: 'Success', result: user });
             });
@@ -151,7 +151,7 @@ module.exports = {
         var password = req.body.password;
         var origin = req.get('X-Warp-Origin');
         
-        var query = new this.Query.View(this.getUserModel().className);
+        var query = new this.Query.View(this._getUserModel().className);
         
         query.select({
             'id': 'id',
@@ -167,7 +167,7 @@ module.exports = {
                 var fields = {
                     'user': {
                         type: 'Pointer',
-                        className: this.getUserModel().className,
+                        className: this._getUserModel().className,
                         id: user.id
                     },
                     'origin': origin

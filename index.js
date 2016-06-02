@@ -114,7 +114,8 @@ var WarpServer = function(config) {
     router.use(middleware.requireMasterKey(config.security.masterKey));
     migrationRouter.apply(this, router);
     
-    return router;
+    // Set the router
+    this._router = router;
 };
 
 // Instance methods
@@ -122,22 +123,26 @@ _.extend(WarpServer.prototype, {
     _models: {},
     _user: null,
     _session: null,
+    _router: null,
     _requiredConfig: function(config, name) {
         if(!config) throw new WarpError(WarpError.Code.MissingConfiguration, name + ' must be set');
     },
-    getModel: function(className) {
+    _getModel: function(className) {
         if(className == this._user.className) throw new WarpError(WarpError.Code.ForbiddenOperation, 'User operations must use appropriate route');
         if(className == this._session.className) throw new WarpError(WarpError.Code.ForbiddenOperation, 'Session operations must use appropriate route');
         var model = this._models[className];
         if(!model) throw new WarpError(WarpError.Code.ModelNotFound, 'Model not found');
         return model;
     },
-    getUserModel: function() {
+    _getUserModel: function() {
         return this._user;
     },
-    getSessionModel: function() {
+    _getSessionModel: function() {
         return this._session;
-    }    
+    },
+    router: function() {
+        return this._router;
+    }
 });
 
 // Static properties and methods

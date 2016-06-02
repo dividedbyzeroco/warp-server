@@ -51,7 +51,8 @@ _.extend(Model, {
         var self = this;
                 
         // Prepare subclass
-        var ModelSubclass = {
+        // To-do: Emulate Warp.Object
+        var ModelSubclass =  {
             _viewQuery: null,
             _actionQuery: null,
             className: config.className,
@@ -100,6 +101,7 @@ _.extend(Model, {
             ModelSubclass.format[key] = Model.Formatter.Date;   
         });
         
+        // Extend static methods
         _.extend(ModelSubclass, {
             getViewableKeys: function(keys) {
                 // Get keys selected

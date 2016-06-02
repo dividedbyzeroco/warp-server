@@ -35,12 +35,12 @@ var config = {
     }
 };
 
-// Create a Warp Server router for the API
+// Create a new Warp Server API
 var api = new WarpServer(config);
 
 // Apply the Warp Server router to your preferred base URL, using express' app.use() method
 var app = express();
-app.use('/api/1', api);
+app.use('/api/1', api.router());
 ```
 
 ## Models
@@ -114,7 +114,7 @@ WarpServer.Model.create({
         '{KEY2}': WarpServer.Model.Parser.Date
     },
     
-    // Function that maniplates the keys' values before the values are saved
+    // Function that manipulates the keys' values before the values are saved
     beforeSave: function(request, response) {
         // this.validate doesn't apply here
         // this.parse doesn't apply here
@@ -189,14 +189,14 @@ var Alien = WarpServer.Model.create({
             }
         }
     },
-    beforeSave: function(keys) {
-        if(keys['type'] == 'dalek' && keys['age'] > 200)
-            keys['type'] = 'supreme_dalek';
+    beforeSave: function(req, res) {
+        if(req.keys.get('type') == 'dalek' && req.keys.get('age') > 200)
+            req.keys.set('type', 'supreme_dalek');
             
-        return keys;
+        res.success();
     },
-    afterSave: function(keys) {
-        addToPapalMainframe(keys.id);
+    afterSave: function(req) {        
+        addToPapalMainframe(req.keys.get('id'));
     }
 });
 ```
@@ -406,19 +406,6 @@ var api = new WarpServer(config);
 ```
 
 
-## Objects
-
-Objects represent individual instances of models. In terms of the database, an Object can be thought of as being a `row` in a table. Throughout the Warp Framework, Objects are the basic vehicles for data to be transmitted to and fro the server.
-
-Each Object contains different keys which can be set or retrieved as needed. Among these keys are three special ones:
-
-- id: a unique identifier that distinguishes an object inside a table
-- created_at: a timestamp that records the date and time when a particular object was created (UTC)
-- uppdated_at: a timestamp that records the date and time when a particular object was last modified (UTC)
-
-These keys are specifically set by the server and cannot be modified by the user.
-
-
 ## Migrations
 
 Managing database structures are usually handled by administrators using SQL clients. For Warp Server, these can be handled by `migrations`. Migrations make it easy to create, alter and drop database `schemas`. Not only does it manage these schemas/tables but it also allows versioning of these modifications, so you can easily `commit` or `revert` changes programmatically.
@@ -453,6 +440,20 @@ var api = new WarpServer(config);
 ```
 
 You can now access the `migrations` API to start creating `schemas`. Please see section on the Migrations API for more info.
+
+
+## Objects
+
+Objects represent individual instances of models. In terms of the database, an Object can be thought of as being a `row` in a table. Throughout the Warp Framework, Objects are the basic vehicles for data to be transmitted to and fro the server.
+
+Each Object contains different keys which can be set or retrieved as needed. Among these keys are three special ones:
+
+- id: a unique identifier that distinguishes an object inside a table
+- created_at: a timestamp that records the date and time when a particular object was created (UTC)
+- uppdated_at: a timestamp that records the date and time when a particular object was last modified (UTC)
+
+These keys are specifically set by the server and cannot be modified by the user.
+
 
 ## REST API
 
@@ -1027,7 +1028,7 @@ For the `up` and `down` options, the JSON objects would be defined in the follow
     // Define schemas which are to be created
     "create": {
         "{SCHEMA1}": {
-            // You can define a field with a JSON object of options
+            // You can define a field via a JSON object of options
             "{FIELD1}": {
                 "type": "{DATA_TYPE}", // Data type as defined in the Migration Data Types section
                 "size": "{SIZE}", // Field length; See Migration Data Types section for more info
@@ -1035,7 +1036,8 @@ For the `up` and `down` options, the JSON objects would be defined in the follow
             }
         },
         "{SCHEMA2}": {
-            "{FIELD1}": "{DATA_TYPE}" // You can define a field with a string with the desired data type, as a shorthand
+            // You can also define a field via a string, with the desired data type, as a shorthand
+            "{FIELD1}": "{DATA_TYPE}"
         }
     },
     // NOTE: By default, newly created schemas have the following fields included:
@@ -1052,8 +1054,8 @@ For the `up` and `down` options, the JSON objects would be defined in the follow
             "{FIELD1}": {
                 "action": "{add|modify|rename|drop}", // Action to be made on the selected field; See Migration Actions section for more info
                 "type": "{DATA_TYPE}", // New data type; only applicable to `add`, `modify`, and `rename` actions
-                "size": "{SIZE}", // New field length; only applicable to `add` and `modify`, and `rename` actions
-                "details": ["{FIELD_DETAIL1}"], // A list of additional details; only applicable to `add` actions
+                "size": "{SIZE}", // New field length; only applicable to `add`, `modify`, and `rename` actions
+                "addons": ["{FIELD_DETAIL1}"], // A list of additional details; only applicable to `add` actions
                 "to": "{NEW_FIELD_NAME}" // New field name; only applicable to `rename` actions 
             }
         }
@@ -1105,7 +1107,7 @@ The expected response would be similar to the following:
 
 ### Updating Migrations
 
-To update an Migration, execute a PUT request to:
+To update a Migration, execute a PUT request to:
 
 `/migrations/{ID}`
 
@@ -1214,7 +1216,7 @@ The expected response would be similar to the following:
                     "name": {
                         "type": "string",
                         "size": 60,
-                        "addons": ["primary", "increment"]
+                        "addons": ["unique"]
                     }
                 }
             }
@@ -1279,7 +1281,7 @@ The expected response would be similar to the following:
                     "name": {
                         "type": "string",
                         "size": 60,
-                        "addons": ["primary", "increment"]
+                        "addons": ["unique"]
                     }
                 }
             }
