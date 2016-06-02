@@ -29,7 +29,7 @@ _.extend(Database.prototype, {
     _pool: null,
     _id: 'id',
     _connect: function() {
-        return new Promise(function(resolve ,reject) {
+        return new Promise(function(resolve, reject) {
             this._pool.getConnection(function(err, connection) {
                 if(err)
                 {

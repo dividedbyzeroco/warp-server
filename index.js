@@ -86,7 +86,7 @@ var WarpServer = function(config) {
     }
     
     // Extend migrations based on config and query classes
-    this.Migration = WarpServer.Migration.extend(config.migrations, this.Query);
+    this.Migration = WarpServer.Migration.extend(config.migrations || {}, this.Query);
     
     // Prepare routers
     var router = express.Router();
