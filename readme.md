@@ -31,7 +31,7 @@ var config = {
         port: 3306,
         user: 'root',
         password: 'password',
-        default: 'default_table',    
+        default: 'default_database',    
     }
 };
 
