@@ -70,7 +70,8 @@ var MigrationFactory = {
                                     var hasPrimary = false;
                                     
                                     if(!fields['id'])
-                                        fields.forEach(function(field) {
+                                        Object.keys(fields).forEach(function(fieldName) {
+                                            var field = fields[fieldName];
                                             if(typeof field !== 'object' || typeof fields.addons !== 'object' || field.addons.indexOf('primary') < 0)
                                                 return;
                                             hasPrimary = true;
