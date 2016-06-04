@@ -7,9 +7,7 @@ var WarpSecurity = require('./security');
 /******************************************************/
 
 // Class constructor
-var Model = function(className) {
-    this.className = className;
-};
+var Model = {};
 
 // Utils classes
 var KeyMap = function(keys) {

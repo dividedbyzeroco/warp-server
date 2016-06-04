@@ -85,6 +85,31 @@ var WarpServer = function(config) {
         }
     }
     
+    // Register function classes
+    if(config.functions && config.functions.source)
+    {
+        var source = config.functions.source;
+        
+        if(typeof source === 'string')
+        {
+            fs.readdirSync(source)
+            .filter(function(file) {
+                return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js');
+            })
+            .forEach(function(file) {
+                var func = require(path.join(source, file));
+                this._functions[func.name] = name;
+            }.bind(this));
+        }
+        else if(typeof source === 'object' && source.forEach)
+        {
+            source.forEach(function(func) {
+                func = func;
+                this._functions[func.name] = func;
+            }.bind(this));            
+        }
+    }
+    
     // Extend migrations based on config and query classes
     this.Migration = WarpServer.Migration.extend(config.migrations || {}, this.Query);
     
@@ -96,6 +121,7 @@ var WarpServer = function(config) {
     var sessionRouter = require('./routers/sessions');
     var migrationRouter = require('./routers/migrations');
     var fileRouter = require('./routers/files');
+    var functionRouter = require('./routers/functions');
     
     // Apply middleware
     router.use(bodyParser.json());
@@ -109,6 +135,7 @@ var WarpServer = function(config) {
     userRouter.apply(this, router);
     sessionRouter.apply(this, router);
     fileRouter.apply(this, router);
+    functionRouter.apply(this, router);
     
     // Apply masterKey-required routers
     router.use(middleware.requireMasterKey(config.security.masterKey));
@@ -140,6 +167,11 @@ _.extend(WarpServer.prototype, {
     _getSessionModel: function() {
         return this._session;
     },
+    _getFunction: function(name) {
+        var func = this._functions[name];
+        if(!func) throw new WarpError(WarpError.Code.FunctionNotFound, 'Function not found');
+        return func.action;
+    },
     router: function() {
         return this._router;
     }
@@ -154,7 +186,8 @@ _.extend(WarpServer, {
     },
     Model: require('./model'),
     Migration: require('./migration'),
-    Storage: require('./storage')
+    Storage: require('./storage'),
+    Function: require('./function')
 });
 
 // Export modules

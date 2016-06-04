@@ -1387,6 +1387,7 @@ The expected response would be similar to the following:
 - Email Taken: 108 - the provided email is already taken
 - Invalid API Key: 109 - an API Key is not set or the given key is invalid
 - Model Not Found: 110 - the requested model/class does not exist
+- Function Not Found: 111 - the requested function does not exist
 
 ### WarpServer.Migration Data Types
 

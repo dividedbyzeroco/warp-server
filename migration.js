@@ -283,7 +283,7 @@ var MigrationFactory = {
                     if(migrations.length == 0) throw new WarpError(WarpError.Code.QueryError, 'No pending migrations found');
                     
                     // Create base promise
-                    var promise = new Promise(function(resolve) { resolve(); });
+                    var promise = Promise.resolve();
                     
                     // Loop through each pending migration
                     for(var index in migrations)
@@ -398,7 +398,7 @@ var MigrationFactory = {
                     if(migrations.length == 0) throw new WarpError(WarpError.Code.QueryError, 'No migration has been committed yet');
                     
                     // Create base promise
-                    var promise = new Promise(function(resolve) { resolve(); });
+                    var promise = Promise.resolve();
                     
                     // Loop through each pending migration
                     for(var index in migrations)
