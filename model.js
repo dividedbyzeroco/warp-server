@@ -232,7 +232,7 @@ _.extend(Model, {
                     
                     }.bind(this));
                 else
-                    Promise.resolve(request);
+                    return Promise.resolve(request);
             },
             find: function(options) {
                 var query = new this._viewQuery(this.source);
