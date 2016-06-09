@@ -77,7 +77,7 @@ module.exports = {
         var params = _.extend({}, req.body);
         var id = parseInt(req.params.id);
         var sessionToken = req.sessionToken;
-        var query = new this.Query.View(this.getSessionModel().className);
+        var query = new this.Query.View(this._getSessionModel().className);
         
         // Check session
         query.where({ 'session_token': { 'eq' : sessionToken }, 'deleted_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } })
@@ -103,7 +103,7 @@ module.exports = {
     destroy: function(req, res, next) {
         var id = parseInt(req.params.id);
         var sessionToken = req.sessionToken;
-        var query = new this.Query.View(this.getSessionModel().className);
+        var query = new this.Query.View(this._getSessionModel().className);
         
         // Check session
         query.where({ 'session_token': { 'eq' : sessionToken }, 'deleted_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } })
@@ -128,7 +128,7 @@ module.exports = {
     },
     me: function(req, res, next) {
         var sessionToken = req.sessionToken;
-        var query = new this.Query.View(this.getSessionModel().className);
+        var query = new this.Query.View(this._getSessionModel().className);
         
         query.where({ 'session_token': { 'eq' : sessionToken }, 'deleted_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } })
         .first(function(result) 
@@ -173,7 +173,7 @@ module.exports = {
                     'origin': origin
                 };
                 
-                return this.getSessionModel().create({ fields: fields });
+                return this._getSessionModel().create({ fields: fields });
             }
             else
             {
@@ -181,7 +181,7 @@ module.exports = {
             }
         }.bind(this))
         .then(function(result) {
-            return this.getSessionModel().first(result.id);
+            return this._getSessionModel().first(result.id);
         }.bind(this))
         .then(function(session) {
             res.json({ status: 200, message: 'Success', result: session });
@@ -193,7 +193,7 @@ module.exports = {
     },
     logout: function(req, res, next) {
         var sessionToken = req.sessionToken;
-        var query = new this.Query.View(this.getSessionModel().className);
+        var query = new this.Query.View(this._getSessionModel().className);
         
         query.where({ 'session_token': { 'eq' : sessionToken }, 'deleted_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } })
         .first(function(session) 
@@ -203,7 +203,7 @@ module.exports = {
                 throw new WarpError(WarpError.Code.InvalidSessionToken, 'Session does not exist');
             }
             
-            var action = new this.Query.Action(this.getSessionModel().className, session.id);
+            var action = new this.Query.Action(this._getSessionModel().className, session.id);
             
             return action.fields({ deleted_at: moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') })
             .update(function(result) {
