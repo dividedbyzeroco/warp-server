@@ -40,7 +40,9 @@ var MigrationFactory = {
                             async.eachSeries(tables, function(table, next) {
                                 // Add the drop action to the promise chain
                                 var query = new Migration._schemaQuery(table);
-                                query[action]().then(next).catch(function(err) {
+                                query[action]().then(function() {
+                                    next();
+                                }).catch(function(err) {
                                     reject(err);
                                 });
                             },
@@ -102,7 +104,9 @@ var MigrationFactory = {
                                     
                                     // Add table action to the promise chain
                                     var query = new Migration._schemaQuery(table);
-                                    query.fields(fields)[action]().then(next).catch(function(err) {
+                                    query.fields(fields)[action]().then(function() {
+                                        next();
+                                    }).catch(function(err) {
                                         reject(err);
                                     });
                                 }                               
