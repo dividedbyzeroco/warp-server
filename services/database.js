@@ -53,7 +53,7 @@ _.extend(Database.prototype, {
                     if(err)
                     {
                         console.error('[Warp Database] Query Error', err.message, err.stack);
-                        var error = new WarpError(WarpError.Code.QueryError, 'Invalid query request');
+                        var error = new WarpError(WarpError.Code.QueryError, 'Invalid query request: ' + query);
                         return reject(error);
                     }
                     else

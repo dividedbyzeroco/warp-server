@@ -35,12 +35,14 @@ var MigrationFactory = {
                     if(action === 'drop' || action === 'dropOnce')
                     {
                         // Iterate through each table
-                        var tables = Object.keys(source);
+                        var tables = source;
                         basePromise = new Promise(function(resolve, reject) {
                             async.eachSeries(tables, function(table, next) {
                                 // Add the drop action to the promise chain
                                 var query = new Migration._schemaQuery(table);
-                                query[action]().then(next);
+                                query[action]().then(next).catch(function(err) {
+                                    reject(err);
+                                });
                             },
                             function(err) {
                                 if(err) reject(err);
@@ -51,12 +53,19 @@ var MigrationFactory = {
                     else
                     {
                         // Iterate through each table
-                        var tables = Object.keys(source);
+                        var tables = [];
+                        Object.keys(source).forEach(function(table) {
+                            tables.push({
+                                table: table,
+                                fields: source[table]
+                            });
+                        });
+                        
                         basePromise = new Promise(function(resolve, reject) {
-                            async.eachSeries(tables, function(table, next) {
-                                
+                            async.eachSeries(tables, function(item, next) {                                
                                 // Retrieve the fields from the table
-                                var fields = table;
+                                var table = item.table;
+                                var fields = item.fields;
                                 
                                 // Check if fields exist
                                 if(fields)
@@ -93,7 +102,9 @@ var MigrationFactory = {
                                     
                                     // Add table action to the promise chain
                                     var query = new Migration._schemaQuery(table);
-                                    query.fields(fields)[action]().then(next);
+                                    query.fields(fields)[action]().then(next).catch(function(err) {
+                                        reject(err);
+                                    });
                                 }                               
                                 else
                                     next();           
