@@ -205,17 +205,17 @@ _.extend(Model, {
                 
                 // Create basic key map
                 var keyMap = new KeyMap(keysActionable);
+                        
+                // Create request object
+                var request = {
+                    keys: keyMap,
+                    isNew: options.isNew? true : false,
+                    isDestroyed: options.isDestroyed? true : false
+                };
                                 
                 // Check if beforeSave exists
                 if(typeof this.beforeSave === 'function') 
                     return new Promise(function(resolve, reject) {
-                        
-                        // Create request object
-                        var request = {
-                            keys: keyMap,
-                            isNew: options.isNew? true : false,
-                            isDestroyed: options.isDestroyed? true : false
-                        };
                         
                         // Create response object
                         var response = {
