@@ -4,6 +4,7 @@ var path = require('path');
 var express = require('express');
 var bodyParser = require('body-parser');
 var _ = require('underscore');
+var Warp = require('warp-sdk-js');
 var WarpError = require('./error');
 
 // Define Warp Server
@@ -172,9 +173,12 @@ _.extend(WarpServer.prototype, {
         if(!func) throw new WarpError(WarpError.Code.FunctionNotFound, 'Function not found');
         return func.action;
     },
+    // Return express router
     router: function() {
         return this._router;
-    }
+    },
+    // Return a Warp class bound to the WarpServer
+    Warp: Warp.bind(this)
 });
 
 // Static properties and methods

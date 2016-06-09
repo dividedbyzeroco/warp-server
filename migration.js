@@ -233,7 +233,7 @@ var MigrationFactory = {
                 schema.fields({
                     'id': {
                         type: 'string',
-                        details: ['primary']
+                        addons: ['primary']
                     },
                     'up': 'text',
                     'down': 'text',

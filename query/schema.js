@@ -97,10 +97,10 @@ var QueryFactory = {
                             nullable = false;
                             return 'PRIMARY KEY';
                             
-                        case QueryFactory.Addons.Primary:
+                        case QueryFactory.Addons.Increment:
                             return 'AUTO_INCREMENT';
                             
-                        case QueryFactory.Addons.Primary:
+                        case QueryFactory.Addons.Unique:
                             nullable = false;
                             this._unique.push(key);
                             return '';

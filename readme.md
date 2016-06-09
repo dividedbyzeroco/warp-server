@@ -641,7 +641,7 @@ curl -X POST \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 -F 'file=@image_alien_face.jpg' \
 -F 'name=image_alien_face.jpg' \
-http://localhost:3000/api/1/files/image_alien_face.jpg
+http://localhost:3000/api/1/files
 ```
 
 The expected response would be similar to the following:
@@ -687,7 +687,8 @@ For example:
 ```bash
 curl -X DELETE \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
---data 'key=20160523005923_1dUfhw81818dh1d_image_alien_face.jpg' \
+-H 'Content-Type: application/json' \
+--data '{"key": "20160523005923_1dUfhw81818dh1d_image_alien_face.jpg"}' \
 http://localhost:3000/api/1/files
 ```
 
