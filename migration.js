@@ -41,7 +41,7 @@ var MigrationFactory = {
                                 // Add the drop action to the promise chain
                                 var query = new Migration._schemaQuery(table);
                                 query[action]().then(next);
-                            }.bind(this),
+                            },
                             function(err) {
                                 if(err) reject(err);
                                 else resolve();
@@ -93,9 +93,7 @@ var MigrationFactory = {
                                     
                                     // Add table action to the promise chain
                                     var query = new Migration._schemaQuery(table);
-                                    query.fields(fields)[action]().then(function() {
-                                        next();
-                                    });
+                                    query.fields(fields)[action]().then(next);
                                 }                               
                                 else
                                     next();           
@@ -107,11 +105,12 @@ var MigrationFactory = {
                         }.bind(this));
                     }
                     
-                    return promise.then(function() {
+                    // Update promise
+                    promise = promise.then(function() {
                         return basePromise;
                     });
-                }
-                            
+                }                            
+                    
                 // Return the promise
                 return promise;
             },
