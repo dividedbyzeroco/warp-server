@@ -4,8 +4,8 @@ var path = require('path');
 var express = require('express');
 var bodyParser = require('body-parser');
 var _ = require('underscore');
-var Warp = require('warp-sdk-js');
 var WarpError = require('./error');
+//var Warp = require('warp-sdk-js');
 
 // Define Warp Server
 var WarpServer = function(config) {
@@ -178,7 +178,7 @@ _.extend(WarpServer.prototype, {
         return this._router;
     },
     // Return a Warp class bound to the WarpServer
-    Warp: Warp.bind(this)
+    //Warp: Warp.bind(this)
 });
 
 // Static properties and methods
