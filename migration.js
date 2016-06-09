@@ -1,6 +1,7 @@
 // References
 var Promise = require('promise');
 var moment = require('moment-timezone');
+var async = require('async');
 var _ = require('underscore');
 var WarpError = require('./error');
 
@@ -23,7 +24,10 @@ var MigrationFactory = {
 
         // Instance methods
         _.extend(Migration.prototype, {
-            _addActionChain: function(promise, source, action) {
+            _addActionChain: function(promise, source, action) {           
+                // Base promise
+                var basePromise = Promise.resolve();
+                     
                 // Check if source exists
                 if(source)
                 {
@@ -31,69 +35,81 @@ var MigrationFactory = {
                     if(action === 'drop' || action === 'dropOnce')
                     {
                         // Iterate through each table
-                        for(var index in source)
-                        {
-                            // Retrieve table
-                            var table = source[index];
-                            
-                            // Check if table exists
-                            if(table)
+                        var tables = Object.keys(source);
+                        basePromise = new Promise(function(resolve, reject) {
+                            async.eachSeries(tables, function(table, next) {
                                 // Add the drop action to the promise chain
-                                promise = promise.then(function() {
-                                    var query = new Migration._schemaQuery(table);
-                                    return query[action]();
-                                }.bind(this));
-                        }
+                                var query = new Migration._schemaQuery(table);
+                                query[action]().then(next);
+                            }.bind(this),
+                            function(err) {
+                                if(err) reject(err);
+                                else resolve();
+                            });                            
+                        }.bind(this));
                     }
                     else
                     {
                         // Iterate through each table
-                        for(var table in source)
-                        {
-                            // Retrieve the fields from the table
-                            var fields = source[table];
-                            
-                            // Check if fields exist
-                            if(fields)
-                            {
-                                // Check if the action is 'create'
-                                if(action === 'create' || action === 'createOnce')
-                                {
-                                    // Automatically create internal keys
-                                    if(!fields['created_at'])
-                                        fields['created_at'] = 'datetime'
-                                    if(!fields['updated_at'])
-                                        fields['updated_at'] = 'datetime'
-                                    if(!fields['deleted_at'])
-                                        fields['deleted_at'] = 'datetime'
-                                    
-                                    var hasPrimary = false;
-                                    
-                                    if(!fields['id'])
-                                        Object.keys(fields).forEach(function(fieldName) {
-                                            var field = fields[fieldName];
-                                            if(typeof field !== 'object' || typeof fields.addons !== 'object' || field.addons.indexOf('primary') < 0)
-                                                return;
-                                            hasPrimary = true;
-                                        });
-                                    else
-                                        hasPrimary = true;
-                                    
-                                    if(!hasPrimary)
-                                        fields['id'] = {
-                                            type: 'integer',
-                                            addons: ['primary', 'increment']
-                                        };
-                                }
+                        var tables = Object.keys(source);
+                        basePromise = new Promise(function(resolve, reject) {
+                            async.eachSeries(tables, function(table, next) {
                                 
-                                // Add table action to the promise chain
-                                promise = promise.then(function() {
+                                // Retrieve the fields from the table
+                                var fields = table;
+                                
+                                // Check if fields exist
+                                if(fields)
+                                {
+                                    // Check if the action is 'create'
+                                    if(action === 'create' || action === 'createOnce')
+                                    {
+                                        // Automatically create internal keys
+                                        if(!fields['created_at'])
+                                            fields['created_at'] = 'datetime'
+                                        if(!fields['updated_at'])
+                                            fields['updated_at'] = 'datetime'
+                                        if(!fields['deleted_at'])
+                                            fields['deleted_at'] = 'datetime'
+                                        
+                                        var hasPrimary = false;
+                                        
+                                        if(!fields['id'])
+                                            Object.keys(fields).forEach(function(fieldName) {
+                                                var field = fields[fieldName];
+                                                if(typeof field !== 'object' || typeof fields.addons !== 'object' || field.addons.indexOf('primary') < 0)
+                                                    return;
+                                                hasPrimary = true;
+                                            });
+                                        else
+                                            hasPrimary = true;
+                                        
+                                        if(!hasPrimary)
+                                            fields['id'] = {
+                                                type: 'integer',
+                                                addons: ['primary', 'increment']
+                                            };
+                                    }
+                                    
+                                    // Add table action to the promise chain
                                     var query = new Migration._schemaQuery(table);
-                                    return query.fields(fields)[action]();
-                                }.bind(this));
-                            }
-                        }
+                                    query.fields(fields)[action]().then(function() {
+                                        next();
+                                    });
+                                }                               
+                                else
+                                    next();           
+                            },
+                            function(err) {
+                                if(err) reject(err);
+                                else resolve();    
+                            });
+                        }.bind(this));
                     }
+                    
+                    return promise.then(function() {
+                        return basePromise;
+                    });
                 }
                             
                 // Return the promise
