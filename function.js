@@ -13,7 +13,7 @@ _.extend(WarpFunction, {
         var FunctionSubclass =  {
             name: def.name,
             action: def.action
-        };        
+        };
         return FunctionSubclass;
     }
 });
