@@ -99,13 +99,12 @@ var WarpServer = function(config) {
             })
             .forEach(function(file) {
                 var func = require(path.join(source, file));
-                this._functions[func.name] = name;
+                this._functions[func.name] = func;
             }.bind(this));
         }
         else if(typeof source === 'object' && source.forEach)
         {
             source.forEach(function(func) {
-                func = func;
                 this._functions[func.name] = func;
             }.bind(this));            
         }
