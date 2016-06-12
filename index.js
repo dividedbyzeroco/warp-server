@@ -151,6 +151,7 @@ _.extend(WarpServer.prototype, {
     _user: null,
     _session: null,
     _router: null,
+    _functions: {},
     _requiredConfig: function(config, name) {
         if(!config) throw new WarpError(WarpError.Code.MissingConfiguration, name + ' must be set');
     },
