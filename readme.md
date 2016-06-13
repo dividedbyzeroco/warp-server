@@ -1,11 +1,46 @@
 Warp Server
 ===========
 
-__Warp Server__ is a backend platform that manages classes.
+__Warp Server__ is an `express` middleware for implementing scalable backend services. It enables you to manage objects, endpoints and background jobs using a standard REST API, which comes equipped with various authentication features.
 
 ## Table of Contents
-**[Installation](#Installation)**  
-**[Configuration](#Configuration)**
+- **[Installation](#installation)**  
+- **[Configuration](#configuration)**
+- **[Models](#models)**
+    - **[Pointers](#pointers)**
+    - **[Files](#files)**    
+    - **[User and Session Models](#user-and-session-models)**
+- **[Migrations](#migrations)**
+- **[Object API](#object-api)**
+    - **[Objects](#objects)**
+        - **[Headers](#headers)**
+        - **[Creating Objects](#creating-objects)**
+        - **[Updating Objects](#updating-objects)**
+        - **[Deleting Objects](#deleting-objects)**
+        - **[Fetching Objects](#fetching-objects)**
+        - **[Pointers as Keys](#pointers-as-keys)**
+        - **[Uploading Files](#uploading-files)**
+        - **[Deleting Files](#deleting-files)**
+    - **[Queries](#queries)**
+        - **[Constraints](#constraints)**
+        - **[Limit](#limit)**
+        - **[Sorting](#sorting)**
+- **[User API](#user-api)**
+    - **[Logging In](#logging-in)**
+    - **[Validating Users/Fetching Current User](#validating-usersfetching-current-user)**
+    - **[Signing Up](#signing-up)**
+    - **[Logging Out](#logging-out)**
+- **[Migration API](#migration-api)**
+    - **[Migration](#migration)**
+    - **[Creating Migrations](#creating-migrations)**
+    - **[Updating Migrations](#updating-migrations)**
+    - **[Deleting Migrations](#deleting-migrations)**
+    - **[Fetch Migrations](#fetch-migrations)**
+    - **[Committing Migrations](#committing-migrations)**
+    - **[Fetch Latest Migration Committed](#fetch-latest-migration-committed)**
+    - **[Reverting Migrations](#reverting-migrations)**
+    - **[Resetting Migrations](#resetting-migrations)**
+- **[References](#references)**
 
 ## Installation
 
@@ -220,7 +255,7 @@ var api = new WarpServer(config);
 // ... additional code to initialize here
 ```
 
-We can now use the REST API to operate on `alien` objects. See the section regarding the REST API for more info.
+We can now use the Object API to operate on `alien` objects. See the section regarding the Object API for more info.
 
 ## Pointers
 
@@ -311,7 +346,7 @@ For example, to create a User model using the `user` table:
 var User = WarpServer.Model.create({
     className: 'user',
     keys: {
-        viewable: ['username', 'email'], // Note that password should not be viewable by the REST API
+        viewable: ['username', 'email'], // Note that password should not be viewable by the Object API
         actionable: ['username', 'password', 'email']
     },
     validate: {
@@ -389,7 +424,7 @@ var api = new WarpServer(config);
 // ... additional code to initialize here
 ```
 
-We can now use the special user authentication and management operations made available by the REST API.
+We can now use the special user authentication and management operations made available by the Object API.
 
 NOTE: If you want to modularize your code and you plan on segregating models in different files inside a specific folder, you can opt to place the directory name in the `source` option, instead of creating an array of models. You do, however, need to declare the `user` and `session` options as filenames instead of models, if you are going to use this approach.
 
@@ -443,8 +478,12 @@ var api = new WarpServer(config);
 // ... additional code to initialize here
 ```
 
-You can now access the `migrations` API to start creating `schemas`. Please see section on the Migrations API for more info.
+You can now access the `migrations` API to start creating `schemas`. Please see section on the Migration API for more info.
 
+
+## Object API
+
+The Object API makes it easy to handle operations being made to Objects. After initializing the server by following the instructions above, the following endpoints are readily made available for use by client-side applications.
 
 ## Objects
 
@@ -459,13 +498,9 @@ Each Object contains different keys which can be set or retrieved as needed. Amo
 These keys are specifically set by the server and cannot be modified by the user.
 
 
-## REST API
-
-The REST API makes it easy to handle operations being made to Objects. After initializing the server by following the instructions above, the following endpoints are readily made available for use by client-side applications.
-
 ### Headers
 
-When making HTTP requests to the REST API, it is important that the API Key is set. To do so, remember to set the `X-Warp-API-Key` header for your request:
+When making HTTP requests to the Object API, it is important that the API Key is set. To do so, remember to set the `X-Warp-API-Key` header for your request:
 
 `X-Warp-API-Key: 12345678abcdefg`
 
@@ -1014,9 +1049,9 @@ The expected response would be similar to the following, if the session token is
 }
 ```
 
-## Migrations API
+## Migration API
 
-Once the `migrations` feature has been activated, you may now access the operations provided by the Migrations API. Note that the `X-Warp-Master-Key` must be set for every request done on the Migrations API. It is advised to only keep the master key in secure environments. Never make this master key publicly accessible.
+Once the `migrations` feature has been activated, you may now access the operations provided by the Migration API. Note that the `X-Warp-Master-Key` must be set for every request done on the Migration API. It is advised to only keep the master key in secure environments. Never make this master key publicly accessible.
 
 ### Migration
 
