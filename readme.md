@@ -1,7 +1,9 @@
 Warp Server
 ===========
 
-__Warp Server__ is an `express` middleware for implementing scalable backend services. It enables you to manage objects, endpoints and background jobs using a standard REST API, which comes equipped with various authentication features.
+__Warp Server__ is an `express` middleware for implementing scalable backend services. It enables you to manage objects, webhooks and background jobs using a standard REST API, and comes equipped with various authentication features.
+
+Currently, `Warp Server` uses `mysql` as its database of choice, but can be extended to use other data storage services.
 
 ## Table of Contents
 - **[Installation](#installation)**  
@@ -11,6 +13,8 @@ __Warp Server__ is an `express` middleware for implementing scalable backend ser
     - **[Files](#files)**    
     - **[User and Session Models](#user-and-session-models)**
 - **[Migrations](#migrations)**
+- **[Functions](#functions)**
+- **[Queues](#queues)**
 - **[Object API](#object-api)**
     - **[Objects](#objects)**
         - **[Headers](#headers)**
@@ -481,11 +485,132 @@ var api = new WarpServer(config);
 You can now access the `migrations` API to start creating `schemas`. Please see section on the Migration API for more info.
 
 
+## Functions
+
+Oftentimes, there might be cases when you may need to provide a custom endpoint or webhook for your application that surpasses the capabilities of the standard `Object API`. In these scenarios, you may opt to use `Warp Functions`.
+
+`Functions` allow you to set up custom API's to suit your app's growing needs.
+
+To define a Function, simply create a `WarpServer.Function` class with the following parameters:
+
+```javascript
+WarpServer.Function.create({
+    // Unique name assigned to the endpoint, you can use Alphanumeric characters, underscores and/or dashes
+    name: '{FUNCTION_NAME}',
+    
+    // The action to run once the endpoint is called
+    action: function(request, response) {
+        // request.keys is a map that contains the modified keys of the object
+        // NOTE: Unlike the `.beforeSave()` function in Models, you can only use `.get()` for Functions
+        var key2 = request.keys.get('{KEY2}');
+                
+        // Call the success response after the keys have been manipulated
+        if(success)
+            response.success(/* The value you want to return to the user */);
+        else
+            // Or call the error response if an error has been encountered
+            response.error(error);
+    }
+});
+```
+
+For example, if we want to make a function for destroying all aliens of a specific `type`, we can write it as:
+
+```javascript
+// Get a modified version of the Warp JS SDK from the API
+// For more info on the Warp JS SDK, please see http://github.com/jakejosol/warp-sdk-js
+var Warp = api.Warp;
+
+// Create the function
+var destroyDaleks = WarpServer.Function.create({
+    name: 'destroy-aliens',
+    action: function(req, res) {
+        var type = req.keys.get('type');
+        var query = new Warp.Query('alien');
+        
+        query.equalTo('type', type)
+        .find(function(aliens) {
+            // Destroy aliens asynchronously
+            aliens.each(function(alien) {
+                return alien.destroy();
+            });
+            
+            // Return a response
+            res.success('Deleted all `' + type + '` aliens');
+        })
+        .catch(function(error) {
+            res.error(error);
+        });
+    }
+});
+```
+
+The Function is now ready to be called. Once the server has started, you can access these functions via a standard API. For more info, see the section regarding the Function API.
+
+
+## Queues
+
+Functions are useful for running adhoc tasks; however, if you want to run frequent background jobs, you can use `Warp Queues`. `Queues` are specific tasks which are executed periodically based on a given interval. The Warp Server allows you to easily start, stop and get statuses for these different background jobs.
+
+To define a Queue, simply create a `WarpServer.Queue` class with the following parameters:
+
+```javascript
+WarpServer.Queue.create({
+    // Unique name assigned to the endpoint, you can use Alphanumeric characters, underscores and/or dashes
+    name: '{FUNCTION_NAME}',
+    
+    // The action to run for every interval
+    action: function() {
+        // Perform any task here
+    },
+    
+    // A pre-defined interval that determines the frequency of a given task
+    // The interval follows the format of the Cron Job in Linux
+    // For more information about interval formats, please see http://npmjs.com/cron
+    interval: '{INTERVAL}',
+    
+    // An OPTIONAL parameter that determines the relative timezone that the interval would follow
+    // The default value is UTC
+    timezone: '{TIMEZONE}'
+});
+```
+
+For example, if we want to make a queue for sending messages, we can write it as:
+
+```javascript
+// Get a modified version of the Warp JS SDK from the API
+// For more info on the Warp JS SDK, please see http://github.com/jakejosol/warp-sdk-js
+var Warp = api.Warp;
+
+// Create the queue
+var sendMessages = WarpServer.Queue.create({
+    name: 'send-messages',
+    action: function() {
+        var query = new Warp.Query('message');
+        
+        query.doesNotExist('sent_at')
+        .find(function(messages) {
+            // Sending messages asynchronously
+            messages.each(function(message) {
+                console.log(message.get('content'));
+            });
+        })
+        .catch(function(error) {
+            res.error(error);
+        });
+    },
+    interval: '* * 10 * * *' // Run every 10 o'clock
+});
+```
+
+The Queue is now ready to be used. Once the server has started, you can manipulate these queues via the standard API. For more info, see the section regarding the Queue API.
+
+
 ## Object API
 
 The Object API makes it easy to handle operations being made to Objects. After initializing the server by following the instructions above, the following endpoints are readily made available for use by client-side applications.
 
-## Objects
+### Objects
 
 Objects represent individual instances of models. In terms of the database, an Object can be thought of as being a `row` in a table. Throughout the Warp Framework, Objects are the basic vehicles for data to be transmitted to and fro the server.
 

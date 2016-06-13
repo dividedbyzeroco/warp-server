@@ -1,10 +1,25 @@
 var _ = require('underscore');
 
+// Utils classes
+var KeyMap = function(keys) {
+    this._keys = keys;
+    this.get = function(key) {
+        return this._keys[key];
+    };
+    this.each = function(iterator) {
+        for(var key in this._keys)
+            iterator(this._keys[key]);
+    };
+    this.copy = function() {
+        return _.extend({}, this._keys);
+    };
+};
+
 module.exports = {
     run: function(req, res, next) {    
         var name = req.params.name;    
         var request = {
-            keys: req.body
+            keys: new KeyMap(req.body)
         };
         var response = {
             success: function(result) {
