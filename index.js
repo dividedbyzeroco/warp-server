@@ -69,6 +69,9 @@ _.extend(WarpServer.prototype, {
         return func.action;
     },
     _prepareRouter: function() {
+        // Get warp
+        this.Warp = Warp.bind(this);
+        
         // Append queries util for models
         var appendQueries = function(model) {
             model._viewQuery = this.Query.View;
@@ -190,9 +193,7 @@ _.extend(WarpServer.prototype, {
             return this._router;
         else
             return this._prepareRouter();
-    },
-    // Return a Warp class bound to the WarpServer
-    Warp: Warp.bind(this)
+    }
 });
 
 // Static properties and methods
