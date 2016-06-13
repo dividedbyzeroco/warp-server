@@ -8,48 +8,50 @@ Currently, `Warp Server` uses `mysql` as its database of choice, but can be exte
 ## Table of Contents
 - **[Installation](#installation)**  
 - **[Configuration](#configuration)**
-- **[Models](#models)**
-    - **[Pointers](#pointers)**
-    - **[Files](#files)**    
-    - **[User and Session Models](#user-and-session-models)**
-- **[Migrations](#migrations)**
-- **[Functions](#functions)**
-- **[Queues](#queues)**
-- **[Object API](#object-api)**
-    - **[Objects](#objects)**
-        - **[Headers](#headers)**
-        - **[Creating Objects](#creating-objects)**
-        - **[Updating Objects](#updating-objects)**
-        - **[Deleting Objects](#deleting-objects)**
-        - **[Fetching Objects](#fetching-objects)**
-        - **[Pointers as Keys](#pointers-as-keys)**
-        - **[Uploading Files](#uploading-files)**
-        - **[Deleting Files](#deleting-files)**
-    - **[Queries](#queries)**
-        - **[Constraints](#constraints)**
-        - **[Limit](#limit)**
-        - **[Sorting](#sorting)**
-- **[User API](#user-api)**
-    - **[Logging In](#logging-in)**
-    - **[Validating Users/Fetching Current User](#validating-usersfetching-current-user)**
-    - **[Signing Up](#signing-up)**
-    - **[Logging Out](#logging-out)**
-- **[Migration API](#migration-api)**
-    - **[Migration](#migration)**
-    - **[Creating Migrations](#creating-migrations)**
-    - **[Updating Migrations](#updating-migrations)**
-    - **[Deleting Migrations](#deleting-migrations)**
-    - **[Fetch Migrations](#fetch-migrations)**
-    - **[Committing Migrations](#committing-migrations)**
-    - **[Fetch Latest Migration Committed](#fetch-latest-migration-committed)**
-    - **[Reverting Migrations](#reverting-migrations)**
-    - **[Resetting Migrations](#resetting-migrations)**
-- **[Function API](#function-api)**
-    - **[Running Functions](#running-functions)**    
-- **[Queue API](#queue-api)**
-    - **[Starting Queues](#starting-queues)**
-    - **[Stopping Queues](#stopping-queues)**
-    - **[Viewing Queue Status](#viewing-queue-status)**
+- **Features**
+    - **[Models](#models)**
+        - **[Pointers](#pointers)**
+        - **[Files](#files)**    
+        - **[User Authentication](#user-authentication)**
+    - **[Migrations](#migrations)**
+    - **[Functions](#functions)**
+    - **[Queues](#queues)**
+- **REST API**
+    - **[Object API](#object-api)**
+        - **[Objects](#objects)**
+            - **[Headers](#headers)**
+            - **[Creating Objects](#creating-objects)**
+            - **[Updating Objects](#updating-objects)**
+            - **[Deleting Objects](#deleting-objects)**
+            - **[Fetching Objects](#fetching-objects)**
+            - **[Pointers as Keys](#pointers-as-keys)**
+            - **[Uploading Files](#uploading-files)**
+            - **[Deleting Files](#deleting-files)**
+        - **[Queries](#queries)**
+            - **[Constraints](#constraints)**
+            - **[Limit](#limit)**
+            - **[Sorting](#sorting)**
+    - **[User API](#user-api)**
+        - **[Logging In](#logging-in)**
+        - **[Validating Users/Fetching Current User](#validating-usersfetching-current-user)**
+        - **[Signing Up](#signing-up)**
+        - **[Logging Out](#logging-out)**
+    - **[Migration API](#migration-api)**
+        - **[Migration](#migration)**
+        - **[Creating Migrations](#creating-migrations)**
+        - **[Updating Migrations](#updating-migrations)**
+        - **[Deleting Migrations](#deleting-migrations)**
+        - **[Fetch Migrations](#fetch-migrations)**
+        - **[Committing Migrations](#committing-migrations)**
+        - **[Fetch Latest Migration Committed](#fetch-latest-migration-committed)**
+        - **[Reverting Migrations](#reverting-migrations)**
+        - **[Resetting Migrations](#resetting-migrations)**
+    - **[Function API](#function-api)**
+        - **[Running Functions](#running-functions)**    
+    - **[Queue API](#queue-api)**
+        - **[Starting Queues](#starting-queues)**
+        - **[Stopping Queues](#stopping-queues)**
+        - **[Viewing Queue Status](#viewing-queue-status)**
 - **[References](#references)**
 
 ## Installation
@@ -341,7 +343,7 @@ keys: {
 // Additional code defining our model
 ```
 
-## User and Session Models
+## User Authentication
 
 In order to handle user authentication and management, a special type of model called the User model can be added. It is similar to the `WarpServer.Model` except it requires a few additional fields.
 
