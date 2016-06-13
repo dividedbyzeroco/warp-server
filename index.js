@@ -77,8 +77,11 @@ _.extend(WarpServer.prototype, {
             return model;
         }.bind(this);
         
+        // Set config
+        var config = this._config;
+        
         // Register model classes
-        if(this._config.models && this._config.models.source)
+        if(config.models && config.models.source)
         {
             var source = config.models.source;
             
@@ -124,7 +127,7 @@ _.extend(WarpServer.prototype, {
         }
     
         // Register function classes
-        if(this._config.functions && this._config.functions.source)
+        if(config.functions && config.functions.source)
         {
             var source = config.functions.source;
             
