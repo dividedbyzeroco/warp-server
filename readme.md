@@ -1676,7 +1676,7 @@ To view a Queue's status, execute a GET request to:
 For example:
 
 ```bash
-curl -X POST \
+curl -X GET \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 -H 'X-Warp-Master-Key: abcdefg12345678' \
 http://localhost:3000/api/1/queues/send-messages
