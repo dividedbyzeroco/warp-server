@@ -13,6 +13,7 @@ Currently, `Warp Server` uses `mysql` as its database of choice, but can be exte
         - **[Pointers](#pointers)**
         - **[Files](#files)**    
         - **[User Authentication](#user-authentication)**
+        - **[Using Model Directories](#using-model-directories)**
     - **[Migrations](#migrations)**
     - **[Functions](#functions)**
     - **[Queues](#queues)**
@@ -267,7 +268,9 @@ var api = new WarpServer(config);
 // ... additional code to initialize here
 ```
 
-We can now use the Object API to operate on `alien` objects. See the section regarding the Object API for more info.
+NOTE: This is only advisable for development environments. For production environments, it is best to use the [Model Directory Approach](#using-model-directories).
+
+Once completed, we can now use the Object API to operate on `alien` objects. See the section regarding the [Object API](#object-api) for more info.
 
 ## Pointers
 
@@ -436,23 +439,41 @@ var api = new WarpServer(config);
 // ... additional code to initialize here
 ```
 
-We can now use the special user authentication and management operations made available by the Object API.
+We can now use the special user authentication and management operations made available by the [Object API](#object-api).
 
-NOTE: If you want to modularize your code and you plan on segregating models in different files inside a specific folder, you can opt to place the directory name in the `source` option, instead of creating an array of models. You do, however, need to declare the `user` and `session` options as filenames instead of models, if you are going to use this approach.
+### Using Model Directories
 
-For example:
+If you want to modularize your code and segregate models into different files inside a specific folder, you can opt to place the directory name in the `source` option, instead of creating an array of models. NOTE: This is the recommended approach in handling models.
+
+You do, however, need to declare the `user` and `session` options as filenames instead of models, if you are going to use this approach.
+
+For example, if you have a directory structure such as the following:
+
+```
+|-- app
+|---- server
+|------ models
+|-------- alien.js
+|-------- planet.js
+|-------- user.js
+|-------- session.js
+|------ api.js
+```
+
+You can define the source inside `api.js` as:
 
 ```javascript
 // ... some config code here
 var config = {
     // ... previous configs here
     models: {
-        source: 'app/server/models',
+        source: __dirname + '/app/server/models',
         user: 'user',
         session: 'session'
     }
 };
-var api = new WarpServer(config);
+
+module.exports = new WarpServer(config);
 // ... additional code to initialize here
 ```
 
@@ -490,12 +511,12 @@ var api = new WarpServer(config);
 // ... additional code to initialize here
 ```
 
-You can now access the `migrations` API to start creating `schemas`. Please see section on the Migration API for more info.
+You can now access the `migrations` API to start creating `schemas`. Please see section on the [Migration API](#migration-api) for more info.
 
 
 ## Functions
 
-Oftentimes, there might be cases when you may need to provide a custom endpoint or webhook for your application that surpasses the capabilities of the standard `Object API`. In these scenarios, you may opt to use `Warp Functions`.
+Oftentimes, there might be cases when you may need to provide a custom endpoint or webhook for your application that surpasses the capabilities of the standard Object API. In these scenarios, you may opt to use `Warp Functions`.
 
 `Functions` allow you to set up custom API's to suit your app's growing needs.
 
@@ -583,7 +604,7 @@ var api = new WarpServer(config);
 // ... additional code to initialize here
 ```
 
-The Function is now ready to be called. Once the server has started, you can access these functions via a standard API. For more info, see the section regarding the Function API.
+The Function is now ready to be called. Once the server has started, you can access these functions via a standard API. For more info, see the section regarding the [Function API](#function-api).
 
 
 ## Queues
@@ -671,7 +692,7 @@ var api = new WarpServer(config);
 // ... additional code to initialize here
 ```
 
-The Queue is now ready to be used. Once the server has started, you can manipulate these queues via the standard API. For more info, see the section regarding the Queue API.
+The Queue is now ready to be used. Once the server has started, you can manipulate these queues via the standard API. For more info, see the section regarding the [Queue API](#queue-api).
 
 
 ## Object API
@@ -1613,7 +1634,7 @@ The expected response would be similar to the following:
 
 ## Queue API
 
-Once the `queue` feature has been set up, you may now access the operations provided by the Queue API. Note that the `X-Warp-Master-Key` must be set for every request done on the Migration API. It is advised to only keep the master key in secure environments. Never make this master key publicly accessible.
+Once the `queue` feature has been set up, you may now access the operations provided by the Queue API. Note that the `X-Warp-Master-Key` must be set for every request done on the Queue API. It is advised to only keep the master key in secure environments. Never make this master key publicly accessible.
 
 ### Starting Queues
 
