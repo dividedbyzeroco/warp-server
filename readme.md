@@ -1,7 +1,7 @@
 Warp Server
 ===========
 
-__Warp Server__ is an `express` middleware for implementing scalable backend services. It enables you to manage objects, webhooks and background jobs using a standard REST API, and comes equipped with various authentication features.
+__Warp Server__ is a platform for implementing scalable backend services. It enables you to manage objects, webhooks and background jobs using a standard REST API, and comes equipped with various authentication features.
 
 Currently, `Warp Server` uses `mysql` as its database of choice, but can be extended to use other data storage services.
 
@@ -44,6 +44,12 @@ Currently, `Warp Server` uses `mysql` as its database of choice, but can be exte
     - **[Fetch Latest Migration Committed](#fetch-latest-migration-committed)**
     - **[Reverting Migrations](#reverting-migrations)**
     - **[Resetting Migrations](#resetting-migrations)**
+- **[Function API](#function-api)**
+    - **[Running Functions](#running-functions)**    
+- **[Queue API](#queue-api)**
+    - **[Starting Queues](#starting-queues)**
+    - **[Stopping Queues](#stopping-queues)**
+    - **[Viewing Queue Status](#viewing-queue-status)**
 - **[References](#references)**
 
 ## Installation
@@ -545,6 +551,36 @@ var destroyDaleks = WarpServer.Function.create({
 });
 ```
 
+In order to tell Warp Server to use the function we just created, we must add it as a `source` to our config, before we initialize Warp Server:
+
+```javascript
+// ... some code here
+var config = {
+    // .. previous configs here
+    functions: {
+        source: [destroyDaleks]
+    }
+};
+
+var api = new WarpServer(config);
+// ... additional code to initialize here
+```
+
+You can also opt to specific a folder where all your functions are stored. For example:
+
+```javascript
+// ... some code here
+var config = {
+    // .. previous configs here
+    functions: {
+        source: 'app/server/functions'
+    }
+};
+
+var api = new WarpServer(config);
+// ... additional code to initialize here
+```
+
 The Function is now ready to be called. Once the server has started, you can access these functions via a standard API. For more info, see the section regarding the Function API.
 
 
@@ -601,6 +637,36 @@ var sendMessages = WarpServer.Queue.create({
     },
     interval: '* * 10 * * *' // Run every 10 o'clock
 });
+```
+
+In order to tell Warp Server to use the queue we just created, we must add it as a `source` to our config, before we initialize Warp Server:
+
+```javascript
+// ... some code here
+var config = {
+    // .. previous configs here
+    queues: {
+        source: [sendMessages]
+    }
+};
+
+var api = new WarpServer(config);
+// ... additional code to initialize here
+```
+
+You can also opt to specific a folder where all your queues are stored. For example:
+
+```javascript
+// ... some code here
+var config = {
+    // .. previous configs here
+    functions: {
+        source: 'app/server/queues'
+    }
+};
+
+var api = new WarpServer(config);
+// ... additional code to initialize here
 ```
 
 The Queue is now ready to be used. Once the server has started, you can manipulate these queues via the standard API. For more info, see the section regarding the Queue API.
@@ -1504,6 +1570,133 @@ The expected response would be similar to the following:
     "status": 200,
     "message": "Success",
     "result": ["201605221332-first-migration", "201605251325-migration"]
+}
+```
+
+
+## Function API
+
+Once the `function` feature has been set up, you may now access the operations provided by the Function API.
+
+### Running Functions
+
+To run a Function, execute a POST request to:
+
+`/functions/{FUNCTION_NAME}`
+
+with a JSON Object that contains the keys for your request:
+
+`{"{KEY1}": "{VALUE1}", "{KEY2}": "{VALUE2}"}`
+
+For example:
+
+```bash
+curl -X POST \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'Content-Type: application/json' \
+--data '{"type": 0}' \
+http://localhost:3000/api/1/functions/destroy-aliens
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": "Destroyed all `dalek` aliens" 
+}
+```
+
+
+## Queue API
+
+Once the `queue` feature has been set up, you may now access the operations provided by the Queue API. Note that the `X-Warp-Master-Key` must be set for every request done on the Migration API. It is advised to only keep the master key in secure environments. Never make this master key publicly accessible.
+
+### Starting Queues
+
+To start a Queue, execute a POST request to:
+
+`/queues/{QUEUE_NAME}/start`
+
+For example:
+
+```bash
+curl -X POST \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'X-Warp-Master-Key: abcdefg12345678' \
+http://localhost:3000/api/1/queues/send-messages/start
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "name": "send-messages"
+    }
+}
+```
+
+### Stopping Queues
+
+To stop a Queue, execute a POST request to:
+
+`/queues/{QUEUE_NAME}/stop`
+
+For example:
+
+```bash
+curl -X POST \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'X-Warp-Master-Key: abcdefg12345678' \
+http://localhost:3000/api/1/queues/send-messages/stop
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "name": "send-messages"
+    }
+}
+```
+
+### Viewing Queue Status
+
+To view a Queue's status, execute a GET request to:
+
+`/queues/{QUEUE_NAME}`
+
+For example:
+
+```bash
+curl -X POST \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'X-Warp-Master-Key: abcdefg12345678' \
+http://localhost:3000/api/1/queues/send-messages
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "name": "send-messages",
+        "is_active": true,
+        "latest_success": "2016-06-09 10:00:00",
+        "latest_error": {
+            "error": "Could not load data",
+            "failed_at": "2016-06-10 10:00:00" 
+        }
+    }
 }
 ```
 
