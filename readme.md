@@ -566,7 +566,7 @@ var api = new WarpServer(config);
 // ... additional code to initialize here
 ```
 
-You can also opt to specific a folder where all your functions are stored. For example:
+You can also opt to specify a folder where all your functions are stored. For example:
 
 ```javascript
 // ... some code here
@@ -654,7 +654,7 @@ var api = new WarpServer(config);
 // ... additional code to initialize here
 ```
 
-You can also opt to specific a folder where all your queues are stored. For example:
+You can also opt to specify a folder where all your queues are stored. For example:
 
 ```javascript
 // ... some code here
