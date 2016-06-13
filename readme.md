@@ -463,11 +463,13 @@ For example, if you have a directory structure such as the following:
 You can define the source inside `api.js` as:
 
 ```javascript
+var path = require('path');
+
 // ... some config code here
 var config = {
     // ... previous configs here
     models: {
-        source: __dirname + '/app/server/models',
+        source: path.join(__dirname, 'models'),
         user: 'user',
         session: 'session'
     }
