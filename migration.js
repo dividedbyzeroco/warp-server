@@ -5,6 +5,11 @@ var async = require('async');
 var _ = require('underscore');
 var WarpError = require('./error');
 
+// Prepare log header
+function logHeader() {
+    return '[Warp Migration ' + moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') + ']';
+}
+
 // Factory
 var MigrationFactory = {
     extend: function(config, query) {
@@ -198,7 +203,7 @@ var MigrationFactory = {
                 {
                     if(action !== 'create' && action !== 'alter' && action !== 'drop')
                     {
-                        console.error('[Warp Migration] Migration is invalid: action provided does not exist', action);    
+                        console.error(logHeader(), 'Migration is invalid: action provided does not exist', action);    
                         throw new WarpError(WarpError.Code.ForbiddenOperation, 'Migration is invalid');
                     }
                         
@@ -229,7 +234,7 @@ var MigrationFactory = {
                 {
                     if(action !== 'create' && action !== 'alter' && action !== 'drop')
                     {
-                        console.error('[Warp Migration] Migration is invalid: action provided does not exist', action);    
+                        console.error(logHeader(), 'Migration is invalid: action provided does not exist', action);    
                         throw new WarpError(WarpError.Code.ForbiddenOperation, 'Migration is invalid');
                     }
                         
@@ -273,10 +278,10 @@ var MigrationFactory = {
                     'deleted_at': 'datetime'
                 })
                 .createOnce(function() {
-                    console.log('[Warp Migration] `migration` table has been initialized');
+                    console.log(logHeader(), '`migration` table has been initialized');
                 })
                 .catch(function(error) {
-                    console.error('[Warp Migration] Could not create `migration` table', error.message, error.stack);
+                    console.error(logHeader(), 'Could not create `migration` table', error.message, error.stack);
                 });
             },
             className: config.className || 'migration',
@@ -337,7 +342,7 @@ var MigrationFactory = {
                     });
                 }.bind(this))
                 .catch(function(error) {
-                    console.error('[Warp Migration] Could not commit all migrations', error.message, error.stack);
+                    console.error(logHeader(), 'Could not commit all migrations', error.message, error.stack);
                     throw new WarpError(WarpError.Code.InternalServerError, 'Could not commit all migrations: ' + error.message);
                 });
             },
@@ -373,7 +378,7 @@ var MigrationFactory = {
                     return migration;
                 }.bind(this))
                 .catch(function(error) {            
-                    console.error('[Warp Migration] Could not fetch the latest migration', error.message, error.stack);
+                    console.error(logHeader(), 'Could not fetch the latest migration', error.message, error.stack);
                     throw new WarpError(WarpError.Code.InternalServerError, 'Could not fetch the latest migration: ' + error.message);
                 });
             },
@@ -397,7 +402,7 @@ var MigrationFactory = {
                     };
                 })
                 .catch(function(error) {
-                    console.error('[Warp Migration] Could not revert latest migration', error.message, error.stack);
+                    console.error(logHeader(), 'Could not revert latest migration', error.message, error.stack);
                     throw new WarpError(WarpError.Code.InternalServerError, 'Could not revert latest migration: ' + error.message);
                 });
             },
@@ -452,7 +457,7 @@ var MigrationFactory = {
                     });
                 }.bind(this))
                 .catch(function(error) {            
-                    console.error('[Warp Migration] Could not reset migrations', error.message, error.stack);
+                    console.error(logHeader(), 'Could not reset migrations', error.message, error.stack);
                     throw new WarpError(WarpError.Code.InternalServerError, 'Could not reset migrations: ' + error.message);
                 });
             }

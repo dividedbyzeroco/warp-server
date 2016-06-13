@@ -1,8 +1,14 @@
 // References
 var mysql = require('mysql');
+var moment = require('moment-timezone');
 var Promise = require('promise');
 var _ = require('underscore');
 var WarpError = require('../error');
+
+// Prepare log header
+function logHeader() {
+    return '[Warp Database ' + moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') + ']';
+}
 
 // Class constructor
 var Database = function(config) {
@@ -33,7 +39,7 @@ _.extend(Database.prototype, {
             this._pool.getConnection(function(err, connection) {
                 if(err)
                 {
-                    console.error('[Warp Database] Could not connect to the database', err.message, err.stack);
+                    console.error(logHeader(), 'Could not connect to the database', err.message, err.stack);
                     var error = new WarpError(WarpError.Code.QueryError, 'Could not connect to the database');
                     return reject(error);
                 }
@@ -52,7 +58,7 @@ _.extend(Database.prototype, {
                     connection.release();
                     if(err)
                     {
-                        console.error('[Warp Database] Query Error', query, err.message, err.stack);
+                        console.error(logHeader(), 'Query Error', query, err.message, err.stack);
                         var error = new WarpError(WarpError.Code.QueryError, 'Invalid query request');
                         return reject(error);
                     }

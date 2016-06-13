@@ -5,6 +5,11 @@ var multer = require('multer');
 var WarpError = require('./error');
 var localstorage = require('./services/localstorage');
 
+// Prepare log header
+function logHeader() {
+    return '[Warp Storage ' + moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') + ']';
+}
+
 // Prepare class
 var StorageFactory = {
     extend: function(config) {
@@ -38,7 +43,7 @@ var StorageFactory = {
                     loader(req, res, function(err) {
                         if(err)
                         {                        
-                            console.error('[Warp Storage] Could not save file', err.message, err.stack);
+                            console.error(logHeader(), 'Could not save file', err.message, err.stack);
                             var error = new WarpError(WarpError.Code.InternalServerError, 'Could not parse the file');
                             return reject(error);
                         }

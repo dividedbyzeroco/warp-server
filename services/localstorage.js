@@ -5,6 +5,12 @@ var _ = require('underscore');
 var fs = require('fs');
 var path = require('path');
 
+// Prepare log header
+function logHeader() {
+    return '[Warp LocalStorage ' + moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') + ']';
+}
+
+// Prepare class
 var localstorage = function(path) {
     this.path = path || '';
 };
@@ -41,7 +47,7 @@ _.extend(localstorage.prototype, {
             }
             catch(ex)
             {
-                console.error('[Warp Localstorage] Could not save file to path', ex.message, ex.stack);
+                console.error(logHeader(), 'Could not save file to path', ex.message, ex.stack);
                 var error = new Error('Could not save file to path');
                 return reject(error);
             }
@@ -58,7 +64,7 @@ _.extend(localstorage.prototype, {
             }
             catch(ex)
             {                
-                console.error('[Warp Localstorage] Could not destroy file', ex.message, ex.stack);
+                console.error(logHeader(), 'Could not destroy file', ex.message, ex.stack);
                 var error = new Error('Could not destroy file');
                 return reject(error);
             }
