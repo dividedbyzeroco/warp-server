@@ -1,7 +1,11 @@
 Warp Server
 ===========
 
-__Warp Server__ is a library for implementing the Warp Framework on Node.js. It consists of several classes which aim to produce endpoints easily accessible via a standard REST API. Currently, Warp Server uses `mysql` as its backend of choice and implements validators, parsers and formatters that can control the data coming in and out of the server.
+__Warp Server__ is a backend platform that manages classes.
+
+## Table of Contents
+**[Installation](#Installation)**  
+**[Configuration](#Configuration)**
 
 ## Installation
 

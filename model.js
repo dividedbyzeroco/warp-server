@@ -85,12 +85,12 @@ _.extend(Model, {
         {
             var file = ModelSubclass.keys.files[key];
             
-            if(!ModelSubclass.validate[key])
-                ModelSubclass.validate[key] = Model.Validation.File;
-            if(!ModelSubclass.parse[key])
-                ModelSubclass.parse[key] = Model.Parser.File;
-            if(!ModelSubclass.format[key])
-                ModelSubclass.format[key] = Model.Formatter.File;
+            if(!ModelSubclass.validate[file])
+                ModelSubclass.validate[file] = Model.Validation.File;
+            if(!ModelSubclass.parse[file])
+                ModelSubclass.parse[file] = Model.Parser.File;
+            if(!ModelSubclass.format[file])
+                ModelSubclass.format[file] = Model.Formatter.File;
         }
         
         // Prepare formatters for timestamps
