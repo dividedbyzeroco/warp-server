@@ -660,7 +660,7 @@ You can also opt to specify a folder where all your queues are stored. For examp
 // ... some code here
 var config = {
     // .. previous configs here
-    functions: {
+    queues: {
         source: 'app/server/queues'
     }
 };
