@@ -25,7 +25,8 @@ WarpError.Code = {
     EmailTaken: 108, // Email registered already exists
     InvalidAPIKey: 109, // Invalid API Key
     ModelNotFound: 110,
-    FunctionNotFound: 111
+    FunctionNotFound: 111,
+    QueueNotFound: 112
 };
 
 module.exports = WarpError;

@@ -11,8 +11,11 @@ _.extend(WarpFunction, {
     create: function(def) {                
         // Prepare subclass
         var FunctionSubclass =  {
+            _action: def.action,
             name: def.name,
-            action: def.action
+            run: function(req, res) {
+                this._action(req, res);
+            }
         };
         return FunctionSubclass;
     }

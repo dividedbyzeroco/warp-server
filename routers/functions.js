@@ -3,7 +3,6 @@ var _ = require('underscore');
 module.exports = {
     run: function(req, res, next) {    
         var name = req.params.name;    
-        var action = this._getFunction(name);
         var request = {
             keys: req.body
         };
@@ -20,7 +19,7 @@ module.exports = {
         };
         
         // Run action
-        action(request, response);
+        this._getFunction(name).run(request, response);
     },
     apply: function(context, router) {
         router.post('/functions/:name', this.run.bind(context));

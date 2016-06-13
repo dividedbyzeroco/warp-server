@@ -47,6 +47,7 @@ _.extend(WarpServer.prototype, {
     _session: null,
     _router: null,
     _functions: {},
+    _queues: {},
     _requiredConfig: function(config, name) {
         if(!config) throw new WarpError(WarpError.Code.MissingConfiguration, name + ' must be set');
     },
@@ -66,7 +67,12 @@ _.extend(WarpServer.prototype, {
     _getFunction: function(name) {
         var func = this._functions[name];
         if(!func) throw new WarpError(WarpError.Code.FunctionNotFound, 'Function not found');
-        return func.action;
+        return func;
+    },
+    _getQueue: function(name) {
+        var queue = this._queues[name];
+        if(!queue) throw new WarpError(WarpError.Code.QueueNotFound, 'Queue not found');
+        return queue;
     },
     _prepareRouter: function() {
         // Get warp
@@ -153,6 +159,30 @@ _.extend(WarpServer.prototype, {
             }
         }
         
+        // Register queue classes
+        if(config.queues && config.queues.source)
+        {
+            var source = config.queues.source;
+            
+            if(typeof source === 'string')
+            {
+                fs.readdirSync(source)
+                .filter(function(file) {
+                    return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js');
+                })
+                .forEach(function(file) {
+                    var queue = require(path.join(source, file));
+                    this._queues[queue.name] = queue;
+                }.bind(this));
+            }
+            else if(typeof source === 'object' && source.forEach)
+            {
+                source.forEach(function(queue) {
+                    this._queues[queue.name] = queue;
+                }.bind(this));            
+            }
+        }
+        
         // Prepare routers
         var router = express.Router();
         var middleware = require('./routers/middleware');
@@ -162,6 +192,7 @@ _.extend(WarpServer.prototype, {
         var migrationRouter = require('./routers/migrations');
         var fileRouter = require('./routers/files');
         var functionRouter = require('./routers/functions');
+        var queueRouter = require('./routers/queues');
         
         // Apply middleware
         router.use(bodyParser.json());
@@ -180,6 +211,7 @@ _.extend(WarpServer.prototype, {
         // Apply masterKey-required routers
         router.use(middleware.requireMasterKey(config.security.masterKey));
         migrationRouter.apply(this, router);
+        queueRouter.apply(this, router);
         
         // Set the router
         this._router = router;
