@@ -1776,3 +1776,16 @@ The expected response would be similar to the following:
 - modify: modify an existing field's data type
 - rename: rename an existing field's name and data type (both are required)
 - drop: drop an existing field
+
+### Third-party Libraries
+
+- async(http://npmjs.com/async)
+- bcryptjs(http://npmjs.com/bcryptjs)
+- body-parser(http://npmjs.com/body-parser)
+- cron(http://npmjs.com/cron)
+- express(http://npmjs.com/express)
+- moment-timezone(http://npmjs.com/moment-timezone)
+- multer(http://npmjs.com/multer)
+- mysql(http://npmjs.com/mysql)
+- promise(http://npmjs.com/promise)
+- underscore(http://npmjs.com/underscore)
