@@ -253,22 +253,16 @@ var Alien = WarpServer.Model.create({
 });
 ```
 
-In order to tell Warp Server to use the model we just created, we must add it as a `source` to our config, before we initialize Warp Server:
+In order to tell Warp Server to use the model we just created, we need to register it after we initialize Warp Server:
 
 ```javascript
 // ... some code here
-var config = {
-    // .. previous configs here
-    models: {
-        source: [Alien]
-    }
-};
-
 var api = new WarpServer(config);
+api.registerModel(Alien);
 // ... additional code to initialize here
 ```
 
-NOTE: This is only advisable for development environments. For production environments, it is best to use the [Model Directory Approach](#using-model-directories).
+NOTE: This approach is only advisable for development environments. For production environments, it is best to use the [Model Directory Approach](#using-model-directories).
 
 Once completed, we can now use the Object API to operate on `alien` objects. See the section regarding the [Object API](#object-api) for more info.
 
@@ -361,7 +355,8 @@ For example, to create a User model using the `user` table:
 var User = WarpServer.Model.create({
     className: 'user',
     keys: {
-        viewable: ['username', 'email'], // Note that password should not be viewable by the Object API
+        // NOTE: The password should not be viewable by the Object API
+        viewable: ['username', 'email'],
         actionable: ['username', 'password', 'email']
     },
     validate: {
@@ -380,21 +375,6 @@ var User = WarpServer.Model.create({
 });
 ```
 
-In order for us to use the defined model as a User model, we must add it as a `user` in our config:
-
-```javascript
-// ... some code here
-var config = {
-    // ... previous configs here
-    models: {
-        source: [Alien, Planet],
-        user: User
-    }
-};
-var api = new WarpServer(config);
-// ... additional code to initialize here
-```
-
 Aside from the User Model, we should also define a Session Model that, like the User Model, has special required fields:
 
 - user (pointer)
@@ -407,7 +387,8 @@ An example of a Session Model would be as follows:
 var Session = WarpServer.Model.create({
     className: 'session',
     keys: {
-        viewable: ['user', 'origin', 'session_token'], // Note that the user field is a pointer to the 'user' table
+        // NOTE: The user field is a pointer to the 'user' table
+        viewable: ['user', 'origin', 'session_token'],
         actionable: ['user', 'origin'],
         pointers: {
             'user': {
@@ -417,35 +398,30 @@ var Session = WarpServer.Model.create({
         }
     },
     
-    // In order for us to generate special session tokens, we must use the Pre-defined PreSave function.
+    // NOTE: In order for us to generate special session tokens, we must use the Pre-defined PreSave function.
     // For more info on these pre-defined functions, please see the secion on PreSave functions.
     beforeSave: WarpServer.Model.PreSave.Session
 });
 ```
 
-Then, we register the created model by adding it as a `session` option in our config:
+Then, we register the created authentication models by adding it to our api:
 
 ```javascript
-// ... some config code here
-var config = {
-    // ... previous configs here
-    models: {
-        source: [Alien, Planet],
-        user: User,
-        session: Session
-    }
-};
+// ... some code here
 var api = new WarpServer(config);
+api.registerAuthModels(User, Session);
 // ... additional code to initialize here
 ```
 
-We can now use the special user authentication and management operations made available by the [Object API](#object-api).
+NOTE: To enable authentication, you must create both models.
+We can now use the special user authentication and management operations made available by the [User API](#user-api).
 
 ### Using Model Directories
 
-If you want to modularize your code and segregate models into different files inside a specific folder, you can opt to place the directory name in the `source` option, instead of creating an array of models. NOTE: This is the recommended approach in handling models.
+**NOTE: This is the recommended approach in defining models.**
 
-You do, however, need to declare the `user` and `session` options as filenames instead of models, if you are going to use this approach.
+If you want to modularize your code into different files inside a folder, you can opt to place the folder name as a `source` option, instead of manually registering them to the api.
+Additionally, you can also declare the `user` and `session` options using this approach. You just need to specify the filenames of the respective authentication models.
 
 For example, if you have a directory structure such as the following:
 
@@ -458,44 +434,61 @@ For example, if you have a directory structure such as the following:
 |-------- user.js
 |-------- session.js
 |------ api.js
+|-- app.js
 ```
 
-You can define the source inside `api.js` as:
+You can declare your `api` inside `api.js`, and add a `models` option inside your configuration. For example:
 
 ```javascript
+// References
 var path = require('path');
+var WarpServer = require('warp-server');
 
-// ... some config code here
-var config = {
-    // ... previous configs here
+// Export the api
+module.exports = new WarpServer({
+    security: {
+        apiKey: '12345678abcdefg',
+        masterKey: 'abcdefg12345678'
+    },
+    database: {
+        host: 'localhost',
+        port: 3306,
+        user: 'root',
+        password: 'password',
+        default: 'default_database',    
+    }
     models: {
         source: path.join(__dirname, 'models'),
         user: 'user',
         session: 'session'
     }
-};
+});
+```
 
-module.exports = new WarpServer(config);
-// ... additional code to initialize here
+Then, reference the api inside `app.js`:
+
+```javascript
+var express = require('express');
+var api = require('./app/api');
+
+app.use('/api/1', api.router());
 ```
 
 
 ## Migrations
 
-Managing database structures are usually handled by administrators using SQL clients. For Warp Server, these can be handled by `migrations`. Migrations make it easy to create, alter and drop database `schemas`. Not only does it manage these schemas/tables but it also allows versioning of these modifications, so you can easily `commit` or `revert` changes programmatically.
+Managing database schemas are usually handled by administrators using SQL clients. For Warp Server, we simplify this process by using `migrations`. Migrations make it easy to create, alter and drop database `schemas`. Additionally, they also allow versioning of these modifications, so you can easily `commit` or `revert` changes programmatically.
 
 To activate the `migrations` feature, simply add a migrations option in your Warp Server config:
 
 ```javascript
 // ... some config code here
-var config = {
+module.exports = new WarpServer({
     // ... previous configs here
     migrations: {
         activated: true
     }
-};
-var api = new WarpServer(config);
-// ... additional code to initialize here
+});
 ```
 
 Once applied and the server initiates, the migrations table is automatically created in the default database. By default, the name of the table is `migration`. If you need to change this, simply add a `className` option:
@@ -518,7 +511,7 @@ You can now access the `migrations` API to start creating `schemas`. Please see 
 
 ## Functions
 
-Oftentimes, there might be cases when you may need to provide a custom endpoint or webhook for your application that surpasses the capabilities of the standard Object API. In these scenarios, you may opt to use `Warp Functions`.
+Oftentimes, there might be cases when the Object API may not be enough for your app requirements. In these cases, you may opt to use `Functions`.
 
 `Functions` allow you to set up custom API's to suit your app's growing needs.
 
@@ -550,6 +543,7 @@ For example, if we want to make a function for destroying all aliens of a specif
 ```javascript
 // Get a modified version of the Warp JS SDK from the API
 // For more info on the Warp JS SDK, please see http://github.com/jakejosol/warp-sdk-js
+var api = new WarpServer(config);
 var Warp = api.Warp;
 
 // Create the function
@@ -576,42 +570,46 @@ var destroyDaleks = WarpServer.Function.create({
 });
 ```
 
-In order to tell Warp Server to use the function we just created, we must add it as a `source` to our config, before we initialize Warp Server:
+In order to use the function we just created, we should register it after we initialize Warp Server:
 
 ```javascript
 // ... some code here
-var config = {
-    // .. previous configs here
-    functions: {
-        source: [destroyDaleks]
-    }
-};
-
-var api = new WarpServer(config);
+api.registerFunction(destroyDaleks);
 // ... additional code to initialize here
 ```
 
-You can also opt to specify a folder where all your functions are stored. For example:
+You can also opt to specify a folder where all your functions are stored. Just like in the section regarding the [Model Directory Approach](#using-model-directories).
+
+For example, if we have a directory such as this:
+
+```
+|-- app
+|---- server
+|------ models
+|------ functions
+|-------- destroy-daleks.js
+|------ api.js
+|-- app.js
+```
+
+You can add the functions inside `api.js`:
 
 ```javascript
 // ... some code here
-var config = {
+module.exports = new WarpServer({
     // .. previous configs here
     functions: {
-        source: 'app/server/functions'
+        source: path.join(__dirname, 'functions')
     }
-};
-
-var api = new WarpServer(config);
-// ... additional code to initialize here
+});
 ```
 
-The Function is now ready to be called. Once the server has started, you can access these functions via a standard API. For more info, see the section regarding the [Function API](#function-api).
+The Functions are now ready to be called. For more info, see the section regarding the [Function API](#function-api).
 
 
 ## Queues
 
-Functions are useful for running adhoc tasks; however, if you want to run frequent background jobs, you can use `Warp Queues`. `Queues` are specific tasks which are executed periodically based on a given interval. The Warp Server allows you to easily start, stop and get statuses for these different background jobs.
+Functions are useful for running adhoc tasks; however, if you want to run frequent background jobs, you can use `Queues`. `Queues` are specific tasks which are executed periodically based on a given interval. The Warp Server allows you to easily start, stop and get statuses for these different background jobs.
 
 To define a Queue, simply create a `WarpServer.Queue` class with the following parameters:
 
@@ -641,6 +639,7 @@ For example, if we want to make a queue for sending messages, we can write it as
 ```javascript
 // Get a modified version of the Warp JS SDK from the API
 // For more info on the Warp JS SDK, please see http://github.com/jakejosol/warp-sdk-js
+var api = new WarpServer(config);
 var Warp = api.Warp;
 
 // Create the queue
@@ -664,37 +663,42 @@ var sendMessages = WarpServer.Queue.create({
 });
 ```
 
-In order to tell Warp Server to use the queue we just created, we must add it as a `source` to our config, before we initialize Warp Server:
+In order to use the queue we just created, we should register it after we initialize Warp Server:
 
 ```javascript
 // ... some code here
-var config = {
-    // .. previous configs here
-    queues: {
-        source: [sendMessages]
-    }
-};
-
-var api = new WarpServer(config);
+api.registerQueue(sendMessages);
 // ... additional code to initialize here
 ```
 
-You can also opt to specify a folder where all your queues are stored. For example:
+You can also opt to specify a folder where all your queues are stored. Just like in the section regarding the [Model Directory Approach](#using-model-directories).
+
+For example, if we have a directory such as this:
+
+```
+|-- app
+|---- server
+|------ models
+|------ functions
+|------ queues
+|-------- send-messages.js
+|------ api.js
+|-- app.js
+```
+
+You can add the queues inside `api.js`:
 
 ```javascript
 // ... some code here
-var config = {
+module.exports = new WarpServer({
     // .. previous configs here
     queues: {
-        source: 'app/server/queues'
+        source: path.join(__dirname, 'queues')
     }
-};
-
-var api = new WarpServer(config);
-// ... additional code to initialize here
+});
 ```
 
-The Queue is now ready to be used. Once the server has started, you can manipulate these queues via the standard API. For more info, see the section regarding the [Queue API](#queue-api).
+The Queues are now ready to be used. For more info, see the section regarding the [Queue API](#queue-api).
 
 
 ## Object API

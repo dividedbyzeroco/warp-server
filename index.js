@@ -7,6 +7,11 @@ var _ = require('underscore');
 var WarpError = require('./error');
 var Warp = require('warp-sdk-js');
 
+// Prepare log header
+function logHeader() {
+    return '[Warp Server ' + moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') + ']';
+}
+
 // Define Warp Server
 var WarpServer = function(config) {
     // Check required configurations     
@@ -52,8 +57,8 @@ _.extend(WarpServer.prototype, {
         if(!config) throw new WarpError(WarpError.Code.MissingConfiguration, name + ' must be set');
     },
     _getModel: function(className) {
-        if(this._user && className == this._user.className) throw new WarpError(WarpError.Code.ForbiddenOperation, 'User operations must use appropriate route');
-        if(this._session && className == this._session.className) throw new WarpError(WarpError.Code.ForbiddenOperation, 'Session operations must use appropriate route');
+        if(this._user && className == this._user.className) throw new WarpError(WarpError.Code.ForbiddenOperation, 'User operations must use the appropriate API');
+        if(this._session && className == this._session.className) throw new WarpError(WarpError.Code.ForbiddenOperation, 'Session operations must use the appropriate API');
         var model = this._models[className];
         if(!model) throw new WarpError(WarpError.Code.ModelNotFound, 'Model not found');
         return model;
@@ -74,113 +79,77 @@ _.extend(WarpServer.prototype, {
         if(!queue) throw new WarpError(WarpError.Code.QueueNotFound, 'Queue not found');
         return queue;
     },
+    _isAScriptFile(file) {
+        return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js');
+    },
     _prepareRouter: function() {
         // Get warp
         this.Warp = Warp.bind(this);
-        
-        // Append queries util for models
-        var appendQueries = function(model) {
-            model._viewQuery = this.Query.View;
-            model._actionQuery = this.Query.Action;
-            model._storage = this.Storage;
-            return model;
-        }.bind(this);
         
         // Set config
         var config = this._config;
         
         // Register model classes
-        if(config.models && config.models.source)
+        if(config.models && config.models.source && (Object.keys(this._models).length == 0 || this._user && this._session))
         {
+            // Get model source
             var source = config.models.source;
             
-            if(typeof source === 'string')
-            {
-                fs.readdirSync(source)
-                .filter(function(file) {
-                    return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js');
-                })
-                .forEach(function(file) {
-                    var model = require(path.join(source, file));
-                    model = appendQueries(model);
-                                    
-                    if(file.replace('.js', '') === config.models.user)
-                        this._user = model;
-                    else if(file.replace('.js', '') === config.models.session)
-                        this._session = model;
-                    else
-                        this._models[model.className] = model;
-                }.bind(this));
-            }
-            else if(typeof source === 'object' && source.forEach)
-            {
-                source.forEach(function(model) {
-                    model = appendQueries(model);
-                    this._models[model.className] = model;
-                }.bind(this));
+            // Define default auth models
+            var user = null;
+            var session = null;
+            
+            // Iterate through each model file
+            fs.readdirSync(source)
+            .filter(this._isAScriptFile)
+            .forEach(function(file) {
+                var model = require(path.join(source, file));                
                 
-                if(typeof config.models.user === 'object')
-                {
-                    var model = config.models.user;
-                    model = appendQueries(model);
-                    this._user = model;
-                }
-                
-                if(typeof config.models.session === 'object')
-                {
-                    var model = config.models.session;
-                    model = appendQueries(model);
-                    this._session = model;
-                }
-            }
+                if(file.replace('.js', '') === config.models.user)
+                    user = model;
+                else if(file.replace('.js', '') === config.models.session)
+                    session = model;
+                else
+                    this.registerModel(model);
+            }.bind(this));
+            
+            // Register auth models
+            this.registerAuthModels(user, session);
         }
-    
+        
+        // Show warnings, if need be
+        if(Object.keys(this._models).length == 0)
+            console.log(logHeader(), 'WARNING: Models have not yet been defined');
+        if(!this._user || !this._session)
+            console.log(logHeader(), 'WARNING: User and/or session models have not been defined');
+                    
         // Register function classes
-        if(config.functions && config.functions.source)
+        if(config.functions && config.functions.source && Object.keys(this._functions).length == 0)
         {
+            // Get function source
             var source = config.functions.source;
             
-            if(typeof source === 'string')
-            {
-                fs.readdirSync(source)
-                .filter(function(file) {
-                    return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js');
-                })
-                .forEach(function(file) {
-                    var func = require(path.join(source, file));
-                    this._functions[func.name] = func;
-                }.bind(this));
-            }
-            else if(typeof source === 'object' && source.forEach)
-            {
-                source.forEach(function(func) {
-                    this._functions[func.name] = func;
-                }.bind(this));            
-            }
+            // Iterate through each function file
+            fs.readdirSync(source)
+            .filter(this._isAScriptFile)
+            .forEach(function(file) {
+                var func = require(path.join(source, file));
+                this.registerFunction(func);
+            }.bind(this));
         }
         
         // Register queue classes
-        if(config.queues && config.queues.source)
+        if(config.queues && config.queues.source && Object.keys(this._queues).length == 0)
         {
+            // Get queue source
             var source = config.queues.source;
             
-            if(typeof source === 'string')
-            {
-                fs.readdirSync(source)
-                .filter(function(file) {
-                    return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js');
-                })
-                .forEach(function(file) {
-                    var queue = require(path.join(source, file));
-                    this._queues[queue.name] = queue;
-                }.bind(this));
-            }
-            else if(typeof source === 'object' && source.forEach)
-            {
-                source.forEach(function(queue) {
-                    this._queues[queue.name] = queue;
-                }.bind(this));            
-            }
+            fs.readdirSync(source)
+            .filter(this._isAScriptFile)
+            .forEach(function(file) {
+                var queue = require(path.join(source, file));
+                this.registerQueue(queue);
+            }.bind(this));
         }
         
         // Prepare routers
@@ -199,17 +168,14 @@ _.extend(WarpServer.prototype, {
         router.use(bodyParser.urlencoded({ extended: false }));
         router.use(middleware.enableCors);
         router.use(middleware.sessionToken);
-        
-        // Apply apiKey-only routers
         router.use(middleware.requireAPIKey(config.security.apiKey));
+        
+        // Apply API routes
         classRouter.apply(this, router);
         userRouter.apply(this, router);
         sessionRouter.apply(this, router);
         fileRouter.apply(this, router);
         functionRouter.apply(this, router);
-        
-        // Apply masterKey-required routers
-        router.use(middleware.requireMasterKey(config.security.masterKey));
         migrationRouter.apply(this, router);
         queueRouter.apply(this, router);
         
@@ -218,6 +184,48 @@ _.extend(WarpServer.prototype, {
         
         // Return router
         return this._router;
+    },
+    registerModel: function(model) {
+        // Prepare model
+        model._viewQuery = this.Query.View;
+        model._actionQuery = this.Query.Action;
+        model._storage = this.Storage;
+        this._models[model.className] = model;
+        return this;
+    },
+    registerModels: function(models) {
+        models.forEach(function(model) {
+            this.registerModel(model);
+        }.bind(this));
+    },
+    registerAuthModels: function(user, session) {
+        // Prepare user model
+        user._viewQuery = this.Query.View;
+        user._actionQuery = this.Query.Action;
+        user._storage = this.Storage;
+        this._user = user;  
+        
+        // Prepare session model      
+        session._viewQuery = this.Query.View;
+        session._actionQuery = this.Query.Action;
+        session._storage = this.Storage;
+        this._session = session;        
+    },
+    registerFunction: function(func) {
+        this._functions[func.name] = func;    
+    },
+    registerFunctions: function(funcs) {
+        funcs.forEach(function(func) {
+            this.registerFunction(func);
+        }.bind(this));    
+    },
+    registerQueue: function(queue) {
+        this._queues[queue.name] = queue;
+    },
+    registerQueues: function(queues) {
+        queues.forEach(function(queue) {
+            this.registerQueue(queue);
+        }.bind(this));  
     },
     // Return express router
     router: function() {

@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var middleware = require('./middleware');
 
 module.exports = {
     find: function(req, res, next) {
@@ -167,15 +168,16 @@ module.exports = {
         });
     },
     apply: function(context, router) {
-        router.get('/migrations', this.find.bind(context));
-        router.get('/migrations/current', this.current.bind(context));
-        router.get('/migrations/:id', this.first.bind(context));
-        router.post('/migrations', this.create.bind(context));
-        router.put('/migrations/:id', this.update.bind(context));
-        router.delete('/migrations/:id', this.destroy.bind(context));
-        router.post('/migrations/commit', this.commit.bind(context));
-        router.post('/migrations/revert', this.revert.bind(context));
-        router.post('/migrations/reset', this.reset.bind(context));
+        var masterKeyRequired = middleware.requireMasterKey(this._config.security.masterKey);
+        router.get('/migrations', masterKeyRequired, this.find.bind(context));
+        router.get('/migrations/current', masterKeyRequired, this.current.bind(context));
+        router.get('/migrations/:id', masterKeyRequired, this.first.bind(context));
+        router.post('/migrations', masterKeyRequired, this.create.bind(context));
+        router.put('/migrations/:id', masterKeyRequired, this.update.bind(context));
+        router.delete('/migrations/:id', masterKeyRequired, this.destroy.bind(context));
+        router.post('/migrations/commit', masterKeyRequired, this.commit.bind(context));
+        router.post('/migrations/revert', masterKeyRequired, this.revert.bind(context));
+        router.post('/migrations/reset', masterKeyRequired, this.reset.bind(context));
         return router;
     }
 };

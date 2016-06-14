@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var middleware = require('./middleware');
 
 module.exports = {
     status: function(req, res, next) {    
@@ -29,9 +30,10 @@ module.exports = {
         this._getQueue(name).stop();
     },
     apply: function(context, router) {
-        router.get('/queues/:name', this.status.bind(context));
-        router.post('/queues/:name/start', this.start.bind(context));
-        router.post('/queues/:name/stop', this.stop.bind(context));
+        var masterKeyRequired = middleware.requireMasterKey(this._config.security.masterKey);
+        router.get('/queues/:name', masterKeyRequired, this.status.bind(context));
+        router.post('/queues/:name/start', masterKeyRequired, this.start.bind(context));
+        router.post('/queues/:name/stop', masterKeyRequired, this.stop.bind(context));
         return router;
     }
 };
