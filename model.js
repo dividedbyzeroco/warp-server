@@ -174,8 +174,8 @@ _.extend(Model, {
                 // Make sure id and timestamps are not edited by the user
                 keysToActOn = _.difference(keysToActOn, self.getInternalKeys());
 
-                // Prepare keys actionable
-                var keysActionable = {};
+                // Prepare keys parsed
+                var keysParsed = {};
                 keysToActOn.forEach(function(key) {
                     var value = keys[key];
                     
@@ -184,7 +184,7 @@ _.extend(Model, {
                     {
                         var isValid = this.validate[key](value, key);
                         if(typeof isValid === 'string')
-                            throw new WarpError(WarpError.Code.InvalidObjectKey,isValid);
+                            throw new WarpError(WarpError.Code.InvalidObjectKey, isValid);
                     }
                         
                     // Parse value
@@ -192,27 +192,28 @@ _.extend(Model, {
                         this.parse[key](value) :
                         value;
                     
-                    // Add actionable key
-                    var source = keysAliased[key] || key;
-                    keysActionable[source] = parsedValue;
+                    // Add parsed key
+                    keysParsed[source] = parsedValue;
                 }.bind(this));
                 
                 // Change timestamps
                 var now = options.now;
-                keysActionable[self._internalKeys.updatedAt] = now.format('YYYY-MM-DD HH:mm:ss');
-                if(options.isNew) keysActionable[self._internalKeys.createdAt] = now.format('YYYY-MM-DD HH:mm:ss');
-                if(options.isDestroyed) keysActionable[self._internalKeys.deletedAt] = now.format('YYYY-MM-DD HH:mm:ss');
+                keysParsed[self._internalKeys.updatedAt] = now.format('YYYY-MM-DD HH:mm:ss');
+                if(options.isNew) 
+                    keysParsed[self._internalKeys.createdAt] = now.format('YYYY-MM-DD HH:mm:ss');
+                if(options.isDestroyed)
+                    keysParsed[self._internalKeys.deletedAt] = now.format('YYYY-MM-DD HH:mm:ss');
                 
                 // Create basic key map
-                var keyMap = new KeyMap(keysActionable);
+                var keyMap = new KeyMap(keysParsed);
                         
-                // Create request object
+                // Create a request object
                 var request = {
                     keys: keyMap,
                     isNew: options.isNew? true : false,
                     isDestroyed: options.isDestroyed? true : false
                 };
-                                
+                
                 // Check if beforeSave exists
                 if(typeof this.beforeSave === 'function') 
                     return new Promise(function(resolve, reject) {
@@ -220,7 +221,32 @@ _.extend(Model, {
                         // Create response object
                         var response = {
                             success: function() {
-                                resolve(request);
+                                // Prepare keys actionable
+                                var keysActionable = {};
+                                
+                                // Iterate through each parsed value
+                                for(var key in request.keys.copy())
+                                {                                
+                                    // Get source and value
+                                    var source = keysAliased[key] || key;
+                                    var value = request.keys.get(key);
+                                    
+                                    // Assign actionable keys
+                                    keysActionable[source] = value;
+                                    
+                                    // Get formatted value
+                                    var formattedValue = typeof this.format[key] === 'function'? 
+                                        this.format[key](value) :
+                                        value;
+                                        
+                                    // Set formatted value
+                                    request.keys.set(key, formattedValue);
+                                }
+                                
+                                resolve({
+                                    request: request,
+                                    raw: keysActionable
+                                });
                             },
                             error: function(message) {
                                 reject(new WarpError(WarpError.Code.InvalidObjectKey, message));
@@ -232,7 +258,7 @@ _.extend(Model, {
                     
                     }.bind(this));
                 else
-                    return Promise.resolve(request);
+                    return Promise.resolve(keysActionable, request);
             },
             find: function(options) {
                 var query = new this._viewQuery(this.source);
@@ -288,28 +314,15 @@ _.extend(Model, {
                 // Get actionable keys
                 return this.getActionableKeys(options.fields, { now: now, isNew: true })
                 .then(function(result) {
-                    request = result;
-                })
-                .then(function() {
+                    // Set request
+                    request = result.request;
+                    
                     // Execute action query
-                    return query.fields(request.keys.copy()).create();
+                    return query.fields(result.raw).create();
                 })
-                .then(function(result) {
+                .then(function(result) {                    
                     // Update key map
                     request.keys.set('id', result.id);
-                    request.keys.set('created_at', now.format());
-                    request.keys.set('updated_at', now.format());
-                    
-                    // Format the keys
-                    for(var key in options.fields)
-                    {
-                        if(typeof request.keys.get(key) === 'undefined')
-                            continue;
-                            
-                        var value = request.keys.get(key);
-                        if(typeof this.format[key] === 'function')
-                            request.keys.set(key, this.format[key](value));
-                    }
                     
                     // Check afterSave method
                     if(typeof this.afterSave === 'function') this.afterSave(request);
@@ -326,28 +339,16 @@ _.extend(Model, {
                 // Get actionable keys
                 return this.getActionableKeys(options.fields, { now: now })
                 .then(function(result) {
-                    request = result;
-                })
-                .then(function() {
+                    // Set request
+                    request = result.request;
+                    
                     // Execute action query
-                    return query.fields(request.keys.copy()).update();
+                    return query.fields(result.raw).update();
                 })
                 .then(function(result) {
                     // Update key map
                     request.keys.set('id', options.id);
-                    request.keys.set('updated_at', now.format());
-                    
-                    // Format the keys
-                    for(var key in options.fields)
-                    {
-                        if(typeof request.keys.get(key) === 'undefined')
-                            continue;
-                            
-                        var value = request.keys.get(key);
-                        if(typeof this.format[key] === 'function')
-                            request.keys.set(key, this.format[key](value));
-                    }
-                    
+                                        
                     // Check afterSave method
                     if(typeof this.afterSave === 'function') this.afterSave(request);
                     
@@ -363,17 +364,15 @@ _.extend(Model, {
                 // Get actionable keys
                 return this.getActionableKeys(options.fields, { now: now, isDestroyed: true })
                 .then(function(result) {
-                    request = result;
-                })
-                .then(function() {
+                    // Set request
+                    request = result.request;
+                    
                     // Execute action query
-                    return query.fields(request.keys.copy()).update();
+                    return query.fields(result.raw).update();
                 })
                 .then(function(result) {
                     // Update key map
                     request.keys.set('id', options.id);
-                    request.keys.set('updated_at', now.format());
-                    request.keys.set('deleted_at', now.format());
                     
                     // Check afterSave method
                     if(typeof this.afterSave === 'function') this.afterSave(request);
