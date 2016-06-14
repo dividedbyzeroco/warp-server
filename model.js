@@ -301,8 +301,7 @@ _.extend(Model, {
                     request.keys.set('updated_at', now.format());
                     
                     // Format the keys
-                    var item = request.keys.copy();
-                    for(var key in item)
+                    for(var key in options.fields)
                     {
                         var value = request.keys.get(key);
                         if(typeof this.format[key] === 'function')
@@ -336,8 +335,7 @@ _.extend(Model, {
                     request.keys.set('updated_at', now.format());
                     
                     // Format the keys
-                    var item = request.keys.copy();
-                    for(var key in item)
+                    for(var key in options.fields)
                     {
                         var value = request.keys.get(key);
                         if(typeof this.format[key] === 'function')
