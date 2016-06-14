@@ -55,7 +55,7 @@ _.extend(WarpServer.prototype, {
     _functions: {},
     _queues: {},
     _requiredConfig: function(config, name) {
-        if(!config) throw new WarpError(WarpError.Code.MissingConfiguration, name + ' must be set');
+        if(typeof config === 'undefined') throw new WarpError(WarpError.Code.MissingConfiguration, name + ' must be set');
     },
     _getModel: function(className) {
         if(this._user && className == this._user.className) throw new WarpError(WarpError.Code.ForbiddenOperation, 'User operations must use the appropriate API');
