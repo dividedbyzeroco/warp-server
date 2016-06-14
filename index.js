@@ -65,9 +65,11 @@ _.extend(WarpServer.prototype, {
         return model;
     },
     _getUserModel: function() {
+        if(!this._user) throw new WarpError(WarpError.Code.ForbiddenOperation, 'Authentication models have not been defined');
         return this._user;
     },
     _getSessionModel: function() {
+        if(!this._session) throw new WarpError(WarpError.Code.ForbiddenOperation, 'Authentication models have not been defined');
         return this._session;
     },
     _getFunction: function(name) {
@@ -198,8 +200,10 @@ _.extend(WarpServer.prototype, {
         models.forEach(function(model) {
             this.registerModel(model);
         }.bind(this));
+        return this;
     },
     registerAuthModels: function(user, session) {
+        if(!user || !session) return this;
         // Prepare user model
         user._viewQuery = this.Query.View;
         user._actionQuery = this.Query.Action;
@@ -211,22 +215,27 @@ _.extend(WarpServer.prototype, {
         session._actionQuery = this.Query.Action;
         session._storage = this.Storage;
         this._session = session;        
+        return this;
     },
     registerFunction: function(func) {
         this._functions[func.name] = func;    
+        return this;
     },
     registerFunctions: function(funcs) {
         funcs.forEach(function(func) {
             this.registerFunction(func);
         }.bind(this));    
+        return this;
     },
     registerQueue: function(queue) {
         this._queues[queue.name] = queue;
+        return this;
     },
     registerQueues: function(queues) {
         queues.forEach(function(queue) {
             this.registerQueue(queue);
         }.bind(this));  
+        return this;
     },
     // Return express router
     router: function() {
