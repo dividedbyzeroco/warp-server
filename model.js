@@ -247,7 +247,7 @@ _.extend(Model, {
                                     request: request,
                                     raw: keysActionable
                                 });
-                            },
+                            }.bind(this),
                             error: function(message) {
                                 reject(new WarpError(WarpError.Code.InvalidObjectKey, message));
                             }
