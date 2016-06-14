@@ -274,7 +274,7 @@ _.extend(Model, {
                     var item = result;
                     for(var key in result)
                     {
-                        if(this.format[key])
+                        if(typeof this.format[key] === 'function')
                             item[key] = this.format[key](result[key]);
                     }
                     return item;
@@ -299,6 +299,15 @@ _.extend(Model, {
                     request.keys.set('id', result.id);
                     request.keys.set('created_at', now.format());
                     request.keys.set('updated_at', now.format());
+                    
+                    // Format the keys
+                    var item = request.keys.copy();
+                    for(var key in item)
+                    {
+                        var value = request.keys.get(key);
+                        if(typeof this.format[key] === 'function')
+                            request.keys.set(key, this.format[key](value));
+                    }
                     
                     // Check afterSave method
                     if(typeof this.afterSave === 'function') this.afterSave(request);
@@ -325,6 +334,15 @@ _.extend(Model, {
                     // Update key map
                     request.keys.set('id', options.id);
                     request.keys.set('updated_at', now.format());
+                    
+                    // Format the keys
+                    var item = request.keys.copy();
+                    for(var key in item)
+                    {
+                        var value = request.keys.get(key);
+                        if(typeof this.format[key] === 'function')
+                            request.keys.set(key, this.format[key](value));
+                    }
                     
                     // Check afterSave method
                     if(typeof this.afterSave === 'function') this.afterSave(request);
