@@ -303,6 +303,9 @@ _.extend(Model, {
                     // Format the keys
                     for(var key in options.fields)
                     {
+                        if(typeof request.keys.get(key) === 'undefined')
+                            continue;
+                            
                         var value = request.keys.get(key);
                         if(typeof this.format[key] === 'function')
                             request.keys.set(key, this.format[key](value));
@@ -337,6 +340,9 @@ _.extend(Model, {
                     // Format the keys
                     for(var key in options.fields)
                     {
+                        if(typeof request.keys.get(key) === 'undefined')
+                            continue;
+                            
                         var value = request.keys.get(key);
                         if(typeof this.format[key] === 'function')
                             request.keys.set(key, this.format[key](value));
