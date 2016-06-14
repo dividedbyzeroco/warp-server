@@ -30,7 +30,7 @@ module.exports = {
         this._getQueue(name).stop();
     },
     apply: function(context, router) {
-        var masterKeyRequired = middleware.requireMasterKey(this._config.security.masterKey);
+        var masterKeyRequired = middleware.requireMasterKey(context._config.security.masterKey);
         router.get('/queues/:name', masterKeyRequired, this.status.bind(context));
         router.post('/queues/:name/start', masterKeyRequired, this.start.bind(context));
         router.post('/queues/:name/stop', masterKeyRequired, this.stop.bind(context));

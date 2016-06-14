@@ -168,7 +168,7 @@ module.exports = {
         });
     },
     apply: function(context, router) {
-        var masterKeyRequired = middleware.requireMasterKey(this._config.security.masterKey);
+        var masterKeyRequired = middleware.requireMasterKey(context._config.security.masterKey);
         router.get('/migrations', masterKeyRequired, this.find.bind(context));
         router.get('/migrations/current', masterKeyRequired, this.current.bind(context));
         router.get('/migrations/:id', masterKeyRequired, this.first.bind(context));
