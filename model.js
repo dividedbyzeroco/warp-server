@@ -193,7 +193,7 @@ _.extend(Model, {
                         value;
                     
                     // Add parsed key
-                    keysParsed[source] = parsedValue;
+                    keysParsed[key] = parsedValue;
                 }.bind(this));
                 
                 // Change timestamps
