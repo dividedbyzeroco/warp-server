@@ -418,7 +418,7 @@ We can now use the special user authentication and management operations made av
 
 ### Using Model Directories
 
-**NOTE: This is the recommended approach in defining models.**
+**NOTE: This is the recommended approach for production environments**
 
 If you want to modularize your code into different files inside a folder, you can opt to place the folder name as a `source` option, instead of manually registering them to the api.
 Additionally, you can also declare the `user` and `session` options using this approach. You just need to specify the filenames of the respective authentication models.
