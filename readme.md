@@ -470,6 +470,7 @@ Then, reference the api inside `app.js`:
 ```javascript
 var express = require('express');
 var api = require('./app/api');
+var app = express();
 
 app.use('/api/1', api.router());
 ```
