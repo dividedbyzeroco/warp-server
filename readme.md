@@ -469,7 +469,7 @@ Then, reference the api inside `app.js`:
 
 ```javascript
 var express = require('express');
-var api = require('./app/api');
+var api = require('./app/server/api');
 var app = express();
 
 app.use('/api/1', api.router());
@@ -626,7 +626,7 @@ WarpServer.Queue.create({
     
     // A pre-defined interval that determines the frequency of a given task
     // The interval follows the format of the Cron Job in Linux
-    // For more information about interval formats, please see http://npmjs.com/cron
+    // For more information about interval formats, please see http://npmjs.com/package/cron
     interval: '{INTERVAL}',
     
     // An OPTIONAL parameter that determines the relative timezone that the interval would follow
@@ -1807,13 +1807,13 @@ The expected response would be similar to the following:
 
 ### Third-party Libraries
 
-- async(http://npmjs.com/async)
-- bcryptjs(http://npmjs.com/bcryptjs)
-- body-parser(http://npmjs.com/body-parser)
-- cron(http://npmjs.com/cron)
-- express(http://npmjs.com/express)
-- moment-timezone(http://npmjs.com/moment-timezone)
-- multer(http://npmjs.com/multer)
-- mysql(http://npmjs.com/mysql)
-- promise(http://npmjs.com/promise)
-- underscore(http://npmjs.com/underscore)
+- [async](http://npmjs.com/package/async)
+- [bcryptjs](http://npmjs.com/package/bcryptjs)
+- [body-parser](http://npmjs.com/package/body-parser)
+- [cron](http://npmjs.com/package/cron)
+- [express](http://npmjs.com/package/express)
+- [moment-timezone](http://npmjs.com/package/moment-timezone)
+- [multer](http://npmjs.com/package/multer)
+- [mysql](http://npmjs.com/package/mysql)
+- [promise](http://npmjs.com/package/promise)
+- [underscore](http://npmjs.com/package/underscore)
