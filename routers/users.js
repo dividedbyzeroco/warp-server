@@ -153,10 +153,7 @@ module.exports = {
         
         var query = new this.Query.View(this._getUserModel().className);
         
-        query.select({
-            'id': 'id',
-            'password': 'password'
-        })
+        query.select(['id', 'password'])
         .where({
             'username': { 'eq' : username }
         })
