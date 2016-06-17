@@ -41,8 +41,8 @@ _.extend(Model, {
         deletedAt: 'deleted_at'
     },
     getInternalKeys: function() {
-        return Object.keys(this._internalKeys).map(function(key) {
-            return this._internalKeys[key];
+        return Object.keys(Model._internalKeys).map(function(key) {
+            return Model._internalKeys[key];
         }.bind(this));
     },  
     create: function(config) {
@@ -449,7 +449,7 @@ _.extend(Model, {
                     for(var index in keys)
                     {
                         var key = keys[index];
-                        if(this.viewable.indexOf(key) < 0 && !this._internalKeys[key])
+                        if(this.keys.viewable.indexOf(key) < 0 && !Model._internalKeys[key])
                             keys.splice(index, 1);
                     }
                 }.bind(this));
@@ -481,7 +481,7 @@ _.extend(Model, {
                     for(var index in keys)
                     {
                         var key = keys[index];
-                        if(this.viewable.indexOf(key) < 0 && !this._internalKeys[key])
+                        if(this.keys.viewable.indexOf(key) < 0 && !Model._internalKeys[key])
                             keys.splice(index, 1);
                     }
                 }.bind(this));                
@@ -513,7 +513,7 @@ _.extend(Model, {
                     for(var index in keys)
                     {
                         var key = keys[index];
-                        if(this.viewable.indexOf(key) < 0 && !this._internalKeys[key])
+                        if(this.keys.viewable.indexOf(key) < 0 && !Model._internalKeys[key])
                             keys.splice(index, 1);
                     }
                 }.bind(this));
