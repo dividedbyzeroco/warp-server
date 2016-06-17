@@ -339,7 +339,7 @@ _.extend(Model, {
                     return Promise.resolve({
                         request: request,
                         raw: keysActionable
-                    }));
+                    });
                 }
             },
             find: function(options) {
