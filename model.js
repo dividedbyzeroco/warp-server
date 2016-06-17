@@ -101,13 +101,9 @@ _.extend(Model, {
         
         // Extend static methods
         _.extend(ModelSubclass, {
-            getViewableKeys: function(keys) {
-                // Get keys selected
-                var keysSelected = keys? Object.keys(keys) : [];
-                
-                // Get keys available
+            _getDefinedKeys: function(type) {
                 var keysAliased = {};
-                var keysAvailable = this.keys.viewable.map(function(key) {
+                var keysAvailable = this.keys[type].map(function(key) {
                     // Initialize alias and source
                     var alias = key;
                     var source = key;
@@ -124,6 +120,70 @@ _.extend(Model, {
                     keysAliased[alias] = source;
                     return alias;
                 }.bind(this));
+                
+                return {
+                    available: keysAvailable,
+                    aliased: keysAliased
+                };
+            },
+            getJoins: function(keys) {
+                // Get keys selected
+                var keysSelected = keys? Object.keys(keys) : [];
+                var joinAliases = [];
+                for(var key in keysSelected)
+                {
+                    if(key.indexOf('.') >= 0)
+                    {
+                        var joinAlias = key.split('.')[0];
+                        if(joinAliases.indexOf(joinAlias) >= 0)
+                            continue;
+                        joinAliases.push(joinAlias);
+                    }
+                }
+                
+                var joins = [];
+                joinAliases.forEach(function(joinAlias) {
+                    var pointer = this.keys.pointers[joinALias];
+                    if(!pointer) return;
+                    joins.push({
+                        className: pointer.className,
+                        alias: joinAlias,
+                        via: pointer.via,
+                        to: Model._internalKeys.id
+                    });
+                }.bind(this));
+                
+                return joins;
+            },
+            getViewKeys: function(keys) {
+                // Get keys requested
+                var keysRequested = keys? Object.keys(keys) : [];
+                
+                // Get keys selected and pointers
+                var pointers = {};
+                var keysSelected = [];
+                keysRequested.forEach(function(key, index) {
+                    if(key.indexOf('.') >= 0)
+                    {
+                        var parts = key.split('.');
+                        var className = parts[0];
+                        var field = parts[1];
+                        var pointer = pointers[className] || [];
+                        if(pointer.indexOf(field)) return;
+                        pointer.push(field);
+                        pointers[className] = pointer;
+                    }
+                    else
+                    {
+                        if(keysSelected.indexOf(key)) return;
+                        keysSelected.push(key);
+                    }
+                });
+                
+                // Get keys defined
+                var keysDefined = this._getDefinedKeys('viewable');
+                var keysAvailable = keysDefined.available;
+                var keysAliased = keysDefined.aliased;
                 
                 // Get keys to view
                 var keysToView = keysSelected.length > 0 ? _.intersection(keysSelected, keysAvailable) : keysAvailable;
@@ -136,42 +196,40 @@ _.extend(Model, {
                 var keysViewable = {};
                 keysToView.forEach(function(key) {
                     var alias = key;
-                    var source = keysAliased[key] || key; 
-                    keysViewable[alias] = source;
+                    var field = keysAliased[key] || key;
+                    keysViewable[alias] = field;
                 });
                 
+                // Retrieve pointer keys
+                for(var className in pointers)
+                {
+                    var pointer = pointers[className];
+                    pointer.forEach(function(key) {
+                        keysViewable[className + '.' + key] = {
+                            className: className,
+                            field: key
+                        };
+                    });
+                }
+                
                 // Return keys viewable
-                return keysViewable;
+                return {
+                    viewable: keysViewable,
+                    pointers: pointers
+                };
             },
-            getActionableKeys: function(keys, options) {
+            getActionKeys: function(keys, options) {
                 // Get keys selected
                 var keysSelected = keys? Object.keys(keys) : [];
-                options = options || {};
                 
-                // Get keys available
-                var keysAliased = {};
-                var keysAvailable = this.keys.actionable.map(function(key) {
-                    // Initialize alias and source
-                    var alias = key;
-                    var source = key;
-                    
-                    // Check if key is a pointer
-                    if(this.keys.pointers[key])
-                    {
-                        var pointer = this.keys.pointers[key];
-                        alias = key;
-                        source = pointer.via || pointer.className + '_id' || key + '_id';
-                    }
-                    
-                    // Return alias
-                    keysAliased[alias] = source;
-                    return alias;
-                }.bind(this));
-                                
+                // Get keys defined
+                var keysDefined = this._getDefinedKeys('actionable');
+                var keysAvailable = keysDefined.available;
+                var keysAliased = keysDefined.aliased;
+                
                 // Get keys to act on
-                var keysToActOn = _.intersection(keysSelected, keysAvailable);
-                                
                 // Make sure id and timestamps are not edited by the user
+                var keysToActOn = _.intersection(keysSelected, keysAvailable);
                 keysToActOn = _.difference(keysToActOn, self.getInternalKeys());
 
                 // Prepare keys parsed
@@ -186,7 +244,7 @@ _.extend(Model, {
                         if(typeof isValid === 'string')
                             throw new WarpError(WarpError.Code.InvalidObjectKey, isValid);
                     }
-                        
+                    
                     // Parse value
                     var parsedValue = typeof this.parse[key] === 'function'? 
                         this.parse[key](value) :
@@ -261,8 +319,20 @@ _.extend(Model, {
                     return Promise.resolve(keysActionable, request);
             },
             find: function(options) {
+                // Prepare query
                 var query = new this._viewQuery(this.source);
-                query.select(this.getViewableKeys(options.select));
+                
+                // Prepare joins
+                var joins = this.getJoins(options.select);
+                if(joins.length >= 0) query.joins(joins);
+                
+                // Get view keys
+                var viewKeys = this.getViewKeys(options.select);
+                var viewable = viewableKeys.viewable;
+                var pointers = viewableKeys.pointers;
+                
+                // Prepare select
+                query.select(viewable);
                                 
                 // Get where options; Remove deleted objects
                 var where = options.where? options.where : {};
@@ -280,10 +350,32 @@ _.extend(Model, {
                     for(var index in result)
                     {
                         var item = result[index];
-                        for(var key in item)
+                        var pointerValues = {};
+                        for(var key in viewable)
                         {
-                            if(typeof this.format[key] === 'function')
-                                items[index][key] = this.format[key](item[key]);
+                            var details = viewable[key];
+                            if(typeof details === 'object')
+                            {                 
+                                var parts = key.split('.');
+                                var pointerName = parts[0];
+                                var fieldName = parts[1]; 
+                                var pointer = pointerValues[pointerName] || {};
+                                pointer[fieldName] = items[index][key];
+                                pointerValues[pointerName] = pointer;
+                            }
+                            else
+                            {
+                                if(typeof this.format[key] === 'function')
+                                    items[index][key] = this.format[key](details);
+                            }
+                        }
+                        
+                        for(var pointerName in pointerValues)
+                        {
+                            var pointerAttributes = pointerValues[pointerName];
+                            var pointer = items[index][pointerName];
+                            pointer.attributes = pointerAttributes;
+                            items[index][pointerName] = pointer;
                         }
                     }
                     return items;
@@ -291,7 +383,7 @@ _.extend(Model, {
             },
             first: function(id) {
                 var query = new this._viewQuery(this.source);
-                query.select(this.getViewableKeys());
+                query.select(this.getViewKeys());
                 var where = {};
                 where[self._internalKeys.id] = { 'eq': id };
                 query.where(where);
@@ -312,7 +404,7 @@ _.extend(Model, {
                 var request = null;
                 
                 // Get actionable keys
-                return this.getActionableKeys(options.fields, { now: now, isNew: true })
+                return this.getActionKeys(options.fields, { now: now, isNew: true })
                 .then(function(result) {
                     // Set request
                     request = result.request;
@@ -337,7 +429,7 @@ _.extend(Model, {
                 var request = null;
                 
                 // Get actionable keys
-                return this.getActionableKeys(options.fields, { now: now })
+                return this.getActionKeys(options.fields, { now: now })
                 .then(function(result) {
                     // Set request
                     request = result.request;
@@ -362,7 +454,7 @@ _.extend(Model, {
                 var request = null;
                 
                 // Get actionable keys
-                return this.getActionableKeys(options.fields, { now: now, isDestroyed: true })
+                return this.getActionKeys(options.fields, { now: now, isDestroyed: true })
                 .then(function(result) {
                     // Set request
                     request = result.request;

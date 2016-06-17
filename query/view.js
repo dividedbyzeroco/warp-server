@@ -11,6 +11,7 @@ var QueryFactory = {
         // Class constructor
         var ViewQuery = function(className) {
             this.className = className;
+            this._joins = [];
             this._keys = {};
             this._constraints = {};
             this._order = [];
@@ -69,13 +70,26 @@ var QueryFactory = {
                 var keys = Object.keys(this._keys).map(function(key) {
                     var details = this._keys[key];
                     var className = typeof details === 'object'? details.className : null;
-                    var value = typeof details === 'object'? details.value : details;
+                    var value = typeof details === 'object'? details.field : details;
                     return this._parseKey(className, value, key);
                 }.bind(this));
                 var select = 'SELECT ' + (keys.length? keys.join(', ') : '*');        
                 
                 // Get from
                 var from = 'FROM ' + this.className;
+                
+                // Get joins
+                var joins = [];
+                if(this._joins.length > 0)
+                {
+                    for(var index in this._joins)
+                    {
+                        var join = this._joins[index];
+                        var className = join.className;
+                        joins.push('INNER JOIN `' + className + '` ON `' + this.className + '`.`' + via + '` = `' + className + '`.`' + to + '`');
+                    }
+                }
+                joins = joins.join(' ');
                 
                 // Get where
                 var constraints = Object.keys(this._constraints).map(function(key) {
@@ -102,7 +116,7 @@ var QueryFactory = {
                     '';
                 
                 // Return query string
-                var query = [select, from, where, order, limit, ';'].join(' ').replace(/\s{2,}/g, ' ');
+                var query = [select, from, joins, where, order, limit, ';'].join(' ').replace(/\s{2,}/g, ' ');
                 return query;
             },
             _execute: function(config) {
@@ -138,6 +152,21 @@ var QueryFactory = {
             skip: function(skip) {
                 this._skip = skip;
                 return this;
+            },
+            join: function(join) {
+                this._joins.push({
+                    className: join.className,
+                    alias: join.alias,
+                    via: join.via,
+                    to: join.to,
+                });
+            },
+            joins: function(joins) {
+                for(var index in joins)
+                {
+                    var join = joins[index];
+                    this.join(join || {});
+                }
             },
             find: function(next, fail) {
                 // Retrieve query

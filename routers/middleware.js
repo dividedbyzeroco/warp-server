@@ -1,12 +1,9 @@
 // References
 var WarpError = require('../error');
+var cors = require('cors');
 
 module.exports = {
-    enableCors: function (req, res, next) {
-        res.header("Access-Control-Allow-Origin", "*");
-        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-        next();
-    },
+    enableCors: cors,
     requireAPIKey: function(apiKey) {
         return function (req, res, next) {
             var key = req.get('X-Warp-API-Key');
