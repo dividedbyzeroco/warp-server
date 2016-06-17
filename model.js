@@ -320,11 +320,11 @@ _.extend(Model, {
                 var query = new this._viewQuery(this.source);
                 
                 // Prepare joins
-                var joins = this.getJoins(options.select);
+                var joins = this.getJoins(options.select || []);
                 if(joins.length > 0) query.joins(joins);
                 
                 // Get view keys
-                var viewKeys = this.getViewKeys(options.select);
+                var viewKeys = this.getViewKeys(options.select || []);
                 var viewable = viewKeys.viewable;
                 var pointers = viewKeys.pointers;
                 
