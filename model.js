@@ -446,12 +446,12 @@ _.extend(Model, {
                     // Return a copy of the keys as a raw object
                     // Remove non-viewable items
                     var keys = request.keys.copy();
-                    for(var index in keys)
+                    for(var key in keys)
                     {
-                        var key = keys[index];
                         if(this.keys.viewable.indexOf(key) < 0 && !Model._internalKeys[key])
-                            keys.splice(index, 1);
-                    }
+                            delete keys[key];
+                    }                    
+                    return keys;
                 }.bind(this));
             },
             update: function(options) {
@@ -478,12 +478,12 @@ _.extend(Model, {
                     // Return a copy of the keys as a raw object
                     // Remove non-viewable items
                     var keys = request.keys.copy();
-                    for(var index in keys)
+                    for(var key in keys)
                     {
-                        var key = keys[index];
                         if(this.keys.viewable.indexOf(key) < 0 && !Model._internalKeys[key])
-                            keys.splice(index, 1);
-                    }
+                            delete keys[key];
+                    }                    
+                    return keys;
                 }.bind(this));                
             },
             destroy: function(options) {
@@ -510,12 +510,12 @@ _.extend(Model, {
                     // Return a copy of the keys as a raw object
                     // Remove non-viewable items
                     var keys = request.keys.copy();
-                    for(var index in keys)
+                    for(var key in keys)
                     {
-                        var key = keys[index];
                         if(this.keys.viewable.indexOf(key) < 0 && !Model._internalKeys[key])
-                            keys.splice(index, 1);
-                    }
+                            delete keys[key];
+                    }                    
+                    return keys;
                 }.bind(this));
             }
         });
