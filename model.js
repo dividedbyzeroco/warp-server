@@ -313,7 +313,31 @@ _.extend(Model, {
                     
                     }.bind(this));
                 else
+                {
+                    // Prepare keys actionable
+                    var keysActionable = {};
+                    
+                    // Iterate through each parsed value
+                    for(var key in request.keys.copy())
+                    {                                
+                        // Get source and value
+                        var source = keysAliased[key] || key;
+                        var value = request.keys.get(key);
+                        
+                        // Assign actionable keys
+                        keysActionable[source] = value;
+                        
+                        // Get formatted value
+                        var formattedValue = typeof this.format[key] === 'function'? 
+                            this.format[key](value) :
+                            value;
+                            
+                        // Set formatted value
+                        request.keys.set(key, formattedValue);
+                    }
+                                
                     return Promise.resolve(keysActionable, request);
+                }
             },
             find: function(options) {
                 // Prepare query
