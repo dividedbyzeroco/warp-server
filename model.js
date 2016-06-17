@@ -268,7 +268,7 @@ _.extend(Model, {
                     isNew: options.isNew? true : false,
                     isDestroyed: options.isDestroyed? true : false
                 };
-                
+                                
                 // Check if beforeSave exists
                 if(typeof this.beforeSave === 'function') 
                     return new Promise(function(resolve, reject) {
@@ -336,7 +336,10 @@ _.extend(Model, {
                         request.keys.set(key, formattedValue);
                     }
                                 
-                    return Promise.resolve(keysActionable, request);
+                    return Promise.resolve({
+                        request: request,
+                        raw: keysActionable
+                    }));
                 }
             },
             find: function(options) {
