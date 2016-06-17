@@ -444,7 +444,14 @@ _.extend(Model, {
                     if(typeof this.afterSave === 'function') this.afterSave(request);
                     
                     // Return a copy of the keys as a raw object
-                    return request.keys.copy();
+                    // Remove non-viewable items
+                    var keys = request.keys.copy();
+                    for(var index in keys)
+                    {
+                        var key = keys[index];
+                        if(this.viewable.indexOf(key) < 0 && !this._internalKeys[key])
+                            keys.splice(index, 1);
+                    }
                 }.bind(this));
             },
             update: function(options) {
@@ -469,7 +476,14 @@ _.extend(Model, {
                     if(typeof this.afterSave === 'function') this.afterSave(request);
                     
                     // Return a copy of the keys as a raw object
-                    return request.keys.copy();
+                    // Remove non-viewable items
+                    var keys = request.keys.copy();
+                    for(var index in keys)
+                    {
+                        var key = keys[index];
+                        if(this.viewable.indexOf(key) < 0 && !this._internalKeys[key])
+                            keys.splice(index, 1);
+                    }
                 }.bind(this));                
             },
             destroy: function(options) {
@@ -494,7 +508,14 @@ _.extend(Model, {
                     if(typeof this.afterSave === 'function') this.afterSave(request);
                     
                     // Return a copy of the keys as a raw object
-                    return request.keys.copy();
+                    // Remove non-viewable items
+                    var keys = request.keys.copy();
+                    for(var index in keys)
+                    {
+                        var key = keys[index];
+                        if(this.viewable.indexOf(key) < 0 && !this._internalKeys[key])
+                            keys.splice(index, 1);
+                    }
                 }.bind(this));
             }
         });
