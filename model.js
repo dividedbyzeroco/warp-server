@@ -128,22 +128,19 @@ _.extend(Model, {
             },
             getJoins: function(keys) {
                 // Get keys selected
-                var keysSelected = keys? Object.keys(keys) : [];
                 var joinAliases = [];
-                for(var key in keysSelected)
-                {
+                keys.forEach(function(key) {                    
                     if(key.indexOf('.') >= 0)
                     {
                         var joinAlias = key.split('.')[0];
-                        if(joinAliases.indexOf(joinAlias) >= 0)
-                            continue;
+                        if(joinAliases.indexOf(joinAlias) >= 0) return;
                         joinAliases.push(joinAlias);
                     }
-                }
+                });
                 
                 var joins = [];
                 joinAliases.forEach(function(joinAlias) {
-                    var pointer = this.keys.pointers[joinALias];
+                    var pointer = this.keys.pointers[joinAlias];
                     if(!pointer) return;
                     joins.push({
                         className: pointer.className,
@@ -157,7 +154,7 @@ _.extend(Model, {
             },
             getViewKeys: function(keys) {
                 // Get keys requested
-                var keysRequested = keys? Object.keys(keys) : [];
+                var keysRequested = keys;
                 
                 // Get keys selected and pointers
                 var pointers = {};
@@ -169,7 +166,7 @@ _.extend(Model, {
                         var className = parts[0];
                         var field = parts[1];
                         var pointer = pointers[className] || [];
-                        if(pointer.indexOf(field)) return;
+                        if(pointer.indexOf(field) >= 0) return;
                         pointer.push(field);
                         pointers[className] = pointer;
                     }
@@ -324,12 +321,12 @@ _.extend(Model, {
                 
                 // Prepare joins
                 var joins = this.getJoins(options.select);
-                if(joins.length >= 0) query.joins(joins);
+                if(joins.length > 0) query.joins(joins);
                 
                 // Get view keys
                 var viewKeys = this.getViewKeys(options.select);
-                var viewable = viewableKeys.viewable;
-                var pointers = viewableKeys.pointers;
+                var viewable = viewKeys.viewable;
+                var pointers = viewKeys.pointers;
                 
                 // Prepare select
                 query.select(viewable);
@@ -366,7 +363,7 @@ _.extend(Model, {
                             else
                             {
                                 if(typeof this.format[key] === 'function')
-                                    items[index][key] = this.format[key](details);
+                                    items[index][key] = this.format[key](items[index][key]);
                             }
                         }
                         
@@ -517,6 +514,7 @@ Model.Validation = {
         return function(value, key) {
             try
             {
+                if(value === null) return;
                 var pointer = (typeof value === 'object') ? value : JSON.parse(value);
                 if(typeof pointer !== 'object' || pointer.type !== 'Pointer' || pointer.className !== className) return key + ' must be a pointer to `' + className + '`';
             }

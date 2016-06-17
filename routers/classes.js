@@ -4,7 +4,7 @@ module.exports = {
     find: function(req, res, next) {
         var className = req.params.className;
         var options = {
-            select: req.query.select? JSON.parse(req.query.select) : {},
+            select: req.query.select? JSON.parse(req.query.select) : [],
             where: req.query.where? JSON.parse(req.query.where) : {},
             sort: req.query.order? JSON.parse(req.query.order) : [],
             limit: req.query.limit || 100,

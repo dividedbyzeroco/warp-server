@@ -26,6 +26,7 @@ var QueryFactory = {
                 return '`' + className + '`.`' + value + '` AS `' + label + '`'
             },
             _parseConstraint: function(key, type, value) {
+                key = key.indexOf('.') >= 0? key : this.className + '.' + key;
                 switch(type)
                 {
                     case 'eq':
@@ -86,7 +87,7 @@ var QueryFactory = {
                     {
                         var join = this._joins[index];
                         var className = join.className;
-                        joins.push('INNER JOIN `' + className + '` ON `' + this.className + '`.`' + via + '` = `' + className + '`.`' + to + '`');
+                        joins.push('LEFT OUTER JOIN `' + className + '` ON `' + this.className + '`.`' + join.via + '` = `' + className + '`.`' + join.to + '`');
                     }
                 }
                 joins = joins.join(' ');
@@ -97,7 +98,7 @@ var QueryFactory = {
                                 
                     return Object.keys(details).map(function(type) {
                         var value = details[type];
-                        return this._parseConstraint(key, type, value)
+                        return this._parseConstraint(key, type, value);
                     }.bind(this)).join(' AND ');
                 }.bind(this));
                 var where = constraints.length? ('WHERE ' + constraints.join(' AND ')) : '';
