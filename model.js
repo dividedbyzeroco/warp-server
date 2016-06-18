@@ -378,14 +378,20 @@ _.extend(Model, {
                         for(var key in viewable)
                         {
                             var details = viewable[key];
+                            
+                            // Check if the details is a `pointer` object
                             if(typeof details === 'object')
                             {                 
-                                var parts = key.split('.');
-                                var pointerName = parts[0];
-                                var fieldName = parts[1]; 
-                                var pointer = pointerValues[pointerName] || {};
-                                pointer[fieldName] = items[index][key];
-                                pointerValues[pointerName] = pointer;
+                                if(details.className)
+                                {
+                                    var parts = key.split('.');
+                                    var pointerName = parts[0];
+                                    var fieldName = parts[1]; 
+                                    var pointer = pointerValues[pointerName] || {};
+                                    pointer[fieldName] = items[index][key];
+                                    pointerValues[pointerName] = pointer;
+                                    delete items[index][key];
+                                }
                             }
                             else
                             {
