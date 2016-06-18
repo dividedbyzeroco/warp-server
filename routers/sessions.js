@@ -3,21 +3,17 @@ var _ = require('underscore');
 module.exports = {
     find: function(req, res, next) {
         var options = {
-            select: this._getSessionModel().getViewableKeys(req.query.select || {}),
+            include: req.query.include? JSON.parse(req.query.include) : {},
             where: req.query.where? JSON.parse(req.query.where) : {},
             sort: req.query.order? JSON.parse(req.query.order) : [],
             limit: req.query.limit || 100,
             skip: req.query.skip || 0
         };
         
-        var query = new this.Query.View(this._getSessionModel().className);
-                    
+        var find = this._getSessionModel().find(options);
+            
         // View objects
-        query.select(options.select)
-        .where(options.where)
-        .limit(options.limit)
-        .skip(options.skip)
-        .find(function(result)
+        find.then(function(result)
         {
             res.json({ status: 200, message: 'Success', result: result });
         })
