@@ -3,7 +3,7 @@ var _ = require('underscore');
 module.exports = {
     find: function(req, res, next) {
         var options = {
-            include: req.query.include? JSON.parse(req.query.include) : {},
+            include: req.query.include? JSON.parse(req.query.include) : [],
             where: req.query.where? JSON.parse(req.query.where) : {},
             sort: req.query.order? JSON.parse(req.query.order) : [],
             limit: req.query.limit || 100,
