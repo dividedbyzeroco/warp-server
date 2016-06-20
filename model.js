@@ -154,7 +154,7 @@ _.extend(Model, {
             },
             getViewKeys: function(keys) {
                 // Get keys requested
-                var keysRequested = keys;
+                var keysRequested = keys || [];
                 
                 // Get keys selected and pointers
                 var pointers = {};
