@@ -148,7 +148,7 @@ module.exports = {
     },
     login: function(req, res, next) {
         var username = req.body.username;
-        var password = req.body.password;
+        var password = req.body.password.toString();
         var origin = req.get('X-Warp-Origin');
         
         var query = new this.Query.View(this._getUserModel().className);

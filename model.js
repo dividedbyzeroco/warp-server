@@ -412,18 +412,55 @@ _.extend(Model, {
                 }.bind(this));
             },
             first: function(id) {
-                var query = new this._viewQuery(this.source);
-                query.select(this.getViewKeys());
+                // Create query
+                var query = new this._viewQuery(this.source);                
+                
+                // Get view keys
+                var viewKeys = this.getViewKeys([]);
+                var viewable = viewKeys.viewable;
+                var pointers = viewKeys.pointers;
+                
+                query.select(viewable);
+                
+                // Get where options
                 var where = {};
                 where[self._internalKeys.id] = { 'eq': id };
                 query.where(where);
-                
+                                
                 return query.first(function(result) {
                     var item = result;
-                    for(var key in result)
+                    var pointerValues = {};
+                    for(var key in viewable)
                     {
-                        if(typeof this.format[key] === 'function')
-                            item[key] = this.format[key](result[key]);
+                        var details = viewable[key];
+                        
+                        // Check if the details is a `pointer` object
+                        if(typeof details === 'object')
+                        {                 
+                            if(details.className)
+                            {
+                                var parts = key.split('.');
+                                var pointerName = parts[0];
+                                var fieldName = parts[1]; 
+                                var pointer = pointerValues[pointerName] || {};
+                                pointer[fieldName] = item[key];
+                                pointerValues[pointerName] = pointer;
+                                delete item[key];
+                            }
+                        }
+                        else
+                        {
+                            if(typeof this.format[key] === 'function')
+                                item[key] = this.format[key](item[key]);
+                        }
+                    }
+                    
+                    for(var pointerName in pointerValues)
+                    {
+                        var pointerAttributes = pointerValues[pointerName];
+                        var pointer = item[pointerName];
+                        pointer.attributes = pointerAttributes;
+                        item[pointerName] = pointer;
                     }
                     return item;
                 }.bind(this));                
@@ -654,7 +691,7 @@ Model.PreSave = {
         if(request.isNew)
         {
             // Generate session token
-            request.keys.set('session_token', (request.keys.get('user_id') * 1024 * 1024).toString(36) + '+' + (Math.random()*1e32).toString(36) + parseInt(request.keys.get('user_id')*1e32).toString(36));
+            request.keys.set('session_token', (request.keys.get('user') * 1024 * 1024).toString(36) + '+' + (Math.random()*1e32).toString(36) + parseInt(request.keys.get('user')*1e32).toString(36));
             request.keys.set('deleted_at', moment().tz('UTC').add(30, 'days').format('YYYY-MM-DD HH:mm:ss'));
         }
         
