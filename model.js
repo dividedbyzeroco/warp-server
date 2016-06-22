@@ -291,7 +291,7 @@ _.extend(Model, {
                                     
                                     // Get formatted value
                                     var formattedValue = typeof this.format[key] === 'function'? 
-                                        this.format[key](value) :
+                                        this.format[key](value, this) :
                                         value;
                                         
                                     // Set formatted value
@@ -329,7 +329,7 @@ _.extend(Model, {
                         
                         // Get formatted value
                         var formattedValue = typeof this.format[key] === 'function'? 
-                            this.format[key](value) :
+                            this.format[key](value, this) :
                             value;
                             
                         // Set formatted value
@@ -396,7 +396,7 @@ _.extend(Model, {
                             else
                             {
                                 if(typeof this.format[key] === 'function')
-                                    items[index][key] = this.format[key](items[index][key]);
+                                    items[index][key] = this.format[key](items[index][key], this);
                             }
                         }
                         
@@ -451,7 +451,7 @@ _.extend(Model, {
                         else
                         {
                             if(typeof this.format[key] === 'function')
-                                item[key] = this.format[key](item[key]);
+                                item[key] = this.format[key](item[key], this);
                         }
                     }
                     
@@ -673,8 +673,8 @@ Model.Formatter = {
             return pointer;
         }
     },
-    File: function(key) {
-        var url = Model._storage.getUrl(key); 
+    File: function(key, context) {
+        var url = context._storage.getUrl(key); 
         var file = {
             type: 'File',
             key: key,
