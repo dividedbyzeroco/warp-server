@@ -34,7 +34,8 @@ var QueryFactory = {
                 return '`' + className + '`.`' + value + '` AS `' + label + '`'
             },
             _parseConstraint: function(key, type, value) {
-                key = key.indexOf('.') >= 0? key : this.className + '.' + key;
+                key = key.indexOf('.') >= 0? '`' + key.split('.').join('`.`') + '`' : 
+                    '`' + this.className + '`.`' + key + '`';
                 switch(type)
                 {
                     case 'eq':
@@ -95,7 +96,7 @@ var QueryFactory = {
                     {
                         var join = this._joins[index];
                         var className = join.className;
-                        var joinString = 'LEFT OUTER JOIN `' + className + '` ON `' + this.className + '`.`' + join.via + '` = `' + className + '`.`' + join.to + '`';
+                        var joinString = 'LEFT OUTER JOIN `' + className + '` AS `' + join.alias + '` ON (`' + this.className + '`.`' + join.via + '` = `' + className + '`.`' + join.to + '`';
                         if(typeof join.where === 'object')
                         {
                             var constraints = Object.keys(join.where).map(function(key) {
@@ -106,7 +107,7 @@ var QueryFactory = {
                                     return this._parseConstraint(key, type, value);
                                 }.bind(this)).join(' AND ');
                             }.bind(this));
-                            joinString += constraints.length? (' AND ' + constraints.join(' AND ')) : '';
+                            joinString += constraints.length? (' AND ' + constraints.join(' AND ') + ')') : ')';
                         }
                         joins.push(joinString);
                     }
