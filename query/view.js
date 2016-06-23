@@ -21,6 +21,14 @@ var QueryFactory = {
 
         // Instance methods
         _.extend(ViewQuery.prototype, {
+            _operands = {
+                'eq': '=',
+                'neq': '<>',
+                'gt': '>',
+                'gte': '>=',
+                'lt': '<',
+                'lte': '<='
+            },
             _parseKey: function(className, value, label) {
                 className = className || this.className;
                 return '`' + className + '`.`' + value + '` AS `' + label + '`'
@@ -35,16 +43,16 @@ var QueryFactory = {
                     case 'gte':
                     case 'lt':
                     case 'lte':
-                    var operands = {
-                        'eq': '=',
-                        'neq': '<>',
-                        'gt': '>',
-                        'gte': '>=',
-                        'lt': '<',
-                        'lte': '<='
-                    }
-                    return [key, operands[type], ViewQuery._getDatabase().escape(value)].join(' ');
-                    
+                        value = ViewQuery._getDatabase().escape(value);
+                    case '_eq':
+                    case '_neq':
+                    case '_gt':
+                    case '_gte':
+                    case '_lt':
+                    case '_lte':
+                        type = type.replace('_', '');
+                    return [key, this._operands[type], value].join(' ');
+                            
                     case 'ex':
                     return [key, value? 'IS NOT NULL' : 'IS NULL'].join(' ');
                     

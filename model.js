@@ -146,7 +146,8 @@ _.extend(Model, {
                         className: pointer.className,
                         alias: joinAlias,
                         via: pointer.via,
-                        to: Model._internalKeys.id
+                        to: Model._internalKeys.id,
+                        where: pointer.where
                     });
                 }.bind(this));
                 
@@ -163,19 +164,20 @@ _.extend(Model, {
                     if(key.indexOf('.') >= 0)
                     {
                         var parts = key.split('.');
-                        var className = parts[0];
+                        var pointerName = parts[0];
                         var field = parts[1];
-                        var pointer = pointers[className] || [];
+                        if(!this.keys.pointers[pointerName]) return;
+                        var pointer = pointers[pointerName] || [];
                         if(pointer.indexOf(field) >= 0) return;
                         pointer.push(field);
-                        pointers[className] = pointer;
+                        pointers[pointerName] = pointer;
                     }
                     else
                     {
                         if(keysSelected.indexOf(key)) return;
                         keysSelected.push(key);
                     }
-                });
+                }.bind(this));
                 
                 // Get keys defined
                 var keysDefined = this._getDefinedKeys('viewable');
