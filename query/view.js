@@ -21,7 +21,7 @@ var QueryFactory = {
 
         // Instance methods
         _.extend(ViewQuery.prototype, {
-            _operands = {
+            _operands: {
                 'eq': '=',
                 'neq': '<>',
                 'gt': '>',
