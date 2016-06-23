@@ -107,9 +107,9 @@ var QueryFactory = {
                                     return this._parseConstraint(key, type, value);
                                 }.bind(this)).join(' AND ');
                             }.bind(this));
-                            joinString += constraints.length? (' AND ' + constraints.join(' AND ') + ')') : ')';
+                            joinString += constraints.length? (' AND ' + constraints.join(' AND ')) : '';
                         }
-                        joins.push(joinString);
+                        joins.push(joinString + ')');
                     }
                 }
                 joins = joins.join(' ');
