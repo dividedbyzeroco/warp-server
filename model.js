@@ -390,13 +390,20 @@ _.extend(Model, {
                             {
                                 if(details.className)
                                 {
-                                    var parts = key.split('.');
-                                    var pointerName = parts[0];
-                                    var fieldName = parts[1]; 
-                                    var pointer = pointerValues[pointerName] || {};
-                                    pointer[fieldName] = items[index][key];
-                                    pointerValues[pointerName] = pointer;
-                                    delete items[index][key];
+                                    if(key.indexOf('.') >= 0)
+                                    {
+                                        var parts = key.split('.');
+                                        var pointerName = parts[0];
+                                        var fieldName = parts[1]; 
+                                        var pointer = pointerValues[pointerName] || {};
+                                        pointer[fieldName] = items[index][key];
+                                        pointerValues[pointerName] = pointer;
+                                        delete items[index][key];
+                                    }
+                                    else
+                                    {
+                                        items[index][key] = this.format[key](items[index][key], this);
+                                    }
                                 }
                             }
                             else
