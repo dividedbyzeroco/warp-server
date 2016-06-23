@@ -130,16 +130,12 @@ _.extend(Model, {
                     aliased: keysAliased
                 };
             },
-            getJoins: function(keys) {
+            getJoins: function() {
                 // Get keys selected
                 var joinAliases = [];
-                keys.forEach(function(key) {                    
-                    if(key.indexOf('.') >= 0)
-                    {
-                        var joinAlias = key.split('.')[0];
-                        if(joinAliases.indexOf(joinAlias) >= 0) return;
-                        joinAliases.push(joinAlias);
-                    }
+                Object.keys(this.keys.pointers).forEach(function(pointerName) {
+                    if(joinAliases.indexOf(pointerName) >= 0) return;
+                    joinAliases.push(pointerName);
                 });
                 
                 var joins = [];
@@ -353,7 +349,7 @@ _.extend(Model, {
                 var query = new this._viewQuery(this.source);
                 
                 // Prepare joins
-                var joins = this.getJoins(options.include || []);
+                var joins = this.getJoins();
                 if(joins.length > 0) query.joins(joins);
                 
                 // Get view keys
