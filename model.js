@@ -668,6 +668,8 @@ Model.Formatter = {
     },
     Pointer: function(className) {
         return function(value) {
+            if(!value) return null;
+            
             var pointer = {
                 type: 'Pointer',
                 className: className,
