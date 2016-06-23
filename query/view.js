@@ -99,7 +99,7 @@ var QueryFactory = {
                     {
                         var join = this._joins[index];
                         var className = join.className;
-                        var joinString = 'LEFT OUTER JOIN `' + className + '` AS `' + join.alias + '` ON (`' + this.className + '`.`' + join.via + '` = `' + className + '`.`' + join.to + '`';
+                        var joinString = 'LEFT OUTER JOIN `' + className + '` AS `' + join.alias + '` ON (';
                         if(typeof join.where === 'object')
                         {
                             var constraints = Object.keys(join.where).map(function(key) {
@@ -112,6 +112,9 @@ var QueryFactory = {
                             }.bind(this));
                             joinString += constraints.length? (' AND ' + constraints.join(' AND ')) : '';
                         }
+                        else
+                            joinString += '`' + this.className + '`.`' + join.via + '` = `' + className + '`.`' + join.to + '`';
+                            
                         joins.push(joinString + ')');
                     }
                 }
