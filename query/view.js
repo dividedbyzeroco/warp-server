@@ -34,8 +34,10 @@ var QueryFactory = {
                 return '`' + className + '`.`' + value + '` AS `' + label + '`'
             },
             _parseConstraint: function(key, type, value) {
+                var rawKey = key;
                 key = key.indexOf('.') >= 0? '`' + key.split('.').join('`.`') + '`' : 
                     '`' + this.className + '`.`' + key + '`';
+                    
                 switch(type)
                 {
                     case 'eq':
@@ -44,6 +46,7 @@ var QueryFactory = {
                     case 'gte':
                     case 'lt':
                     case 'lte':
+                        rawKey = key;
                         value = ViewQuery._getDatabase().escape(value);
                     case '_eq':
                     case '_neq':
@@ -52,7 +55,7 @@ var QueryFactory = {
                     case '_lt':
                     case '_lte':
                         type = type.replace('_', '');
-                    return [key, this._operands[type], value].join(' ');
+                    return [rawKey, this._operands[type], value].join(' ');
                             
                     case 'ex':
                     return [key, value? 'IS NOT NULL' : 'IS NULL'].join(' ');
