@@ -113,10 +113,13 @@ _.extend(Model, {
                     {
                         var pointer = this.keys.pointers[key];
                         alias = key;
-                        source = {
-                            className: pointer.className,
-                            field: self._internalKeys.id
-                        };
+                        if(type === 'viewable')
+                            source = {
+                                className: pointer.className,
+                                field: self._internalKeys.id
+                            };
+                        else if(type === 'actionable')
+                            source = pointer.via || pointer.className + '_id' || key + '_id';
                         // Previous code used the foreign_key as reference: pointer.via || pointer.className + '_id' || key + '_id';
                     }
                     
