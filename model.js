@@ -463,6 +463,7 @@ _.extend(Model, {
                     {
                         var pointerAttributes = pointerValues[pointerName];
                         var pointer = item[pointerName];
+                        if(!pointerAttributes || !pointer) continue;
                         pointer.attributes = pointerAttributes;
                         item[pointerName] = pointer;
                     }
