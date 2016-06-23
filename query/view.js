@@ -110,7 +110,7 @@ var QueryFactory = {
                                     return this._parseConstraint(key, type, value);
                                 }.bind(this)).join(' AND ');
                             }.bind(this));
-                            joinString += constraints.length? (' AND ' + constraints.join(' AND ')) : '';
+                            joinString += constraints.length? constraints.join(' AND ') : '';
                         }
                         else
                             joinString += '`' + this.className + '`.`' + join.via + '` = `' + className + '`.`' + join.to + '`';
