@@ -381,7 +381,7 @@ _.extend(Model, {
                             
                             // Check if the details is a `pointer` object
                             if(typeof details === 'object')
-                            {                 
+                            {
                                 if(details.className)
                                 {
                                     var parts = key.split('.');
@@ -404,6 +404,7 @@ _.extend(Model, {
                         {
                             var pointerAttributes = pointerValues[pointerName];
                             var pointer = items[index][pointerName];
+                            if(!pointerAttributes || !pointer) continue;
                             pointer.attributes = pointerAttributes;
                             items[index][pointerName] = pointer;
                         }

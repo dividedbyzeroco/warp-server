@@ -87,7 +87,20 @@ var QueryFactory = {
                     {
                         var join = this._joins[index];
                         var className = join.className;
-                        joins.push('LEFT OUTER JOIN `' + className + '` ON `' + this.className + '`.`' + join.via + '` = `' + className + '`.`' + join.to + '`');
+                        var joinString = 'LEFT OUTER JOIN `' + className + '` ON `' + this.className + '`.`' + join.via + '` = `' + className + '`.`' + join.to + '`';
+                        if(typeof join.where === 'object')
+                        {
+                            var constraints = Object.keys(join.where).map(function(key) {
+                                var details = join.where[key];
+                                
+                                return Object.keys(details).map(function(type) {
+                                    var value = details[type];
+                                    return this._parseConstraint(key, type, value);
+                                }.bind(this)).join(' AND ');
+                            }.bind(this));
+                            joinString += constraints.length? (' AND ' + constraints.join(' AND ')) : '';
+                        }
+                        joins.push(joinString);
                     }
                 }
                 joins = joins.join(' ');
@@ -160,6 +173,7 @@ var QueryFactory = {
                     alias: join.alias,
                     via: join.via,
                     to: join.to,
+                    where: join.where
                 });
             },
             joins: function(joins) {
