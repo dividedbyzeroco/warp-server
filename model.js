@@ -385,7 +385,7 @@ _.extend(Model, {
                             var details = viewable[key];
                             
                             // Check if the details is a `pointer` object
-                            if(typeof details === 'object')
+                            if(details && typeof details === 'object')
                             {
                                 if(details.className)
                                 {
@@ -452,7 +452,7 @@ _.extend(Model, {
                         var details = viewable[key];
                         
                         // Check if the details is a `pointer` object
-                        if(typeof details === 'object')
+                        if(details && typeof details === 'object')
                         {                 
                             if(details.className)
                             {
@@ -631,7 +631,7 @@ Model.Validation = {
             try
             {
                 if(value === null) return;
-                var pointer = (typeof value === 'object') ? value : JSON.parse(value);
+                var pointer = (value && typeof value === 'object') ? value : JSON.parse(value);
                 if(typeof pointer !== 'object' || pointer.type !== 'Pointer' || pointer.className !== className) return key + ' must be a pointer to `' + className + '`';
             }
             catch(ex)
@@ -645,7 +645,7 @@ Model.Validation = {
     File: function(value, key) {
         try
         {
-            var file = (typeof value === 'object') ? value : JSON.parse(value);
+            var file = (value && typeof value === 'object') ? value : JSON.parse(value);
             if(typeof file !== 'object' || file.type !== 'File') return key + ' must be a Warp File';
         }
         catch(ex)
@@ -676,10 +676,10 @@ Model.Parser = {
         return moment(value).tz('UTC').format('YYYY-MM-DD HH:mm:ss');
     },
     Pointer: function(pointer) {
-        return typeof pointer === 'object' ? pointer.id : JSON.parse(pointer).id;
+        return pointer && typeof pointer === 'object' ? pointer.id : JSON.parse(pointer).id;
     },
     File: function(file) {
-        return typeof file === 'object' ? file.key : JSON.parse(file).key;
+        return file && typeof file === 'object' ? file.key : JSON.parse(file).key;
     }
 };
 
