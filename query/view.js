@@ -27,7 +27,10 @@ var QueryFactory = {
                 'gt': '>',
                 'gte': '>=',
                 'lt': '<',
-                'lte': '<='
+                'lte': '<=',
+                'str': 'LIKE',
+                'end': 'LIKE',
+                'has': 'LIKE'
             },
             _parseKey: function(className, value, label) {
                 className = className || this.className;
@@ -56,6 +59,15 @@ var QueryFactory = {
                     case '_lte':
                         type = type.replace('_', '');
                     return [rawKey, this._operands[type], value].join(' ');
+
+                    case 'str':
+                        value = value.split('%').join('') + '%';
+                    case 'end':
+                        value = '%' + value.split('%').join('');
+                    case 'has':
+                        value = '%' + value.split('%').join('') + '%';
+                        value = ViewQuery._getDatabase().escape(value);
+                    return [key, this._operands[type], value].join(' ');
                             
                     case 'ex':
                     return [key, value? 'IS NOT NULL' : 'IS NULL'].join(' ');
