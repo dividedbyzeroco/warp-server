@@ -113,8 +113,16 @@ var QueryFactory = {
                             joinString += constraints.length? constraints.join(' AND ') : '';
                         }
                         else
-                            joinString += '`' + this.className + '`.`' + join.via + '` = `' + className + '`.`' + join.to + '`';
+                        {
+                            var via = '`' + 
+                                (join.via.indexOf('.') >= 0? 
+                                    join.via.split('.').join('`.`') : 
+                                    this.className + '`.`' + join.via) + 
+                                '`';
                             
+                            joinString +=  via + ' = `' + className + '`.`' + join.to + '`';
+                        }
+
                         joins.push(joinString + ')');
                     }
                 }

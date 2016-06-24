@@ -426,7 +426,11 @@ _.extend(Model, {
             },
             first: function(id) {
                 // Create query
-                var query = new this._viewQuery(this.source);                
+                var query = new this._viewQuery(this.source);
+                
+                // Prepare joins
+                var joins = this.getJoins();
+                if(joins.length > 0) query.joins(joins);
                 
                 // Get view keys
                 var viewKeys = this.getViewKeys([]);
@@ -452,13 +456,20 @@ _.extend(Model, {
                         {                 
                             if(details.className)
                             {
-                                var parts = key.split('.');
-                                var pointerName = parts[0];
-                                var fieldName = parts[1]; 
-                                var pointer = pointerValues[pointerName] || {};
-                                pointer[fieldName] = item[key];
-                                pointerValues[pointerName] = pointer;
-                                delete item[key];
+                                if(key.indexOf('.') >= 0)
+                                {
+                                    var parts = key.split('.');
+                                    var pointerName = parts[0];
+                                    var fieldName = parts[1]; 
+                                    var pointer = pointerValues[pointerName] || {};
+                                    pointer[fieldName] = item[key];
+                                    pointerValues[pointerName] = pointer;
+                                    delete item[key];
+                                }
+                                else
+                                {
+                                    item[key] = this.format[key](item[key], this);
+                                }
                             }
                         }
                         else
