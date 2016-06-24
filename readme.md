@@ -1043,6 +1043,9 @@ Available constraints:
 - ex: is not null/is null (value is either true or false)
 - in: contained in array
 - nin: not contained in array
+- str: starts with the specified string
+- end: ends with the specified string
+- has: contains the specified string
 
 For example:
 
