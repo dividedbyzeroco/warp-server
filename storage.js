@@ -15,6 +15,7 @@ var StorageFactory = {
     extend: function(config) {
         // Set default values
         var storagePath = ''; // Default to base path
+        var storageOptions = {}; // Default to empty object
         var storageAdapter = localstorage; // Default to use localstorage
         var maxFileSize = 1024 * 1024 * 10; // Default to 10mb
         
@@ -24,12 +25,13 @@ var StorageFactory = {
             // Set max file size, storage path, and storage adapter
             maxFileSize =  config.maxFileSize || maxFileSize;
             storagePath = config.path || storagePath;
+            storageOptions = config.options || storageOptions;
             storageAdapter = config.adapter || storageAdapter;
         }
         
         // Class definition
         var Storage = {
-            _storageAdapter: new storageAdapter(storagePath),
+            _storageAdapter: new storageAdapter(storagePath, storageOptions),
             _maxFileSize: maxFileSize,
             load: function(req, res) {
                 var options = { 
