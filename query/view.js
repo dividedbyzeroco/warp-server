@@ -133,7 +133,7 @@ var QueryFactory = {
                                     this.className + '`.`' + join.via) + 
                                 '`';
                             
-                            joinString +=  via + ' = `' + className + '`.`' + join.to + '`';
+                            joinString +=  via + ' = `' + join.alias + '`.`' + join.to + '`';
                         }
 
                         joins.push(joinString + ')');
