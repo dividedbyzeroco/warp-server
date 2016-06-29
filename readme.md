@@ -304,6 +304,62 @@ keys: {
 // Additional code defining our model
 ```
 
+By default, the pointer is joined using the `via` key of the class, and the `id` key of the pointer. However, there might be cases when the joins may not be as straightforward. For these scenarios, you can specify the `where` option.
+The `where` option allows you to set special rules in order to connect to your pointer.
+
+For example:
+
+```javascript
+// Some code defining our model
+keys: {
+    viewable: ['name', 'age', 'type', 'planet'],
+    actionable: ['name', 'age', 'type', 'planet'],
+    pointers: {
+        'planet': {
+            className: 'planet',
+            via: 'planet_id',
+            where: {
+                'planet_id': {
+                    '_eq': 'planet.id'
+                },
+                'type': {
+                    '_eq': 'planet.race'
+                }
+            }
+        }
+    }
+},
+// Additional code defining our model
+```
+
+Note that the `where` option accepts a mapping of constraints.
+
+Available Constraints:
+
+- eq: equal to
+- neq: not equal to
+- gt: greater than
+- gte: greater than or equal to
+- lt: less than
+- lte: less than or equal to
+- ex: is not null/is null (value is either true or false)
+- in: contained in array
+- nin: not contained in array
+- str: starts with the specified string
+- end: ends with the specified string
+- has: contains the specified string
+
+By default, the value of each constraint is automatically filtered before it is added to the query. If you want to specify a raw field name as a value, you must append an underscore `_` before the constraint name.
+
+Unfiltered constraints:
+
+- _eq: equal to raw value
+- _neq: not equal to raw value
+- _gt: greater than raw value
+- _gte: greater than or equal to raw value
+- _lt: less than raw value
+- _lte: less than or equal to raw value
+
 ## Files
 
 Sometimes, you may need to upload files to your server and store them persistently. In this particular case, Warp Server helps simplify this process with the help of `Warp Files`. Warp Files allow you to define keys where you would want to store file-related content. 
@@ -1057,6 +1113,8 @@ curl -X GET \
 http://localhost:3000/api/1/classes/alien
 ```
 
+NOTE: When using constraints, the value of each constraint is automatically filtered before it is added to the query.
+
 ### Limit
 
 By default, Warp Server limits results to the top 100 objects that satisfy the query criteria. In order to increase the limit, you can specify the desired value via the `limit` parameter. Also, in order to implement pagination for the results, you can combine the `limit` with the `skip` parameter. The `skip` parameter indicates how many items are to be skipped when executing the query. In terms of scalability, it is advisable to limit results to 1000 and use skip to determine pagination.
@@ -1089,6 +1147,72 @@ curl -X GET \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 --data-urlencoded 'sort=[{"type":1},{"age":-1}]' \
 http://localhost:3000/api/1/classes/alien
+```
+
+### Including Pointer Keys
+
+In order to include keys that belong to a `pointer`, we can use the `include` parameter.
+
+For example:
+
+```bash
+curl -X GET \
+-G \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+--data-urlencoded 'include=["planet.name","planet.color"]' \
+http://localhost:3000/api/1/classes/alien
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": [{
+        "id": 21,
+        "name": "The Doctor",
+        "age": 150000,
+        "type": "gallifreyan",
+        "planet": {
+            "type": "Pointer",
+            "className": "planet",
+            "id": 1,
+            "attributes": {
+                "name": "Gallifrey",
+                "color": "brown"
+            }
+        },
+        "created_at": "2016-05-12T22:11:09Z",
+        "updated_at": "2016-05-12T23:21:18Z"
+    },
+    {
+        "id": 13,
+        "name": "Wormwood",
+        "age": 80,
+        "type": "extraterrestrial",
+        "planet": null,
+        "created_at": "2016-05-12T22:11:09Z",
+        "updated_at": "2016-05-12T23:21:18Z"
+    },
+    {
+        "id": 141,
+        "name": "Straxx",
+        "age": 300,
+        "type": "sontaran",
+        "planet": {
+            "type": "Pointer",
+            "className": "planet",
+            "id": 1,
+            "attributes": {
+                "name": "Sontar",
+                "color": "green"
+            }
+        },
+        "created_at": "2016-05-12T22:11:09Z",
+        "updated_at": "2016-05-12T23:21:18Z"
+    }]
+}
 ```
 
 ## User API
