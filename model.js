@@ -424,7 +424,7 @@ _.extend(Model, {
                     return items;
                 }.bind(this));
             },
-            first: function(id) {
+            first: function(id, include) {
                 // Create query
                 var query = new this._viewQuery(this.source);
                 
@@ -433,7 +433,7 @@ _.extend(Model, {
                 if(joins.length > 0) query.joins(joins);
                 
                 // Get view keys
-                var viewKeys = this.getViewKeys([]);
+                var viewKeys = this.getViewKeys(include || []);
                 var viewable = viewKeys.viewable;
                 var pointers = viewKeys.pointers;
                 

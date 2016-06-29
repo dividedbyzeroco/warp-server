@@ -26,8 +26,9 @@ module.exports = {
         });
     },
     first: function(req, res, next) {
+        var include = req.query.include? JSON.parse(req.query.include) : [];
         var id = parseInt(req.params.id);
-        var first = this._getUserModel().first(id);
+        var first = this._getUserModel().first(id, include);
         
         // View object
         first.then(function(result) {        
@@ -127,6 +128,7 @@ module.exports = {
         });
     },
     me: function(req, res, next) {
+        var include = req.query.include? JSON.parse(req.query.include) : [];
         var sessionToken = req.sessionToken;
         var query = new this.Query.View(this._getSessionModel().className);
         
@@ -136,7 +138,7 @@ module.exports = {
             if(!result)
                 throw new WarpError(WarpError.Code.InvalidSessionToken, 'Session does not exist');
             
-            var first = this._getUserModel().first(result.user_id);
+            var first = this._getUserModel().first(result.user_id, include);
             return first.then(function(user) {
                 res.json({ status: 200, message: 'Success', result: user });
             });

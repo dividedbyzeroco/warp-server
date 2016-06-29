@@ -23,8 +23,9 @@ module.exports = {
         });
     },
     first: function(req, res, next) {
+        var include = req.query.include? JSON.parse(req.query.include) : [];
         var id = parseInt(req.params.id);
-        var first = this._getSessionModel().first(id);
+        var first = this._getSessionModel().first(id, include);
         
         // View object
         first.then(function(result) {        

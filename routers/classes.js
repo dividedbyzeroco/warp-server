@@ -24,9 +24,10 @@ module.exports = {
         });
     },
     first: function(req, res, next) {
+        var include = req.query.include? JSON.parse(req.query.include) : [];
         var className = req.params.className;
         var id = parseInt(req.params.id);
-        var first = this._getModel(className).first(id);
+        var first = this._getModel(className).first(id, include);
         
         // View object
         first.then(function(result) 
