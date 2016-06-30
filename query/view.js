@@ -130,7 +130,8 @@ var QueryFactory = {
                                     return this._parseConstraint(key, type, value);
                                 }.bind(this)).join(' AND ');
                             }.bind(this));
-                            joinString += constraints.length? constraints.join(' AND ') : '';
+                            // Workaround for left joins where multiple conditions must be merged into one, in order for them to work
+                            joinString += '1 = CASE WHEN ' + (constraints.length? constraints.join(' AND ') : '') + ' THEN 1 ELSE 0 END';
                         }
                         else
                         {
