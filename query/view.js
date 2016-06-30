@@ -31,7 +31,7 @@ var QueryFactory = {
             },
             _parseKey: function(className, value, label) {
                 className = className || this.className;
-                return '`' + className + '`.`' + value + '` AS `' + label + '`'
+                return '`' + className + '`.`' + value + '` AS `' + label + '`';
             },
             _parseConstraint: function(key, type, value) {
                 var rawKey = key;
@@ -96,10 +96,20 @@ var QueryFactory = {
             _getFindViewQuery: function() {        
                 // Get select
                 var keys = Object.keys(this._keys).map(function(key) {
-                    var details = this._keys[key];
-                    var className = typeof details === 'object'? details.className : null;
-                    var value = typeof details === 'object'? details.field : details;
-                    return this._parseKey(className, value, key);
+                    if(key.indexOf('|') >= 0)
+                        return key.split('|').map(function(subkey) {
+                            var parts = subkey.indexOf('.') >= 0? subkey.split('.') : [this.className, subkey];
+                            var className = parts[0];
+                            var value = parts[1];
+                            return  '`' + className + '`.`' + value + '`';
+                        }.bind(this));
+                    else
+                    {
+                        var details = this._keys[key];
+                        var className = typeof details === 'object'? details.className : null;
+                        var value = typeof details === 'object'? details.field : details;
+                        return this._parseKey(className, value, key);
+                    }
                 }.bind(this));
                 var select = 'SELECT ' + (keys.length? keys.join(', ') : '*');        
                 
