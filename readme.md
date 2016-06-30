@@ -32,6 +32,7 @@ Currently, `Warp Server` uses `mysql` as its database of choice, but can be exte
             - **[Constraints](#constraints)**
             - **[Limit](#limit)**
             - **[Sorting](#sorting)**
+            - **[Including Pointer Keys](#including-pointer-keys)**
     - **[User API](#user-api)**
         - **[Logging In](#logging-in)**
         - **[Validating Users/Fetching Current User](#validating-usersfetching-current-user)**
@@ -347,7 +348,7 @@ Available Constraints:
 - nin: not contained in array
 - str: starts with the specified string
 - end: ends with the specified string
-- has: contains the specified string
+- has: contains the specified string (to search multiple keys, separate the key names with `|`)
 
 By default, the value of each constraint is automatically filtered before it is added to the query. If you want to specify a raw field name as a value, you must append an underscore `_` before the constraint name.
 
@@ -1101,7 +1102,7 @@ Available constraints:
 - nin: not contained in array
 - str: starts with the specified string
 - end: ends with the specified string
-- has: contains the specified string
+- has: contains the specified string  (to search multiple keys, separate the key names with `|`)
 
 For example:
 
