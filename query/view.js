@@ -66,8 +66,8 @@ var QueryFactory = {
                         value = ViewQuery._getDatabase().escape(value);
                     return [key, 'LIKE', value].join(' ');
                     case 'has':
-                        if(value.indexOf('|') >= 0)
-                            key = 'CONCAT(' + value.split('|').join(',') + ')';
+                        if(key.indexOf('|') >= 0)
+                            key = 'CONCAT(' + key.split('|').join(',') + ')';
                         value = '%' + value + '%';
                         value = ViewQuery._getDatabase().escape(value);
                     return [key, 'LIKE', value].join(' ');
