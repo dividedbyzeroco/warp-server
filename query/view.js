@@ -93,6 +93,22 @@ var QueryFactory = {
                     }.bind(this)).join(',');
                     var list = ['(', options , ')'].join(' ');
                     return [key, 'NOT IN', list].join(' ');
+
+                    case 'fi':
+                    var subQuery = new ViewQuery(value.className);
+                    subQuery.select(value.select);
+                    subQuery.where(value.where);
+                    subQuery._limit = value.limit || null;
+                    subQuery._skip = value.skip || null;
+                    return [key, 'IN', '(', subQuery._getFindViewQuery(), ')'].join(' ');
+
+                    case 'nfi':
+                    var subQuery = new ViewQuery(value.className);
+                    subQuery.select(value.select);
+                    subQuery.where(value.where);
+                    subQuery._limit = value.limit || null;
+                    subQuery._skip = value.skip || null;
+                    return [key, 'NOT IN', '(', subQuery._getFindViewQuery(), ')'].join(' ');
                 }
             },
             _parseOrder: function(key, direction) {

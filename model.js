@@ -368,6 +368,7 @@ _.extend(Model, {
                 where.deleted_at = {
                     'ex': false
                 };
+
                 query.where(where);
                 
                 if(options.limit) query.limit(options.limit);

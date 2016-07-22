@@ -1103,6 +1103,8 @@ Available constraints:
 - str: starts with the specified string
 - end: ends with the specified string
 - has: contains the specified string  (to search multiple keys, separate the key names with `|`)
+- fi: found in the given subquery, for more info, see the [Subqueries section](#subqueries)
+- nfi: not found in the given subquery, for more info, see the [Subqueries section](#subqueries)
 
 For example:
 
@@ -1115,6 +1117,43 @@ http://localhost:3000/api/1/classes/alien
 ```
 
 NOTE: When using constraints, the value of each constraint is automatically filtered before it is added to the query.
+
+### Subqueries
+
+There may be special cases when you would like to see if the value of a key exists in another query. For these scenarios, you can use the `fi` (Found in) and `nfi` (Not found in) constraints.
+
+To use these constraints, all you need to do is specify the `className` and the `select` key which you want to check. Additionally, you can set `where` constraints, as well as `limit` and `skip` just as in regular queries. If no `limit` or `skip` is specified, the query searches the entire backend. 
+
+For example, if you want to check whether an alien's planet is part of the friendly planets list, you would add the following constraint:
+
+```javascript
+{
+    'planet': {
+        'fi': {
+            className: 'planet',
+            select: 'id',
+            where: {
+                'type': {
+                    'eq': {
+                        'friendly'
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+To query the API, you would do the following:
+
+```bash
+curl -X GET \
+-G \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+--data-urlencoded 'where={"planet": {"fi": { "className" : "planet", "select": "id", "where": { "type": { "eq" : "friendly" }}}}}' \
+http://localhost:3000/api/1/classes/alien
+```
+
 
 ### Limit
 
