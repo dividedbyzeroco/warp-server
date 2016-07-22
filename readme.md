@@ -30,6 +30,7 @@ Currently, `Warp Server` uses `mysql` as its database of choice, but can be exte
             - **[Deleting Files](#deleting-files)**
         - **[Queries](#queries)**
             - **[Constraints](#constraints)**
+            - **[Subqueries](#subqueries)**
             - **[Limit](#limit)**
             - **[Sorting](#sorting)**
             - **[Including Pointer Keys](#including-pointer-keys)**
@@ -1134,9 +1135,7 @@ For example, if you want to check whether an alien's planet is part of the frien
             select: 'id',
             where: {
                 'type': {
-                    'eq': {
-                        'friendly'
-                    }
+                    'eq': 'friendly'
                 }
             }
         }
