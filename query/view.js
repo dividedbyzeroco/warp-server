@@ -96,7 +96,9 @@ var QueryFactory = {
 
                     case 'fi':
                     var subQuery = new ViewQuery(value.className);
-                    subQuery.select(value.select);
+                    var select = {};
+                    select[value.select] = value.select;
+                    subQuery.select(select);
                     subQuery.where(value.where);
                     subQuery._limit = value.limit || null;
                     subQuery._skip = value.skip || null;
@@ -104,7 +106,9 @@ var QueryFactory = {
 
                     case 'nfi':
                     var subQuery = new ViewQuery(value.className);
-                    subQuery.select(value.select);
+                    var select = {};
+                    select[value.select] = value.select;
+                    subQuery.select(select);
                     subQuery.where(value.where);
                     subQuery._limit = value.limit || null;
                     subQuery._skip = value.skip || null;
