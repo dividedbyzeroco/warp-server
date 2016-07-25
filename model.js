@@ -248,7 +248,11 @@ _.extend(Model, {
                     }
                     
                     // Parse value
-                    var parsedValue = typeof this.parse[key] === 'function'? 
+                    // NOTE: Check if parsed value is a pointer or a file
+                    // Only parse the value of pointer or file after `beforeSave`
+                    var parsedValue = typeof this.parse[key] === 'function' &&
+                        !this.keys.pointers[key] &&
+                        !this.keys.files[key] ? 
                         this.parse[key](value) :
                         value;
                     
@@ -290,12 +294,16 @@ _.extend(Model, {
                                     // Get source and value
                                     var source = keysAliased[key] || key;
                                     var value = request.keys.get(key);
+
+                                    // NOTE: Parse the pointers and files here
+                                    if(this.keys.pointers[key] || this.keys.files[key]) 
+                                        value = this.parse[key](value);
                                     
                                     // Assign actionable keys
                                     keysActionable[source] = value;
                                     
                                     // Get formatted value
-                                    var formattedValue = typeof this.format[key] === 'function'? 
+                                    var formattedValue = typeof this.format[key] === 'function'?
                                         this.format[key](value, this) :
                                         value;
                                         
@@ -328,6 +336,10 @@ _.extend(Model, {
                         // Get source and value
                         var source = keysAliased[key] || key;
                         var value = request.keys.get(key);
+                        
+                        // NOTE: Parse the pointers and files here
+                        if(this.keys.pointers[key] || this.keys.files[key]) 
+                            value = this.parse[key](value);
                         
                         // Assign actionable keys
                         keysActionable[source] = value;
