@@ -30,6 +30,15 @@ var QueryFactory = {
                 }.bind(this));
                 var columns = '(`' + listColumns.join('`,`') + '`)';
                 var values = 'VALUES (' + listValues.map(function(value) {
+                    if(typeof value === 'object')
+                    {
+                        switch(value.type)
+                        {
+                            case 'increment':
+                                value = value.value || 0;
+                            break;
+                        }
+                    }
                     return ActionQuery._getDatabase().escape(value);
                 }).join(',') + ')';
                 
