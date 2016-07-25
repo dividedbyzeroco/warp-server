@@ -43,7 +43,22 @@ var QueryFactory = {
                 
                 // Get values
                 var listValues = Object.keys(this._keys).map(function(key) {
-                    return ['`' + key + '`', '=', ActionQuery._getDatabase().escape(this._keys[key])].join(' '); 
+                    var value = this._keys[key];
+                    var newValue = null;
+
+                    if(typeof value === 'object')
+                    {
+                        switch(value.type)
+                        {
+                            case 'increment':
+                                newValue = '`' + key + '` + (' + parseInt(value.value) +')';
+                            break;
+                        }
+                    }
+                    else
+                        newValue = ActionQuery._getDatabase().escape(value);
+
+                    return ['`' + key + '`', '=', newValue].join(' '); 
                 }.bind(this));
                 var values = 'SET ' + listValues.join(', ');
                 

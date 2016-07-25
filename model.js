@@ -681,6 +681,9 @@ Model.Parser = {
     },
     File: function(file) {
         return file && typeof file === 'object' ? file.key : JSON.parse(file).key;
+    },
+    Increment: function(value) {
+        return { type: 'increment', value: value };
     }
 };
 
