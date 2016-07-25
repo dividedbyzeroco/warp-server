@@ -1917,6 +1917,7 @@ The expected response would be similar to the following:
 - Float - parses a given value to a float value
 - Date - parses a given string as a database-friendly datetime value
 - Pointer - parses a given pointer as a database-friendly value
+- Increment - parses a given integer as an increment value
 
 ### WarpServer.Model.Formatter
 
