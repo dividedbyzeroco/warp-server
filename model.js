@@ -628,14 +628,17 @@ Model.Validation = {
         return;
     },
     Integer: function(value, key) {
+        if(value === null) return;
         if(isNaN(value) || parseInt(value) != value) return key + ' must be an integer';
         return;
     },
     PositiveInteger: function(value, key) {
+        if(value === null) return;
         if(isNaN(value) || value < 0 || parseInt(value) != value) return key + ' must be a positive integer';
         return;
     },
     Float: function(value, key) {
+        if(value === null) return;
         if(isNaN(value) || parseFloat(value) != value) return key + ' must be a float value';
         return;
     },
@@ -658,6 +661,7 @@ Model.Validation = {
     File: function(value, key) {
         try
         {
+            if(value === null) return;
             var file = (value && typeof value === 'object') ? value : JSON.parse(value);
             if(typeof file !== 'object' || file.type !== 'File') return key + ' must be a Warp File';
         }
