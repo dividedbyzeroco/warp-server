@@ -30,7 +30,7 @@ var QueryFactory = {
                 }.bind(this));
                 var columns = '(`' + listColumns.join('`,`') + '`)';
                 var values = 'VALUES (' + listValues.map(function(value) {
-                    if(typeof value === 'object')
+                    if(typeof value === 'object' && value !== null)
                     {
                         switch(value.type)
                         {
@@ -55,7 +55,7 @@ var QueryFactory = {
                     var value = this._keys[key];
                     var newValue = null;
 
-                    if(typeof value === 'object')
+                    if(typeof value === 'object' && value !== null)
                     {
                         switch(value.type)
                         {

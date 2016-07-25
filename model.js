@@ -677,9 +677,11 @@ Model.Parser = {
         return moment(value).tz('UTC').format('YYYY-MM-DD HH:mm:ss');
     },
     Pointer: function(pointer) {
+        if(pointer === null) return null;
         return pointer && typeof pointer === 'object' ? pointer.id : JSON.parse(pointer).id;
     },
     File: function(file) {
+        if(file === null) return null;
         return file && typeof file === 'object' ? file.key : JSON.parse(file).key;
     },
     Increment: function(value) {
