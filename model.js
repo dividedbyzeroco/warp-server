@@ -701,7 +701,7 @@ Model.Parser = {
         return file && typeof file === 'object' ? file.key : JSON.parse(file).key;
     },
     Increment: function(value) {
-        return { type: 'increment', value: value };
+        return { type: 'increment', value: value || 0 };
     }
 };
 
