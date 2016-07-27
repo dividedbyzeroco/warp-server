@@ -60,7 +60,7 @@ var QueryFactory = {
                         switch(value.type)
                         {
                             case 'increment':
-                                newValue = '`' + key + '` + (' + parseInt(value.value) +')';
+                                newValue = 'IFNULL(`' + key + '`, 0) + (' + parseInt(value.value) +')';
                             break;
                         }
                     }
