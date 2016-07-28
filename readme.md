@@ -8,25 +8,24 @@ Currently, `Warp Server` uses `mysql` as its database of choice, but can be exte
 ## Table of Contents
 - **[Installation](#installation)**  
 - **[Configuration](#configuration)**
-- **Features**
-    - **[Models](#models)**
-        - **[Pointers](#pointers)**
-        - **[Files](#files)**
-        - **[User Authentication](#user-authentication)**
-        - **[Using Model Directories](#using-model-directories)**
-    - **[Migrations](#migrations)**
-    - **[Functions](#functions)**
-    - **[Queues](#queues)**
+- **[Models](#models)**
+    - **[Pointers](#pointers)**
+    - **[Files](#files)**
+    - **[User Authentication](#user-authentication)**
+    - **[Using Model Directories](#using-model-directories)**
+- **[Migrations](#migrations)**
+- **[Functions](#functions)**
+- **[Queues](#queues)**
 
 ## Other Resources
-- **[REST API](rest.md)**
-- Software Developer Kits (SDK's) 
-    - **[JavaScript SDK](http://github.com/jakejosol/warp-sdk-js)**
-    - Android SDK (coming soon)
-    - iOS SDK (coming soon)
-    - Xamarin SDK (coming soon)
-- Command Line Tools
-    - **[Warp Tools](http://github.com/jakejosol/warp-tools)**
+- **Communicating with the Server**
+    - [Using the REST API](rest.md)
+    - [Using the JavaScript SDK](http://github.com/jakejosol/warp-sdk-js)
+    - Using the Android SDK (coming soon)
+    - Using the iOS SDK (coming soon)
+    - Using the Xamarin SDK (coming soon)
+- **Command Line Tools**
+    - [Warp Tools for the Command Line](http://github.com/jakejosol/warp-tools)
 
 ## Installation
 

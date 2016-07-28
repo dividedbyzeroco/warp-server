@@ -5,11 +5,10 @@ After building your very own `Warp Server`, you'll now be able to use the powerf
 
 In order to help simplify the API, we have developed several client-side SDK's which you can use for your applications:
 
-- Software Developer Kits (SDK's) 
-    - **[JavaScript SDK](http://github.com/jakejosol/warp-sdk-js)**
-    - Android SDK (coming soon)
-    - iOS SDK (coming soon)
-    - Xamarin SDK (coming soon)
+- **[JavaScript SDK](http://github.com/jakejosol/warp-sdk-js)**
+- Android SDK (coming soon)
+- iOS SDK (coming soon)
+- Xamarin SDK (coming soon)
 
 Often, you would only need to use the SDK's above, without having to worry about the REST API because they already do the work for you. If, however, the technology you are building on is not included in the list above, you can read through the docs below for more information.
 
