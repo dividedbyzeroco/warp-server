@@ -11,7 +11,7 @@ Currently, `Warp Server` uses `mysql` as its database of choice, but can be exte
 - **Features**
     - **[Models](#models)**
         - **[Pointers](#pointers)**
-        - **[Files](#files)**    
+        - **[Files](#files)**
         - **[User Authentication](#user-authentication)**
         - **[Using Model Directories](#using-model-directories)**
     - **[Migrations](#migrations)**
@@ -28,6 +28,7 @@ Currently, `Warp Server` uses `mysql` as its database of choice, but can be exte
             - **[Pointers as Keys](#pointers-as-keys)**
             - **[Uploading Files](#uploading-files)**
             - **[Deleting Files](#deleting-files)**
+            - **[Incremental Values](#incremental-values)**
         - **[Queries](#queries)**
             - **[Constraints](#constraints)**
             - **[Subqueries](#subqueries)**
@@ -941,7 +942,6 @@ curl -X POST \
 http://localhost:3000/api/1/classes/alien
 ```
 
-
 ### Uploading Files
 
 In order to upload `files` to the server, execute a POST request to:
@@ -1024,6 +1024,40 @@ The expected response would be similar to the following:
 ```
 
 Note: Make sure that before a file is deleted, all objects associated with it are disassociated.
+
+
+### Incremental Values
+
+For keys which are of type `Integer`, you can adjust their relative value using `increment objects`. So instead of passing an integer value, you would pass something similar to the following:
+
+`{ "type": "Increment", "value": {POSITIVE INTEGER (increase) OR NEGATIVE INTEGER (decrease)}}`
+
+For example:
+
+```bash
+curl -X PUT \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'Content-Type: application/json' \
+--data '{"name":"The Doctor", "regenerations": { "type": "Increment", "value": 1 }}' \
+http://localhost:3000/api/1/classes/alien/1
+```
+
+NOTE: In order for this to work, the model must specify the key's `Validator` and `Parser` as `Integer`.
+
+For example, inside your `Alien` model, you must add the following validation and parser:
+
+```javascript
+// ...previous model details
+validate: {
+    regenerations: WarpServer.Model.Validation.Integer
+},
+parse: {
+    regenerations: WarpServer.Model.Parser.Integer
+}
+// ...succeeding model details
+```
+
+For more info, see the [References](#references) section.
 
 
 ## Queries
@@ -1914,13 +1948,14 @@ The expected response would be similar to the following:
 - NoSpaces - removes spaces from the entire string
 - Password - hashes a given string using bcrypt
 - Integer - parses a given value to an integer
-- Float - parses a given value to a float value
+- Float(int: decimals) - parses a given value to a float value with a specified number of decimals
 - Date - parses a given string as a database-friendly datetime value
 - Pointer - parses a given pointer as a database-friendly value
-- Increment - parses a given integer as an increment value
 
 ### WarpServer.Model.Formatter
 
+- Integer - formats a given value to an integer
+- Float(int: decimals) - formats a given value to a float value with a specified number of decimals
 - Date - formats a retrieved value as an ISO 8061 date string (UTC)
 - Pointer - formats a retrieved value as a pointer
 

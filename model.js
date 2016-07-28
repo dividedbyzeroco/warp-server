@@ -629,7 +629,15 @@ Model.Validation = {
     },
     Integer: function(value, key) {
         if(value === null) return;
-        if(isNaN(value) || parseInt(value) != value) return key + ' must be an integer';
+        if(typeof value === 'object')
+        {
+            if(value.type !== 'Increment')
+                return key + ' must be an integer or an increment object';
+        }    
+        else
+        {
+            if(isNaN(value) || parseInt(value) != value) return key + ' must be an integer or an increment object';
+        }
         return;
     },
     PositiveInteger: function(value, key) {
@@ -682,6 +690,8 @@ Model.Parser = {
         return WarpSecurity.hash(value, 8);
     },
     Integer: function(value) {
+        if(value === null) return null;
+        if(typeof value === 'object') return { type: 'increment', value: value.value };
         return parseInt(value, 10);
     },
     Float: function(decimals) {
@@ -699,13 +709,19 @@ Model.Parser = {
     File: function(file) {
         if(file === null) return null;
         return file && typeof file === 'object' ? file.key : JSON.parse(file).key;
-    },
-    Increment: function(value) {
-        return { type: 'increment', value: value || 0 };
     }
 };
 
 Model.Formatter = {
+    Integer: function(value) {
+        if(value === null) return null;
+        return parseInt(value, 10);
+    },
+    Float: function(decimals) {
+        return function(value) {
+            return parseFloat(value).toFixed(decimals);
+        }
+    },
     Date: function(value) {
         return moment(value).tz('UTC').format();
     },
