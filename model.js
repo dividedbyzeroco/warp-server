@@ -655,7 +655,8 @@ Model.Validation = {
             try
             {
                 if(value === null) return;
-                var pointer = (value && typeof value === 'object') ? value : JSON.parse(value);
+                // var pointer = (value && typeof value === 'object') ? value : JSON.parse(value);
+                var pointer = value; // Enforced strict measures; Not allowing string values
                 if(typeof pointer !== 'object' || pointer.type !== 'Pointer' || pointer.className !== className) return key + ' must be a pointer to `' + className + '`';
             }
             catch(ex)
@@ -670,7 +671,8 @@ Model.Validation = {
         try
         {
             if(value === null) return;
-            var file = (value && typeof value === 'object') ? value : JSON.parse(value);
+            // var file = (value && typeof value === 'object') ? value : JSON.parse(value);
+            var file = value; // Enforced strict measures; Not allowing string values
             if(typeof file !== 'object' || file.type !== 'File') return key + ' must be a Warp File';
         }
         catch(ex)
@@ -704,11 +706,11 @@ Model.Parser = {
     },
     Pointer: function(pointer) {
         if(pointer === null) return null;
-        return pointer && typeof pointer === 'object' ? pointer.id : JSON.parse(pointer).id;
+        return pointer.id;
     },
     File: function(file) {
         if(file === null) return null;
-        return file && typeof file === 'object' ? file.key : JSON.parse(file).key;
+        return file.key;
     }
 };
 
