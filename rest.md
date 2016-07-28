@@ -1,7 +1,7 @@
 Warp Server REST API
 ====================
 
-After building your very own **[Warp Server](#readme.md)**, you'll now be able to use the powerful features of the `Warp Server REST API`. The REST API provides several endpoints which you can access via standard HTTP/HTTPS. These endpoints help you seemlessly manage your backend via your client-side code.
+After building your very own **[Warp Server](readme.md)**, you'll now be able to use the powerful features of the `Warp Server REST API`. The REST API provides several endpoints which you can access via standard HTTP/HTTPS. These endpoints help you seemlessly manage your backend via your client-side code.
 
 In order to help simplify the API, we have developed several client-side SDK's which you can use for your applications:
 
