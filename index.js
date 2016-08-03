@@ -42,7 +42,7 @@ var WarpServer = function(config) {
     this.Migration = WarpServer.Migration.extend(config.migrations || {}, this.Query);
 
     // Extend queues based on config and query classes
-    this.Queue = WarpServer.Queue.extend(config.migrations || {}, this.Query);
+    //this.Queue = WarpServer.Queue.extend(config.migrations || {}, this.Query);
     
     // Store config
     this._config = config;
