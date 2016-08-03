@@ -35,10 +35,6 @@ var KeyMap = function(keys) {
     };
     this.copy = function() {
         var extended = _.extend({}, this._keys);
-        extended.id = this.id;
-        extended.createdAt = this.createdAt;
-        extended.updatedAt = this.updatedAt;
-        extended.deletedAt = this.deletedAt;
         return extended;
     };
 };
@@ -562,6 +558,10 @@ _.extend(Model, {
                             delete keys[key];
                     }
 
+                    keys.id = request.keys.id;
+                    keys.created_at = request.keys.createdAt;
+                    keys.updated_at = request.keys.updatedAt;
+
                     return keys;
                 }.bind(this));
             },
@@ -591,6 +591,10 @@ _.extend(Model, {
                         if(this.keys.viewable.indexOf(key) < 0 && !Model._internalKeys[key])
                             delete keys[key];
                     }                    
+
+                    keys.id = request.keys.id;
+                    keys.updated_at = request.keys.updatedAt;
+
                     return keys;
                 }.bind(this));                
             },
@@ -619,7 +623,12 @@ _.extend(Model, {
                     {
                         if(this.keys.viewable.indexOf(key) < 0 && !Model._internalKeys[key])
                             delete keys[key];
-                    }                    
+                    }
+                    
+                    keys.id = request.keys.id;
+                    keys.deleted_at = request.keys.deletedAt;
+                    keys.updated_at = request.keys.updatedAt;
+
                     return keys;
                 }.bind(this));
             }
