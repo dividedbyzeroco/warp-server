@@ -14,6 +14,31 @@ var Queue = {};
 
 // Static methods
 _.extend(Queue, {
+    _activate: function() {       
+        // Set activated value
+        this.activated = true;
+                
+        // Create migration table, if it does not exist
+        var schema = new this._schemaQuery(this.className);
+        schema.fields({
+            'id': {
+                type: 'string',
+                addons: ['primary']
+            },
+            'up': 'text',
+            'down': 'text',
+            'committed_at': 'datetime',
+            'created_at': 'datetime',
+            'updated_at': 'datetime',
+            'deleted_at': 'datetime'
+        })
+        .createOnce(function() {
+            console.log(logHeader(), '`migration` table has been initialized');
+        })
+        .catch(function(error) {
+            console.error(logHeader(), 'Could not create `migration` table', error.message, error.stack);
+        });
+    },
     create: function(def) {                
         // Prepare subclass
         var QueueSubclass =  {

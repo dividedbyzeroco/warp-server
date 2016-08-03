@@ -40,6 +40,9 @@ var WarpServer = function(config) {
     
     // Extend migrations based on config and query classes
     this.Migration = WarpServer.Migration.extend(config.migrations || {}, this.Query);
+
+    // Extend queues based on config and query classes
+    this.Queue = WarpServer.Queue.extend(config.migrations || {}, this.Query);
     
     // Store config
     this._config = config;
@@ -256,6 +259,7 @@ _.extend(WarpServer.prototype, {
         console.log(logHeader(), ' *   *     *          *  *      *          *');
         console.log(logHeader());
         console.log(logHeader(), ' Version ', require('./package.json').version);
+        console.log(logHeader());
         console.log(logHeader(), '+-------------------------------------+');
         console.log(logHeader(), '|   The server has been initialized   |');
         console.log(logHeader(), '+-------------------------------------+');
