@@ -791,7 +791,7 @@ Model.PreSave = {
         if(request.isNew)
         {
             // Generate session token
-            request.keys.set('session_token', (request.keys.get('user') * 1024 * 1024).toString(36) + '+' + (Math.random()*1e32).toString(36) + parseInt(request.keys.get('user')*1e32).toString(36));
+            request.keys.set('session_token', (request.keys.get('user').id * 1024 * 1024).toString(36) + '+' + (Math.random()*1e32).toString(36) + parseInt(request.keys.get('user').id*1e32).toString(36));
             request.keys.set('deleted_at', moment().tz('UTC').add(30, 'days').format('YYYY-MM-DD HH:mm:ss'));
         }
         
