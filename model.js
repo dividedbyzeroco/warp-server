@@ -786,17 +786,19 @@ Model.Formatter = {
 };
 
 Model.PreSave = {
-    Session: function(request, response) {
-        // Check if the item is new
-        if(request.isNew)
-        {
-            // Generate session token
-            request.keys.set('session_token', (request.keys.get('user').id * 1024 * 1024).toString(36) + '+' + (Math.random()*1e32).toString(36) + parseInt(request.keys.get('user').id*1e32).toString(36));
-            request.keys.deletedAt = moment().tz('UTC').add(30, 'days').format('YYYY-MM-DD HH:mm:ss');
-        }
-        
-        // Return a successful response
-        return response.success();
+    Session: function(duration) {
+        return function(request, response) {
+            // Check if the item is new
+            if(request.isNew)
+            {
+                // Generate session token
+                request.keys.set('session_token', (request.keys.get('user').id * 1024 * 1024).toString(36) + '+' + (Math.random()*1e32).toString(36) + parseInt(request.keys.get('user').id*1e32).toString(36));
+                request.keys.deletedAt = moment().tz('UTC').add(duration || 30, 'days').format('YYYY-MM-DD HH:mm:ss');
+            }
+            
+            // Return a successful response
+            return response.success();
+        };
     }
 };
 
