@@ -428,7 +428,7 @@ var Session = WarpServer.Model.create({
     
     // NOTE: In order for us to generate special session tokens, we must use the Pre-defined PreSave function.
     // For more info on these pre-defined functions, please see the secion on PreSave functions.
-    beforeSave: WarpServer.Model.PreSave.Session
+    beforeSave: WarpServer.Model.PreSave.Session(30)
 });
 ```
 
