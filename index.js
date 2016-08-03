@@ -243,8 +243,8 @@ _.extend(WarpServer.prototype, {
         console.log();
         console.log(logHeader(), '  ////   //   //   //////  ///////   ////////');
         console.log(logHeader(), '   //   //   //  //   //  //    //  //    //');
-        console.log(logHeader(), '   //  //  //   ///////  ///////   ///////');
-        console.log(logHeader(), '   // // //    //   //  //  //    //');
+        console.log(logHeader(), '   //  //   //  ///////  ///////   ///////');
+        console.log(logHeader(), '   // //  //   //   //  //  //    //');
         console.log(logHeader(), '   //  //     //   //  //    //  //');
         console.log(logHeader());
         console.log(logHeader());
