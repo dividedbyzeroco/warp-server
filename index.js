@@ -255,6 +255,7 @@ _.extend(WarpServer.prototype, {
         console.log(logHeader(), '  *            *       *              *');
         console.log(logHeader(), ' *   *     *          *  *      *          *');
         console.log(logHeader());
+        console.log(logHeader(), ' Version ', require('package.json').version);
         console.log(logHeader(), '+-------------------------------------+');
         console.log(logHeader(), '|   The server has been initialized   |');
         console.log(logHeader(), '+-------------------------------------+');
