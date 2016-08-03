@@ -13,10 +13,20 @@ var Model = {};
 var KeyMap = function(keys) {
     this._keys = keys;
     this.set = function(key, value) {
+        if(key === Model._internalKeys.id) return this;
+        if(key === Model._internalKeys.createdAt) return this;
+        if(key === Model._internalKeys.updatedAt) return this;
+        if(key === Model._internalKeys.deletedAt) return this;
+
         this._keys[key] = value;
         return this;
     };
-    this.get = function(key) {
+    this.get = function(key) {        
+        if(key === Model._internalKeys.id) return undefined;
+        if(key === Model._internalKeys.createdAt) return undefined;
+        if(key === Model._internalKeys.updatedAt) return undefined;
+        if(key === Model._internalKeys.deletedAt) return undefined;
+
         return this._keys[key];
     };
     this.each = function(iterator) {
@@ -24,7 +34,12 @@ var KeyMap = function(keys) {
             iterator(this._keys[key]);
     };
     this.copy = function() {
-        return _.extend({}, this._keys);
+        var extended = _.extend({}, this._keys);
+        extended.id = this.id;
+        extended.created_at = this.createdAt;
+        extended.updated_at = this.updatedAt;
+        extended.deleted_at = this.deletedAt;
+        return extended;
     };
 };
 
@@ -277,6 +292,12 @@ _.extend(Model, {
                     isNew: options.isNew? true : false,
                     isDestroyed: options.isDestroyed? true : false
                 };
+                
+                // Add system keys
+                request.id = options.id;
+                request.createdAt = keysParsed[self._internalKeys.createdAt];
+                request.updatedAt = keysParsed[self._internalKeys.updatedAt];
+                request.deletedAt = keysParsed[self._internalKeys.deletedAt];
                                 
                 // Check if beforeSave exists
                 if(typeof this.beforeSave === 'function') 
@@ -519,7 +540,7 @@ _.extend(Model, {
                 })
                 .then(function(result) {                    
                     // Update key map
-                    request.keys.set('id', result.id);
+                    request.keys.id = result.id;
                     
                     // Check afterSave method
                     if(typeof this.afterSave === 'function') this.afterSave(request);
@@ -531,7 +552,8 @@ _.extend(Model, {
                     {
                         if(this.keys.viewable.indexOf(key) < 0 && !Model._internalKeys[key])
                             delete keys[key];
-                    }                    
+                    }
+
                     return keys;
                 }.bind(this));
             },
@@ -541,7 +563,7 @@ _.extend(Model, {
                 var request = null;
                 
                 // Get actionable keys
-                return this.getActionKeys(options.fields, { now: now })
+                return this.getActionKeys(options.fields, { id: options.id, now: now })
                 .then(function(result) {
                     // Set request
                     request = result.request;
@@ -550,9 +572,6 @@ _.extend(Model, {
                     return query.fields(result.raw).update();
                 })
                 .then(function(result) {
-                    // Update key map
-                    request.keys.set('id', options.id);
-                                        
                     // Check afterSave method
                     if(typeof this.afterSave === 'function') this.afterSave(request);
                     
@@ -573,7 +592,7 @@ _.extend(Model, {
                 var request = null;
                 
                 // Get actionable keys
-                return this.getActionKeys(options.fields, { now: now, isDestroyed: true })
+                return this.getActionKeys(options.fields, { id: options.id, now: now, isDestroyed: true })
                 .then(function(result) {
                     // Set request
                     request = result.request;
@@ -582,9 +601,6 @@ _.extend(Model, {
                     return query.fields(result.raw).update();
                 })
                 .then(function(result) {
-                    // Update key map
-                    request.keys.set('id', options.id);
-                    
                     // Check afterSave method
                     if(typeof this.afterSave === 'function') this.afterSave(request);
                     
