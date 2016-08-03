@@ -294,10 +294,10 @@ _.extend(Model, {
                 };
                 
                 // Add system keys
-                request.id = options.id;
-                request.createdAt = keysParsed[self._internalKeys.createdAt];
-                request.updatedAt = keysParsed[self._internalKeys.updatedAt];
-                request.deletedAt = keysParsed[self._internalKeys.deletedAt];
+                request.keys.id = options.id;
+                request.keys.createdAt = keysParsed[self._internalKeys.createdAt];
+                request.keys.updatedAt = keysParsed[self._internalKeys.updatedAt];
+                request.keys.deletedAt = keysParsed[self._internalKeys.deletedAt];
                                 
                 // Check if beforeSave exists
                 if(typeof this.beforeSave === 'function') 
