@@ -36,9 +36,9 @@ var KeyMap = function(keys) {
     this.copy = function() {
         var extended = _.extend({}, this._keys);
         extended.id = this.id;
-        extended.created_at = this.createdAt;
-        extended.updated_at = this.updatedAt;
-        extended.deleted_at = this.deletedAt;
+        extended.createdAt = this.createdAt;
+        extended.updatedAt = this.updatedAt;
+        extended.deletedAt = this.deletedAt;
         return extended;
     };
 };
@@ -331,6 +331,10 @@ _.extend(Model, {
                                     // Set formatted value
                                     request.keys.set(key, formattedValue);
                                 }
+
+                                if(request.keys.createdAt) keysActionable[self._internalKeys.createdAt] = request.keys.createdAt;
+                                if(request.keys.updatedAt) keysActionable[self._internalKeys.updatedAt] = request.keys.updatedAt;
+                                if(request.keys.deletedAt) keysActionable[self._internalKeys.deletedAt] = request.keys.deletedAt;
                                 
                                 resolve({
                                     request: request,
@@ -373,6 +377,10 @@ _.extend(Model, {
                         // Set formatted value
                         request.keys.set(key, formattedValue);
                     }
+
+                    if(request.keys.createdAt) keysActionable[self._internalKeys.createdAt] = request.keys.createdAt;
+                    if(request.keys.updatedAt) keysActionable[self._internalKeys.updatedAt] = request.keys.updatedAt;
+                    if(request.keys.deletedAt) keysActionable[self._internalKeys.deletedAt] = request.keys.deletedAt;
                                 
                     return Promise.resolve({
                         request: request,
