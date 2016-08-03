@@ -239,6 +239,21 @@ _.extend(WarpServer.prototype, {
     },
     // Return express router
     router: function() {
+        console.log();
+        console.log();
+        console.log(logHeader(), '  ////   //   //   //////  ///////   ////////');
+        console.log(logHeader(), '   //   //   //  //   //  //    //  //    //');
+        console.log(logHeader(), '   //  //  //   ///////  ///////   ///////');
+        console.log(logHeader(), '   // // //    //   //  //  //    //');
+        console.log(logHeader(), '   //  //     //   //  //    //  //');
+        console.log(logHeader());
+        console.log(logHeader());
+        console.log(logHeader(), '+-------------------------------------+');
+        console.log(logHeader(), '|   The server has been initialized   |');
+        console.log(logHeader(), '+-------------------------------------+');
+        console.log();
+        console.log();
+
         if(this._router)
             return this._router;
         else
