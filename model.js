@@ -758,7 +758,7 @@ Model.Formatter = {
         }
     },
     Date: function(value) {
-        return moment(value).tz('UTC').format();
+        return moment(moment(value).format('YYYY-MM-DD HH:mm:ss') + '+00:00').tz('UTC').format();
     },
     Pointer: function(className) {
         return function(value) {
