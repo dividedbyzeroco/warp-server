@@ -35,23 +35,21 @@ _.extend(localstorage.prototype, {
         this._getUrl = urlFormat;
         return this;
     },
-    upload: function(filename, file) {
-        return new Promise(function(resolve, reject) {
-            try
-            {
-                var key = this._getKey(filename);
-                var url = this._getUrl(key);
-                var filepath = path.join(this.path, key);
-                fs.writeFileSync(filepath, file);
-                return resolve({ key: key, url: url });
-            }
-            catch(ex)
-            {
-                console.error(logHeader(), 'Could not save file to path', ex.message, ex.stack);
-                var error = new Error('Could not save file to path');
-                return reject(error);
-            }
-        }.bind(this));
+    upload: function(filename, file, resolve, reject) {
+        try
+        {
+            var key = this._getKey(filename);
+            var url = this._getUrl(key);
+            var filepath = path.join(this.path, key);
+            fs.writeFileSync(filepath, file);
+            return resolve({ key: key, url: url });
+        }
+        catch(ex)
+        {
+            console.error(logHeader(), 'Could not save file to path', ex.message, ex.stack);
+            var error = new Error('Could not save file to path');
+            return reject(error);
+        }
     },
     destroy: function(key) {
         return new Promise(function(resolve, reject) {

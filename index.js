@@ -23,10 +23,40 @@ var WarpServer = function(config) {
     this._requiredConfig(config.security, 'Security keys');
     this._requiredConfig(config.security.apiKey, 'API Key');
     this._requiredConfig(config.security.masterKey, 'Master Key');
+
+    var hasConnected = false;
             
     // Prepare database service based on config
     var database = require('./services/database');
-    this._database = new database(config.database);
+    this._database = new database(config.database, function(connection) {
+        if(hasConnected) return;
+        hasConnected = true;
+        console.log();
+        console.log();
+        console.log(logHeader(), '       *            *      * *');
+        console.log(logHeader(), '  *           *       *               * ');
+        console.log(logHeader(), ' *   *     *          *  *         *');
+        console.log(logHeader());
+        console.log(logHeader(), '  ////   //   //   //////  ///////   ////////');
+        console.log(logHeader(), '   //   //   //  //   //  //    //  //    //');
+        console.log(logHeader(), '   //  //   //  ///////  ///////   ///////');
+        console.log(logHeader(), '   // //  //   //   //  //  //    //');
+        console.log(logHeader(), '   //  //     //   //  //    //  //');
+        console.log(logHeader());        
+        console.log(logHeader(), '       *            *      * *      *  *');
+        console.log(logHeader(), '  *            *       *              *');
+        console.log(logHeader(), ' *   *     *          *  *      *          *');
+        console.log(logHeader());
+        console.log(logHeader(), ' VERSION ', require('./package.json').version);
+        console.log(logHeader());
+        console.log(logHeader(), '+-------------------------------------+');
+        console.log(logHeader(), '|   The server has been initialized   |');
+        console.log(logHeader(), '+-------------------------------------+');
+        console.log(logHeader(), '|      Connected to the database      |');
+        console.log(logHeader(), '+-------------------------------------+');
+        console.log();
+        console.log();
+    });
     
     // Extend query classes based on database service
     this.Query = {
@@ -242,30 +272,6 @@ _.extend(WarpServer.prototype, {
     },
     // Return express router
     router: function() {
-        console.log();
-        console.log();
-        console.log(logHeader(), '       *            *      * *');
-        console.log(logHeader(), '  *           *       *               * ');
-        console.log(logHeader(), ' *   *     *          *  *         *');
-        console.log(logHeader());
-        console.log(logHeader(), '  ////   //   //   //////  ///////   ////////');
-        console.log(logHeader(), '   //   //   //  //   //  //    //  //    //');
-        console.log(logHeader(), '   //  //   //  ///////  ///////   ///////');
-        console.log(logHeader(), '   // //  //   //   //  //  //    //');
-        console.log(logHeader(), '   //  //     //   //  //    //  //');
-        console.log(logHeader());        
-        console.log(logHeader(), '       *            *      * *      *  *');
-        console.log(logHeader(), '  *            *       *              *');
-        console.log(logHeader(), ' *   *     *          *  *      *          *');
-        console.log(logHeader());
-        console.log(logHeader(), ' Version ', require('./package.json').version);
-        console.log(logHeader());
-        console.log(logHeader(), '+-------------------------------------+');
-        console.log(logHeader(), '|   The server has been initialized   |');
-        console.log(logHeader(), '+-------------------------------------+');
-        console.log();
-        console.log();
-
         if(this._router)
             return this._router;
         else

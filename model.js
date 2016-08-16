@@ -402,16 +402,28 @@ _.extend(Model, {
                                 
                 // Get where options; Remove deleted objects
                 var where = options.where? options.where : {};
-                where.deleted_at = {
+                where['`' + this.source + '`.`' + self._internalKeys.deletedAt + '`'] = {
                     'ex': false
                 };
 
+                // Remove deleted objects from pointers
+                for(var index in joins)
+                {
+                    var join = joins[index];
+                    where['`' + join.className + '`.`' + self._internalKeys.deletedAt + '`'] = {
+                        'ex': false
+                    };
+                }
+
+                // Apply where constraints
                 query.where(where);
                 
+                // Apply other query parameters
                 if(options.limit) query.limit(options.limit);
                 if(options.skip) query.skip(options.skip);
                 if(options.sort) query.sort(options.sort);
             
+                // Find values
                 return query.find(function(result) {
                     var items = result;
                     for(var index in result)

@@ -73,7 +73,9 @@ var StorageFactory = {
                 if(!options || !options.filename || !options.file)
                     throw new WarpError(WarpError.Code.MissingConfiguration, 'Filename and file parameters are required');
                 
-                return this._storageAdapter.upload(options.filename, options.file);
+                return new Promise(function(resolve, reject) {
+                    this._storageAdapter.upload(options.filename, options.file, resolve, reject);
+                }.bind(this));
             },
             destroy: function(key) {
                 if(!key)

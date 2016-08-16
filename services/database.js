@@ -11,7 +11,7 @@ function logHeader() {
 }
 
 // Class constructor
-var Database = function(config) {
+var Database = function(config, onConnect) {
     var host = config.host || 'localhost';
     var port = config.port || 3306;
     var user = config.user;
@@ -28,6 +28,8 @@ var Database = function(config) {
         database: database,
         acquireTimeout: timeout
     });
+
+    this._pool.on('connection', onConnect);
 };
 
 // Static methods

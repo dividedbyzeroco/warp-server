@@ -3,8 +3,7 @@ var _ = require('underscore');
 module.exports = {
     create: function(req, res, next) {        
         // Load the file sent
-        this.Storage.load(req, res).then(function() 
-        {
+        this.Storage.load(req, res).then(function() {
             // Prepare file options
             var filename = req.body.name;
             var file = req.file.buffer;
@@ -16,27 +15,19 @@ module.exports = {
             // Upload file
             return this.Storage.upload(options);
         }.bind(this))
-        .then(function(result)
-        {
+        .then(function(result) {
             res.json({ status: 200, message: 'Success', result: result });    
         })
-        .catch(function(err)
-        {
-            next(err);
-        });
+        .catch(next);
     },
     destroy: function(req, res, next) {
         var key = req.body.key;
         
         // Delete object
-        this.Storage.destroy(key).then(function(result)
-        {
+        this.Storage.destroy(key).then(function(result){
             res.json({ status: 200, message: 'Success', result: result });
         })
-        .catch(function(err)
-        {
-            next(err);
-        });
+        .catch(next);
     },
     apply: function(context, router) {
         router.post('/files', this.create.bind(context));
