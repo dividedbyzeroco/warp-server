@@ -410,7 +410,7 @@ _.extend(Model, {
                 for(var index in joins)
                 {
                     var join = joins[index];
-                    where[join.className + '.' + self._internalKeys.deletedAt] = {
+                    where[join.alias + '.' + self._internalKeys.deletedAt] = {
                         'ex': false
                     };
                 }
