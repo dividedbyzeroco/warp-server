@@ -402,7 +402,7 @@ _.extend(Model, {
                                 
                 // Get where options; Remove deleted objects
                 var where = options.where? options.where : {};
-                where['`' + this.source + '`.`' + self._internalKeys.deletedAt + '`'] = {
+                where[this.source + '.' + self._internalKeys.deletedAt] = {
                     'ex': false
                 };
 
@@ -410,7 +410,7 @@ _.extend(Model, {
                 for(var index in joins)
                 {
                     var join = joins[index];
-                    where['`' + join.className + '`.`' + self._internalKeys.deletedAt + '`'] = {
+                    where[join.className + '.' + self._internalKeys.deletedAt] = {
                         'ex': false
                     };
                 }
