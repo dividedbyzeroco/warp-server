@@ -150,6 +150,7 @@ module.exports = {
     },
     login: function(req, res, next) {
         var username = req.body.username;
+        var email = req.body.email;
         var password = req.body.password.toString();
         var origin = req.get('X-Warp-Origin');
         
@@ -158,11 +159,22 @@ module.exports = {
         query.select({
             'id': 'id', 
             'password': 'password'
-        })
-        .where({
-            'username': { 'eq' : username }
-        })
-        .first(function(user) 
+        });
+
+        if(username)
+        {
+            query.where({
+                'username': { 'eq' : username }
+            });
+        }
+        else
+        {
+            query.where({
+                'email': { 'eq': email }
+            });
+        }
+
+        query.first(function(user) 
         {
             if(user && WarpSecurity.validate(password, user.password))
             {

@@ -608,6 +608,10 @@ with a JSON Object that contains the specified user's username and password:
 
 `{ "username": "{USERNAME}", "password": "{PASSWORD}" }`
 
+alternatively, you can use the email instead of the username
+
+`{ "email": "{EMAIL}", "password": "{PASSWORD}" }`
+
 Also, if you would like to track where the user logged in from, you can use the following header:
 
 `X-Warp-Origin: {ORIGIN}`
