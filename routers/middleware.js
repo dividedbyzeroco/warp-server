@@ -33,5 +33,5 @@ module.exports = {
     sessionToken: function(req, res, next) {
         req.sessionToken = req.get('X-Warp-Session-Token');
         next();
-    },
+    }
 };
