@@ -232,159 +232,160 @@ _.extend(Model, {
                 };
             },
             getActionKeys: function(keys, options) {
-                // Get keys selected
-                var keysSelected = keys? Object.keys(keys) : [];
-                
-                // Get keys defined
-                var keysDefined = this._getDefinedKeys('actionable');
-                var keysAvailable = keysDefined.available;
-                var keysAliased = keysDefined.aliased;
-                
-                // Get keys to act on
-                // Make sure id and timestamps are not edited by the user
-                var keysToActOn = _.intersection(keysSelected, keysAvailable);
-                keysToActOn = _.difference(keysToActOn, self.getInternalKeys());
-
-                // Prepare keys parsed
-                var keysParsed = {};
-                for(var index in keysToActOn)
-                {
-                    var key = keysToActOn[index];
-                    var value = keys[key];
-                    
-                    // Validate value
-                    if(typeof this.validate[key] === 'function')
+                return new Promise(function(resolve, reject) {
+                    try
                     {
-                        var isValid = this.validate[key](value, key);
-                        if(typeof isValid === 'string')
-                            throw new WarpError(WarpError.Code.InvalidObjectKey, isValid);
-                    }
-                    
-                    // Parse value
-                    // NOTE: Check if parsed value is a pointer or a file
-                    // Only parse the value of pointer or file after `beforeSave`
-                    var parsedValue = typeof this.parse[key] === 'function' &&
-                        !this.keys.pointers[key] &&
-                        !this.keys.files[key] ? 
-                        this.parse[key](value) :
-                        value;
-                    
-                    // Add parsed key
-                    keysParsed[key] = parsedValue;
-                }
-                
-                // Change timestamps
-                var now = options.now;
-                keysParsed[self._internalKeys.updatedAt] = now.format('YYYY-MM-DD HH:mm:ss');
-                if(options.isNew) 
-                    keysParsed[self._internalKeys.createdAt] = now.format('YYYY-MM-DD HH:mm:ss');
-                if(options.isDestroyed)
-                    keysParsed[self._internalKeys.deletedAt] = now.format('YYYY-MM-DD HH:mm:ss');
-                
-                // Create basic key map
-                var keyMap = new KeyMap(keysParsed);
+                        // Get keys selected
+                        var keysSelected = keys? Object.keys(keys) : [];
                         
-                // Create a request object
-                var request = {
-                    keys: keyMap,
-                    isNew: options.isNew? true : false,
-                    isDestroyed: options.isDestroyed? true : false
-                };
-                
-                // Add system keys
-                request.keys.id = options.id;
-                request.keys.createdAt = keysParsed[self._internalKeys.createdAt];
-                request.keys.updatedAt = keysParsed[self._internalKeys.updatedAt];
-                request.keys.deletedAt = keysParsed[self._internalKeys.deletedAt];
-                                
-                // Check if beforeSave exists
-                if(typeof this.beforeSave === 'function') 
-                    return new Promise(function(resolve, reject) {
+                        // Get keys defined
+                        var keysDefined = this._getDefinedKeys('actionable');
+                        var keysAvailable = keysDefined.available;
+                        var keysAliased = keysDefined.aliased;
                         
-                        // Create response object
-                        var response = {
-                            success: function() {
-                                // Prepare keys actionable
-                                var keysActionable = {};
-                                
-                                // Iterate through each parsed value
-                                for(var key in request.keys.copy())
-                                {                                
-                                    // Get source and value
-                                    var source = keysAliased[key] || key;
-                                    var value = request.keys.get(key);
+                        // Get keys to act on
+                        // Make sure id and timestamps are not edited by the user
+                        var keysToActOn = _.intersection(keysSelected, keysAvailable);
+                        keysToActOn = _.difference(keysToActOn, self.getInternalKeys());
 
-                                    // NOTE: Parse the pointers and files here
-                                    if(this.keys.pointers[key] || this.keys.files[key]) 
-                                        value = this.parse[key](value);
-                                    
-                                    // Assign actionable keys
-                                    keysActionable[source] = value;
-                                    
-                                    // Get formatted value
-                                    var formattedValue = typeof this.format[key] === 'function'?
-                                        this.format[key](value, this) :
-                                        value;
-                                        
-                                    // Set formatted value
-                                    request.keys.set(key, formattedValue);
-                                }
-
-                                if(request.keys.createdAt) keysActionable[self._internalKeys.createdAt] = request.keys.createdAt;
-                                if(request.keys.updatedAt) keysActionable[self._internalKeys.updatedAt] = request.keys.updatedAt;
-                                if(request.keys.deletedAt) keysActionable[self._internalKeys.deletedAt] = request.keys.deletedAt;
-                                
-                                resolve({
-                                    request: request,
-                                    raw: keysActionable
-                                });
-                            }.bind(this),
-                            error: function(message) {
-                                reject(new WarpError(WarpError.Code.InvalidObjectKey, message));
+                        // Prepare keys parsed
+                        var keysParsed = {};
+                        for(var index in keysToActOn)
+                        {
+                            var key = keysToActOn[index];
+                            var value = keys[key];
+                            
+                            // Validate value
+                            if(typeof this.validate[key] === 'function')
+                            {
+                                var isValid = this.validate[key](value, key);
+                                if(typeof isValid === 'string')
+                                    throw new WarpError(WarpError.Code.InvalidObjectKey, isValid);
                             }
+                            
+                            // Parse value
+                            // NOTE: Check if parsed value is a pointer or a file
+                            // Only parse the value of pointer or file after `beforeSave`
+                            var parsedValue = typeof this.parse[key] === 'function' &&
+                                !this.keys.pointers[key] &&
+                                !this.keys.files[key] ? 
+                                this.parse[key](value) :
+                                value;
+                            
+                            // Add parsed key
+                            keysParsed[key] = parsedValue;
+                        }
+                        
+                        // Change timestamps
+                        var now = options.now;
+                        keysParsed[self._internalKeys.updatedAt] = now.format('YYYY-MM-DD HH:mm:ss');
+                        if(options.isNew) 
+                            keysParsed[self._internalKeys.createdAt] = now.format('YYYY-MM-DD HH:mm:ss');
+                        if(options.isDestroyed)
+                            keysParsed[self._internalKeys.deletedAt] = now.format('YYYY-MM-DD HH:mm:ss');
+                        
+                        // Create basic key map
+                        var keyMap = new KeyMap(keysParsed);
+                                
+                        // Create a request object
+                        var request = {
+                            keys: keyMap,
+                            isNew: options.isNew? true : false,
+                            isDestroyed: options.isDestroyed? true : false
                         };
                         
-                        // Run before save
-                        this.beforeSave(request, response); 
-                    
-                    }.bind(this));
-                else
-                {
-                    // Prepare keys actionable
-                    var keysActionable = {};
-                    
-                    // Iterate through each parsed value
-                    for(var key in request.keys.copy())
-                    {                                
-                        // Get source and value
-                        var source = keysAliased[key] || key;
-                        var value = request.keys.get(key);
-                        
-                        // NOTE: Parse the pointers and files here
-                        if(this.keys.pointers[key] || this.keys.files[key]) 
-                            value = this.parse[key](value);
-                        
-                        // Assign actionable keys
-                        keysActionable[source] = value;
-                        
-                        // Get formatted value
-                        var formattedValue = typeof this.format[key] === 'function'? 
-                            this.format[key](value, this) :
-                            value;
-                            
-                        // Set formatted value
-                        request.keys.set(key, formattedValue);
-                    }
+                        // Add system keys
+                        request.keys.id = options.id;
+                        request.keys.createdAt = keysParsed[self._internalKeys.createdAt];
+                        request.keys.updatedAt = keysParsed[self._internalKeys.updatedAt];
+                        request.keys.deletedAt = keysParsed[self._internalKeys.deletedAt];
+                                        
+                        // Check if beforeSave exists
+                        if(typeof this.beforeSave === 'function') 
+                        {                                
+                            // Create response object
+                            var response = {
+                                success: function() {
+                                    // Prepare keys actionable
+                                    var keysActionable = {};
+                                    
+                                    // Iterate through each parsed value
+                                    for(var key in request.keys.copy())
+                                    {                                
+                                        // Get source and value
+                                        var source = keysAliased[key] || key;
+                                        var value = request.keys.get(key);
 
-                    if(request.keys.createdAt) keysActionable[self._internalKeys.createdAt] = request.keys.createdAt;
-                    if(request.keys.updatedAt) keysActionable[self._internalKeys.updatedAt] = request.keys.updatedAt;
-                    if(request.keys.deletedAt) keysActionable[self._internalKeys.deletedAt] = request.keys.deletedAt;
+                                        // NOTE: Parse the pointers and files here
+                                        if(this.keys.pointers[key] || this.keys.files[key]) 
+                                            value = this.parse[key](value);
+                                        
+                                        // Assign actionable keys
+                                        keysActionable[source] = value;
+                                        
+                                        // Get formatted value
+                                        var formattedValue = typeof this.format[key] === 'function'?
+                                            this.format[key](value, this) :
+                                            value;
+                                            
+                                        // Set formatted value
+                                        request.keys.set(key, formattedValue);
+                                    }
+
+                                    if(request.keys.createdAt) keysActionable[self._internalKeys.createdAt] = request.keys.createdAt;
+                                    if(request.keys.updatedAt) keysActionable[self._internalKeys.updatedAt] = request.keys.updatedAt;
+                                    if(request.keys.deletedAt) keysActionable[self._internalKeys.deletedAt] = request.keys.deletedAt;
+                                    
+                                    resolve({ request: request, raw: keysActionable });
+                                }.bind(this),
+                                error: function(message) {
+                                    reject(new WarpError(WarpError.Code.InvalidObjectKey, message));
+                                }
+                            };
+                            
+                            // Run before save
+                            this.beforeSave(request, response); 
+                        }
+                        else
+                        {
+                            // Prepare keys actionable
+                            var keysActionable = {};
+                            
+                            // Iterate through each parsed value
+                            for(var key in request.keys.copy())
+                            {                                
+                                // Get source and value
+                                var source = keysAliased[key] || key;
+                                var value = request.keys.get(key);
                                 
-                    return Promise.resolve({
-                        request: request,
-                        raw: keysActionable
-                    });
-                }
+                                // NOTE: Parse the pointers and files here
+                                if(this.keys.pointers[key] || this.keys.files[key]) 
+                                    value = this.parse[key](value);
+                                
+                                // Assign actionable keys
+                                keysActionable[source] = value;
+                                
+                                // Get formatted value
+                                var formattedValue = typeof this.format[key] === 'function'? 
+                                    this.format[key](value, this) :
+                                    value;
+                                    
+                                // Set formatted value
+                                request.keys.set(key, formattedValue);
+                            }
+
+                            if(request.keys.createdAt) keysActionable[self._internalKeys.createdAt] = request.keys.createdAt;
+                            if(request.keys.updatedAt) keysActionable[self._internalKeys.updatedAt] = request.keys.updatedAt;
+                            if(request.keys.deletedAt) keysActionable[self._internalKeys.deletedAt] = request.keys.deletedAt;
+                                        
+                            resolve({ request: request, raw: keysActionable });
+                        }
+                    }
+                    catch(ex)
+                    {
+                        reject(ex);
+                    }
+                }.bind(this));                
             },
             find: function(options) {
                 // Prepare query
