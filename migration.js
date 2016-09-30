@@ -433,7 +433,7 @@ var MigrationFactory = {
                                 next();
                             });
                         }.bind(this), function() {
-                            resolve(migrated);
+                            resolve(reverted);
                         });
                     }.bind(this));
                 }.bind(this))
