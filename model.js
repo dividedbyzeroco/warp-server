@@ -247,7 +247,9 @@ _.extend(Model, {
 
                 // Prepare keys parsed
                 var keysParsed = {};
-                keysToActOn.forEach(function(key) {
+                for(var index in keysToActOn)
+                {
+                    var key = keysToActOn[index];
                     var value = keys[key];
                     
                     // Validate value
@@ -269,7 +271,7 @@ _.extend(Model, {
                     
                     // Add parsed key
                     keysParsed[key] = parsedValue;
-                }.bind(this));
+                }
                 
                 // Change timestamps
                 var now = options.now;
