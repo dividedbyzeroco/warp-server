@@ -328,7 +328,7 @@ var MigrationFactory = {
                                 next();
                             });
                         }.bind(this));
-                    });
+                    }.bind(this));
                 }.bind(this))
                 .catch(function(error) {
                     console.error(logHeader(), 'Could not commit all migrations', error.message, error.stack);
@@ -431,7 +431,7 @@ var MigrationFactory = {
                                 next();
                             });
                         }.bind(this));
-                    });
+                    }.bind(this));
                 }.bind(this))
                 .catch(function(error) {            
                     console.error(logHeader(), 'Could not reset migrations', error.message, error.stack);
