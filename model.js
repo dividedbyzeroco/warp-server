@@ -774,26 +774,14 @@ Model.Formatter = {
     },
     Pointer: function(className) {
         return function(value) {
-            if(!value) return null;
-            
-            var pointer = {
-                type: 'Pointer',
-                className: className,
-                id: value
-            };
-            
-            return pointer;
+            if(!value) return null;            
+            return { type: 'Pointer', className: className, id: value };
         }
     },
     File: function(key, context) {
-        var url = context._storage.getUrl(key); 
-        var file = {
-            type: 'File',
-            key: key,
-            url: url
-        };
-        
-        return file;
+        if(!key) return null;
+        var url = context._storage.getUrl(key);
+        return { type: 'File', key: key, url: url };
     }
 };
 

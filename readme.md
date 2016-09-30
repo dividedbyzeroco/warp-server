@@ -1,9 +1,9 @@
 Warp Server
 ===========
 
-__Warp Server__ is a platform for implementing scalable backend services. It enables you to manage objects, webhooks and background jobs using a standard REST API, and comes equipped with various authentication features.
+__Warp Server__ is an `express` middleware for implementing scalable backend services. With Warp Server, you can store and manage data, call functions and run background processes using a simple REST API.
 
-Currently, `Warp Server` uses `mysql` as its database of choice, but can be extended to use other data storage services.
+Currently, `Warp Server` uses `mysql`/`mariadb` as its database of choice, but can be extended to use other data storage providers.
 
 ## Table of Contents
 - **[Installation](#installation)**  

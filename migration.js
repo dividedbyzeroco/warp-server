@@ -268,6 +268,7 @@ var MigrationFactory = {
                 schema.fields({
                     'id': {
                         type: 'string',
+                        size: 250,
                         addons: ['primary']
                     },
                     'up': 'text',
@@ -317,28 +318,16 @@ var MigrationFactory = {
                     // Check if pending migrations exist
                     if(migrations.length == 0) throw new WarpError(WarpError.Code.QueryError, 'No pending migrations found');
                     
-                    // Create base promise
-                    var promise = Promise.resolve();
-                    
                     // Loop through each pending migration
-                    for(var index in migrations)
-                    {
-                        // Retrieve migration
-                        var def = migrations[index];
-                        var migration = this.create(def.id, JSON.parse(def.up), JSON.parse(def.down));
-                        
-                        // Append a new promise to the base promise
-                        promise = promise.then(function(previous) {
-                            if(previous) migrated.push(previous.id);
-                            return migration.commit();
-                        });
-                    }
-                    
-                    // Return the chained promises
                     // When completed, return the list of migrated items
-                    return promise.then(function(previous) {
-                        if(previous) migrated.push(previous.id);
-                        return migrated;
+                    return new Promise(function(resolve, reject) {
+                        async.eachSeries(migrations, function(def, next) {
+                            var migration = this.create(def.id, JSON.parse(def.up), JSON.parse(def.down));
+                            migration.commit().then(function(item) {
+                                migrated.push(item.id);
+                                next();
+                            });
+                        }.bind(this));
                     });
                 }.bind(this))
                 .catch(function(error) {
@@ -431,29 +420,17 @@ var MigrationFactory = {
                 .find(function(migrations) {
                     // Check if commited migrations exist
                     if(migrations.length == 0) throw new WarpError(WarpError.Code.QueryError, 'No migration has been committed yet');
-                    
-                    // Create base promise
-                    var promise = Promise.resolve();
-                    
+                                        
                     // Loop through each pending migration
-                    for(var index in migrations)
-                    {
-                        // Retrieve migration
-                        var def = migrations[index];
-                        var migration = this.create(def.id, JSON.parse(def.up), JSON.parse(def.down));
-                        
-                        // Append a new promise to the base promise
-                        promise = promise.then(function(previous) {
-                            if(previous) reverted.push(previous);
-                            return migration.revert();
-                        });
-                    }
-                    
-                    // Return the chained promises
                     // When completed, return the list of migrated items
-                    return promise.then(function(previous) {
-                        if(previous) reverted.push(previous.id);
-                        return reverted;
+                    return new Promise(function(resolve, reject) {
+                        async.eachSeries(migrations, function(def, next) {
+                            var migration = this.create(def.id, JSON.parse(def.up), JSON.parse(def.down));
+                            migration.revert().then(function(item) {
+                                reverted.push(item.id);
+                                next();
+                            });
+                        }.bind(this));
                     });
                 }.bind(this))
                 .catch(function(error) {            

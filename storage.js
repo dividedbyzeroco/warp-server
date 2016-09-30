@@ -66,8 +66,8 @@ var StorageFactory = {
                 
                 return this._storageAdapter.setUrlFormat(urlFormat);
             },
-            getUrl: function(key) {
-                return this._storageAdapter._getUrl(key);
+            getUrl: function(key, next) {
+                this._storageAdapter._getUrl(key, next);
             },
             upload: function(options) {
                 if(!options || !options.filename || !options.file)

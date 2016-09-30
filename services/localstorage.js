@@ -17,12 +17,12 @@ var localstorage = function(path) {
 
 // Instance methods
 _.extend(localstorage.prototype, {
-    _getKey: function(filename) {
+    _getKey: function(filename, next) {
         var now = moment().tz('UTC').format('YYYYMMDDHHmmss');
         var randomizer = (Math.random() * 1e32).toString(36);
         var dirname = path.dirname(filename);
         var baseFilename = now + '-' + randomizer  + '-' + path.basename(filename);
-        return path.join(dirname, baseFilename);
+        next(path.join(dirname, baseFilename));
     },
     _getUrl: function(key) {
         return key;
@@ -38,11 +38,13 @@ _.extend(localstorage.prototype, {
     upload: function(filename, file, resolve, reject) {
         try
         {
-            var key = this._getKey(filename);
-            var url = this._getUrl(key);
-            var filepath = path.join(this.path, key);
-            fs.writeFileSync(filepath, file);
-            return resolve({ key: key, url: url });
+            var path = this.path;
+            return this._getKey(filename, function(key) {
+                var url = this._getUrl(key);
+                var filepath = path.join(path, key);
+                fs.writeFileSync(filepath, file);
+                return resolve({ key: key, url: url });
+            }.bind(this));
         }
         catch(ex)
         {
