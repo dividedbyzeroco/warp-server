@@ -327,7 +327,9 @@ var MigrationFactory = {
                                 migrated.push(item.id);
                                 next();
                             });
-                        }.bind(this));
+                        }.bind(this), function() {
+                            resolve(migrated);
+                        });
                     }.bind(this));
                 }.bind(this))
                 .catch(function(error) {
@@ -430,7 +432,9 @@ var MigrationFactory = {
                                 reverted.push(item.id);
                                 next();
                             });
-                        }.bind(this));
+                        }.bind(this), function() {
+                            resolve(migrated);
+                        });
                     }.bind(this));
                 }.bind(this))
                 .catch(function(error) {            
