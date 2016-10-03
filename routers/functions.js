@@ -58,6 +58,9 @@ module.exports = {
             
             // Run action
             this._getFunction(name).run(request, response);
+        })
+        .catch(function(error) {
+            next(error);
         });
     },
     apply: function(context, router) {
