@@ -6,7 +6,7 @@ module.exports = {
         var options = {
             include: req.query.include? JSON.parse(req.query.include) : [],
             where: req.query.where? JSON.parse(req.query.where) : {},
-            sort: req.query.order? JSON.parse(req.query.order) : [],
+            sort: req.query.sort? JSON.parse(req.query.sort) : [],
             limit: req.query.limit || 100,
             skip: req.query.skip || 0
         };
