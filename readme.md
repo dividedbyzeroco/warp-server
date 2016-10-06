@@ -150,6 +150,15 @@ WarpServer.Model.create({
         // Check if Object has just been recently destroyed
         if(request.isDestroyed)
             return; // Apply some logic here
+
+        // Check the client SDK performing the request (e.g. REST, Android, iOS,)
+        var client = request.client;
+
+        // Check the SDK version of the client request
+        var sdkVersion = request.sdkVersion;
+
+        // Check the version of the app that made the request
+        var appVersion = request.appVersion;
         
         // request.keys is a map that contains the modified keys of the object
         request.keys.set('{KEY1}', '{VALUE1}');
@@ -556,6 +565,15 @@ WarpServer.Function.create({
         // request.keys is a map that contains the modified keys of the object
         // NOTE: Unlike the `.beforeSave()` function in Models, you can only use `.get()` for Functions
         var key2 = request.keys.get('{KEY2}');
+        
+        // Check the client SDK performing the request (e.g. REST, Android, iOS,)
+        var client = request.client;
+
+        // Check the SDK version of the client request
+        var sdkVersion = request.sdkVersion;
+
+        // Check the version of the app that made the request
+        var appVersion = request.appVersion;
                 
         // Call the success response after the keys have been manipulated
         if(success)
@@ -728,6 +746,10 @@ module.exports = new WarpServer({
 ```
 
 The Queues are now ready to be used. For more info, see the section regarding the [Queue API](rest.md#queue-api).
+
+### Additional Headers
+
+
 
 ### Third-party Libraries
 

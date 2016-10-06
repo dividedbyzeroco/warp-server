@@ -14,6 +14,7 @@ Often, you would only need to use the SDK's above, without having to worry about
 
 ## Table of Contents
 - **REST API**
+    - **[Headers](#headers)**
     - **[Object API](#object-api)**
         - **[Objects](#objects)**
             - **[Headers](#headers)**
@@ -54,6 +55,25 @@ Often, you would only need to use the SDK's above, without having to worry about
         - **[Viewing Queue Status](#viewing-queue-status)**
 - **[References](references.md)**
 
+## Headers
+
+When making HTTP requests to the API, it is important to include the API Key in order for it to be authorized. To do so, remember to set the `X-Warp-API-Key` header for your request:
+
+`X-Warp-API-Key: 12345678abcdefg`
+
+Often times, once a user has logged in, it is also important to place the `X-Warp-Session-Token` header in order to use certain operations only accessible to authorized users:
+
+`X-Warp-Session-Token: fhwcunf2uch20j631`
+
+For more information about session tokens, please see the section regarding [Logging In](#logging-in).
+
+Optionally, Warp also allows you set extra headers in order to better describe your request to the server:
+
+- `X-Warp-Client` describes the source of the request (e.g. `REST`, `Android`, `iOS`)
+- `X-Warp-Version` describes the SDK version of the client request (note: only used with SDK's, e.g. `Android`, `iOS`)
+- `X-App-Version` describes the version of the app that made the request
+
+For more information about additional headers, please see the section regarding [Models](readme.md#models) and [Functions](readme.md#functions).
 
 ## Object API
 
@@ -70,18 +90,6 @@ Each Object contains different keys which can be set or retrieved as needed. Amo
 - uppdated_at: a timestamp that records the date and time when a particular object was last modified (UTC)
 
 These keys are specifically set by the server and cannot be modified by the user.
-
-
-### Headers
-
-When making HTTP requests to the Object API, it is important that the API Key is set. To do so, remember to set the `X-Warp-API-Key` header for your request:
-
-`X-Warp-API-Key: 12345678abcdefg`
-
-Often times, once a user has logged in, it is also important to place the `X-Warp-Session-Token` header in order to use certain operations only accessible to authorized users:
-
-`X-Warp-Session-Token: fhwcunf2uch20j631`
-
 
 ### Creating Objects
 
