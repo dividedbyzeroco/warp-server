@@ -291,7 +291,10 @@ _.extend(Model, {
                         var request = {
                             keys: keyMap,
                             isNew: options.isNew? true : false,
-                            isDestroyed: options.isDestroyed? true : false
+                            isDestroyed: options.isDestroyed? true : false,
+                            client: options.props? options.props.client : undefined,
+                            sdkVersion: options.props? options.props.sdkVersion : undefined,
+                            appVersion : options.props? options.props.appVersion : undefined
                         };
                         
                         // Add system keys
@@ -543,13 +546,13 @@ _.extend(Model, {
                     return item;
                 }.bind(this));                
             },
-            create: function(options) {
+            create: function(options, props) {
                 var query = new this._actionQuery(this.source);
                 var now = moment().tz('UTC');
                 var request = null;
                 
                 // Get actionable keys
-                return this.getActionKeys(options.fields, { now: now, isNew: true })
+                return this.getActionKeys(options.fields, { now: now, isNew: true, props: props })
                 .then(function(result) {
                     // Set request
                     request = result.request;
@@ -580,13 +583,13 @@ _.extend(Model, {
                     return keys;
                 }.bind(this));
             },
-            update: function(options) {
+            update: function(options, props) {
                 var query = new this._actionQuery(this.source, options.id);
                 var now = moment().tz('UTC');
                 var request = null;
                 
                 // Get actionable keys
-                return this.getActionKeys(options.fields, { id: options.id, now: now })
+                return this.getActionKeys(options.fields, { id: options.id, now: now, prop: props })
                 .then(function(result) {
                     // Set request
                     request = result.request;
@@ -613,13 +616,13 @@ _.extend(Model, {
                     return keys;
                 }.bind(this));                
             },
-            destroy: function(options) {
+            destroy: function(options, props) {
                 var query = new this._actionQuery(this.source, options.id);
                 var now = moment().tz('UTC');
                 var request = null;
                 
                 // Get actionable keys
-                return this.getActionKeys(options.fields, { id: options.id, now: now, isDestroyed: true })
+                return this.getActionKeys(options.fields, { id: options.id, now: now, isDestroyed: true, props })
                 .then(function(result) {
                     // Set request
                     request = result.request;

@@ -33,5 +33,17 @@ module.exports = {
     sessionToken: function(req, res, next) {
         req.sessionToken = req.get('X-Warp-Session-Token');
         next();
+    },
+    client: function(req, res, next) {
+        req.client = req.get('X-Warp-Client');
+        next();
+    },
+    sdkVersion: function(req, res, next) {
+        req.sdkVersion = req.get('X-Warp-Client-Version');
+        next();
+    },
+    appVersion: function(req, res, next) {
+        req.appVersion = req.get('X-App-Version');
+        next();
     }
 };

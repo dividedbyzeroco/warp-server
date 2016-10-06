@@ -62,7 +62,7 @@ module.exports = {
             if(result.length > 0) throw new WarpError(WarpError.Code.EmailTaken, 'Email already taken');
             
             // Prepare user creation
-            var create = this._getUserModel().create({ fields: fields });
+            var create = this._getUserModel().create({ fields: fields }, { client: req.client, sdkVersion: req.sdkVersion, appVersion: req.appVersion });
             return create;
         }.bind(this))
         .then(function(result)
@@ -90,7 +90,7 @@ module.exports = {
                 throw new WarpError(WarpError.Code.ForbiddenOperation, 'Users can only edit their own data');
             
             // Update object, if valid    
-            return this._getUserModel().update({ id: id, fields: params });
+            return this._getUserModel().update({ id: id, fields: params }, { client: req.client, sdkVersion: req.sdkVersion, appVersion: req.appVersion });
         }.bind(this))
         .then(function(result)
         {
@@ -116,7 +116,7 @@ module.exports = {
                 throw new WarpError(WarpError.Code.ForbiddenOperation, 'Users can only destroy their own data');
             
             // Destroy object, if valid    
-            return this._getUserModel().destroy({ id: id });
+            return this._getUserModel().destroy({ id: id }, { client: req.client, sdkVersion: req.sdkVersion, appVersion: req.appVersion });
         }.bind(this))
         .then(function(result)
         {

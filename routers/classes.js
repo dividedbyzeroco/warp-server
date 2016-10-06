@@ -42,7 +42,7 @@ module.exports = {
     create: function(req, res, next) {
         var className = req.params.className;
         var fields = _.extend({}, req.body);
-        var create = this._getModel(className).create({ fields: fields });
+        var create = this._getModel(className).create({ fields: fields }, { client: req.client, sdkVersion: req.sdkVersion, appVersion: req.appVersion });
         // Create object
         create.then(function(result)
         {
@@ -57,7 +57,7 @@ module.exports = {
         var className = req.params.className;
         var params = _.extend({}, req.body);
         var id = parseInt(req.params.id);
-        var update = this._getModel(className).update({ id: id, fields: params });
+        var update = this._getModel(className).update({ id: id, fields: params }, { client: req.client, sdkVersion: req.sdkVersion, appVersion: req.appVersion });
         
         // Update object
         update.then(function(result)
@@ -72,7 +72,7 @@ module.exports = {
     destroy: function(req, res, next) {
         var className = req.params.className;
         var id = parseInt(req.params.id);
-        var destroy = this._getModel(className).destroy({ id: id });
+        var destroy = this._getModel(className).destroy({ id: id }, { client: req.client, sdkVersion: req.sdkVersion, appVersion: req.appVersion });
         
         // Delete object
         destroy.then(function(result)

@@ -204,6 +204,9 @@ _.extend(WarpServer.prototype, {
         router.use(bodyParser.urlencoded({ extended: false }));
         router.use(middleware.enableCors);
         router.use(middleware.sessionToken);
+        router.use(middleware.client);
+        router.use(middleware.sdkVersion);
+        router.use(middleware.appVersion);
         router.use(middleware.requireAPIKey(config.security.apiKey));
         
         // Apply API routes

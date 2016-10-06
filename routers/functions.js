@@ -41,7 +41,10 @@ module.exports = {
         .then(user => {
             var name = req.params.name;
             var request = {
-                keys: new KeyMap(req.body)
+                keys: new KeyMap(req.body),
+                client: req.client,
+                sdkVersion: req.sdkVersion,
+                appVersion: req.appVersion
             };
             if(user) request.user = user;
             var response = {
