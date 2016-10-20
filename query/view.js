@@ -194,12 +194,12 @@ var QueryFactory = {
                     '';
                 
                 // Return query string
-                var query = [select, from, joins, where, order, limit, ';'].join(' ').replace(/\s{2,}/g, ' ');
+                var query = [select, from, joins, where, order, limit].join(' ').replace(/\s{2,}/g, ' ');
                 return query;
             },
             _execute: function(config) {
                 var config = config || {};
-                return ViewQuery._getDatabase().query(this._getFindViewQuery());
+                return ViewQuery._getDatabase().query(this._getFindViewQuery() + ';');
             },
             _addChain: function(query, next, fail) {        
                 // Check if next and fail exist
