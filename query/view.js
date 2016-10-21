@@ -35,7 +35,7 @@ var QueryFactory = {
             },
             _parseKey: function(className, value, label) {
                 className = className || this.className;
-                if(this._isSubQuery) className = subQueryPrefix + this.className;
+                if(this._isSubQuery) className = subQueryPrefix + className;
                 return '`' + className + '`.`' + value + '` AS `' + label + '`';
             },
             _parseConstraint: function(key, type, value) {
@@ -122,7 +122,7 @@ var QueryFactory = {
                     {
                         // Join is assumed to be based on `id`
                         var parts = value.select.split('.');
-                        select[value.select] = {
+                        select[parts[0]] = {
                             className: parts[0],
                             field: parts[1]
                         };
@@ -209,11 +209,11 @@ var QueryFactory = {
                         {
                             var via = '`' + 
                                 (join.via.indexOf('.') >= 0? 
-                                    join.via.split('.').join('`.`') : 
-                                    this.className + '`.`' + join.via) + 
+                                    join.via.split('.').map((part, index) => index === 0? (this._isSubQuery? subQueryPrefix : '') + part : part).join('`.`') :
+                                    (this._isSubQuery? subQueryPrefix : '') + this.className + '`.`' + join.via) +
                                 '`';
                             
-                            joinString +=  via + ' = `' + join.alias + '`.`' + join.to + '`';
+                            joinString +=  via + ' = `' + (this._isSubQuery? subQueryPrefix : '') + join.alias + '`.`' + join.to + '`';
                         }
 
                         joins.push(joinString + ')');
