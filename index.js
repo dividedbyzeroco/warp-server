@@ -33,29 +33,30 @@ var WarpServer = function(config) {
         hasConnected = true;
         console.log();
         console.log();
-        console.log(logHeader(), '       *            *      * *');
-        console.log(logHeader(), '  *           *       *               * ');
-        console.log(logHeader(), ' *   *     *          *  *         *');
-        console.log(logHeader());
-        console.log(logHeader(), '  ////   //   //   //////  ///////   ////////');
-        console.log(logHeader(), '   //   //   //  //   //  //    //  //    //');
-        console.log(logHeader(), '   //  //   //  ///////  ///////   ///////');
-        console.log(logHeader(), '   // //  //   //   //  //  //    //');
-        console.log(logHeader(), '   //  //     //   //  //    //  //');
-        console.log(logHeader());        
-        console.log(logHeader(), '       *            *      * *      *  *');
-        console.log(logHeader(), '  *            *       *              *');
-        console.log(logHeader(), ' *   *     *          *  *      *          *');
-        console.log(logHeader());
-        console.log(logHeader(), ' VERSION ', require('./package.json').version);
-        console.log(logHeader());
-        console.log(logHeader(), '+-------------------------------------+');
-        console.log(logHeader(), '|   The server has been initialized   |');
-        console.log(logHeader(), '+-------------------------------------+');
-        console.log(logHeader(), '|      Connected to the database      |');
-        console.log(logHeader(), '+-------------------------------------+');
+        console.log('       *            *      * *');
+        console.log('  *           *       *               * ');
+        console.log(' *   *     *          *  *         *');
+        console.log();
+        console.log('  ////   //   //   //////  ///////   ////////');
+        console.log('   //   //   //  //   //  //    //  //    //');
+        console.log('   //  //   //  ///////  ///////   ///////');
+        console.log('   // //  //   //   //  //  //    //');
+        console.log('   //  //     //   //  //    //  //');
+        console.log();
+        console.log('       *            *      * *      *  *');
+        console.log('  *            *       *              *');
+        console.log(' *   *     *          *  *      *          *');
+        console.log();
+        console.log(' VERSION ', require('./package.json').version);
+        console.log();
+        console.log('+-------------------------------------+');
+        console.log('|   The server has been initialized   |');
+        console.log('+-------------------------------------+');
+        console.log('|      Connected to the database      |');
+        console.log('+-------------------------------------+');
         console.log();
         console.log();
+        console.log(logHeader(), 'Service started...');
     });
     
     // Extend query classes based on database service
@@ -76,17 +77,18 @@ var WarpServer = function(config) {
     
     // Store config
     this._config = config;
+    
+    // Prepare instance definitions
+    this._models = {};
+    this._user = null;
+    this._session = null;
+    this._router = null;
+    this._functions = {};
+    this._queues = {};
 };
 
 // Instance methods
 _.extend(WarpServer.prototype, {
-    _config: null,
-    _models: {},
-    _user: null,
-    _session: null,
-    _router: null,
-    _functions: {},
-    _queues: {},
     _requiredConfig: function(config, name) {
         if(typeof config === 'undefined') throw new WarpError(WarpError.Code.MissingConfiguration, name + ' must be set');
     },
@@ -139,7 +141,7 @@ _.extend(WarpServer.prototype, {
             fs.readdirSync(source)
             .filter(this._isAScriptFile)
             .forEach(function(file) {
-                var model = require(path.join(source, file));                
+                var model = require(path.join(source, file));
                 
                 if(file.replace('.js', '') === config.models.user)
                     user = model;
