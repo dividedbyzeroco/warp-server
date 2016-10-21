@@ -114,15 +114,18 @@ var QueryFactory = {
                     var subQuery = new ViewQuery(value.className);
                     var select = {};
                     select[value.select] = value.select;
-                    subQuery.select(select);
                     subQuery.where(value.where);
-                    subQuery._limit = value.limit || null;
-                    subQuery._skip = value.skip || null;
+                    subQuery.limit(value.limit || null);
+                    subQuery.skip(value.skip || null);
                     subQuery._isSubQuery = true;
                     if(value.select.indexOf('.'))
                     {
                         // Join is assumed to be based on `id`
                         var parts = value.select.split('.');
+                        select[value.select] = {
+                            className: parts[0],
+                            field: parts[1]
+                        };
                         subQuery.join({
                             className: parts[0],
                             alias: parts[0],
@@ -130,21 +133,26 @@ var QueryFactory = {
                             to: parts[0] + '.id',
                         });
                     }
+                    subQuery.select(select);
                     return [key, 'IN', '(', subQuery._getFindViewQuery(), ')'].join(' ');
 
                     case 'nfi':
                     var subQuery = new ViewQuery(value.className);
                     var select = {};
+                    
                     select[value.select] = value.select;
-                    subQuery.select(select);
                     subQuery.where(value.where);
-                    subQuery._limit = value.limit || null;
-                    subQuery._skip = value.skip || null;
+                    subQuery.limit(value.limit || null);
+                    subQuery.skip(value.skip || null);
                     subQuery._isSubQuery = true;
                     if(value.select.indexOf('.'))
                     {
                         // Join is assumed to be based on `id`
                         var parts = value.select.split('.');
+                        select[value.select] = {
+                            className: parts[0],
+                            field: parts[1]
+                        };
                         subQuery.join({
                             className: parts[0],
                             alias: parts[0],
@@ -152,6 +160,7 @@ var QueryFactory = {
                             to: parts[0] + '.id',
                         });
                     }
+                    subQuery.select(select);
                     return [key, 'NOT IN', '(', subQuery._getFindViewQuery(), ')'].join(' ');
                 }
             },
