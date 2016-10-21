@@ -122,7 +122,7 @@ var QueryFactory = {
                     {
                         // Join is assumed to be based on `id`
                         var parts = value.select.split('.');
-                        select[parts[0]] = {
+                        select[value.select] = {
                             className: parts[0],
                             field: parts[1]
                         };
@@ -130,7 +130,7 @@ var QueryFactory = {
                             className: parts[0],
                             alias: parts[0],
                             via: parts[0] + '_id',
-                            to: parts[0] + '.id',
+                            to: 'id',
                         });
                     }
                     subQuery.select(select);
@@ -157,7 +157,7 @@ var QueryFactory = {
                             className: parts[0],
                             alias: parts[0],
                             via: parts[0] + '_id',
-                            to: parts[0] + '.id',
+                            to: 'id',
                         });
                     }
                     subQuery.select(select);
