@@ -8,6 +8,9 @@ var WarpError = require('../error');
 // Factory
 var QueryFactory = {
     extend: function(database) {
+        // Constants
+        var subQueryPrefix = 'subquery_';
+
         // Class constructor
         var ViewQuery = function(className) {
             this.className = className;
@@ -17,6 +20,7 @@ var QueryFactory = {
             this._order = [];
             this._limit;
             this._skip;
+            this._isSubQuery = false;
         };
 
         // Instance methods
@@ -31,12 +35,22 @@ var QueryFactory = {
             },
             _parseKey: function(className, value, label) {
                 className = className || this.className;
+                if(this._isSubQuery) className = subQueryPrefix + this.className;
                 return '`' + className + '`.`' + value + '` AS `' + label + '`';
             },
             _parseConstraint: function(key, type, value) {
                 var rawKey = key;
-                key = key.indexOf('.') >= 0? '`' + key.split('.').join('`.`') + '`' : 
-                    '`' + this.className + '`.`' + key + '`';
+                if(key.indexOf('.') >= 0)
+                {
+                    var parts = key.split('.');
+                    var source = (this._isSubQuery? subQueryPrefix : '') + parts[0];
+                    key = '`' + source + '`.`' + parts[1] + '`';
+                }
+                else
+                {
+                    var source = (this._isSubQuery? subQueryPrefix : '') + this.className;
+                    key = '`' + source + '`.`' + key + '`';
+                }
                     
                 switch(type)
                 {
@@ -81,6 +95,7 @@ var QueryFactory = {
                     return [key, value? 'IS NOT NULL' : 'IS NULL'].join(' ');
                     
                     case 'in':
+                    if(value.length == 0) return '1=1';
                     var options = value.map(function(option) {
                         return  ViewQuery._getDatabase().escape(option); 
                     }.bind(this)).join(',');
@@ -88,6 +103,7 @@ var QueryFactory = {
                     return [key, 'IN', list].join(' ');
                     
                     case 'nin':
+                    if(value.length == 0) return '1=1';
                     var options = value.map(function(option) {
                         return  ViewQuery._getDatabase().escape(option); 
                     }.bind(this)).join(',');
@@ -102,6 +118,7 @@ var QueryFactory = {
                     subQuery.where(value.where);
                     subQuery._limit = value.limit || null;
                     subQuery._skip = value.skip || null;
+                    subQuery._isSubQuery = true;
                     return [key, 'IN', '(', subQuery._getFindViewQuery(), ')'].join(' ');
 
                     case 'nfi':
@@ -112,6 +129,7 @@ var QueryFactory = {
                     subQuery.where(value.where);
                     subQuery._limit = value.limit || null;
                     subQuery._skip = value.skip || null;
+                    subQuery._isSubQuery = true;
                     return [key, 'NOT IN', '(', subQuery._getFindViewQuery(), ')'].join(' ');
                 }
             },
@@ -129,7 +147,8 @@ var QueryFactory = {
                 var select = 'SELECT ' + (keys.length? keys.join(', ') : '*');        
                 
                 // Get from
-                var from = 'FROM ' + this.className;
+                var from = 'FROM `' + this.className + '`';
+                if(this._isSubQuery) from += ' AS `' + subQueryPrefix + this.className + '`';
                 
                 // Get joins
                 var joins = [];
@@ -139,7 +158,9 @@ var QueryFactory = {
                     {
                         var join = this._joins[index];
                         var className = join.className;
-                        var joinString = 'LEFT OUTER JOIN `' + className + '` AS `' + join.alias + '` ON (';
+                        var alias = join.alias;
+                        if(this._isSubQuery) alias = subQueryPrefix + alias;
+                        var joinString = 'LEFT OUTER JOIN `' + className + '` AS `' + alias + '` ON (';
                         if(typeof join.where === 'object')
                         {
                             var constraints = Object.keys(join.where).map(function(key) {
