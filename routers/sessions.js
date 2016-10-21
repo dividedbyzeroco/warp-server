@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var middleware = require('./middleware');
 
 module.exports = {
     find: function(req, res, next) {
@@ -79,11 +80,12 @@ module.exports = {
         });
     },
     apply: function(context, router) {
-        router.get('/sessions', this.find.bind(context));
-        router.get('/sessions/:id', this.first.bind(context));
-        router.post('/sessions', this.create.bind(context));
-        router.put('/sessions/:id', this.update.bind(context));
-        router.delete('/sessions/:id', this.destroy.bind(context));
+        var masterKeyRequired = middleware.requireMasterKey(context._config.security.masterKey);
+        router.get('/sessions', masterKeyRequired, this.find.bind(context));
+        router.get('/sessions/:id', masterKeyRequired, this.first.bind(context));
+        router.post('/sessions', masterKeyRequired, this.create.bind(context));
+        router.put('/sessions/:id', masterKeyRequired, this.update.bind(context));
+        router.delete('/sessions/:id', masterKeyRequired, this.destroy.bind(context));
         return router;
     }
 };

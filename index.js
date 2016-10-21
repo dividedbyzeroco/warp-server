@@ -82,6 +82,8 @@ var WarpServer = function(config) {
     this._models = {};
     this._user = null;
     this._session = null;
+    this._installation = null;
+    this._push = null;
     this._router = null;
     this._functions = {};
     this._queues = {};
@@ -106,6 +108,14 @@ _.extend(WarpServer.prototype, {
     _getSessionModel: function() {
         if(!this._session) throw new WarpError(WarpError.Code.ForbiddenOperation, 'Authentication models have not been defined');
         return this._session;
+    },
+    _getInstallationModel: function() {
+        if(!this._installation) throw new WarpError(WarpError.Code.ForbiddenOperation, 'Push models have not been defined');
+        return this._installation;
+    },
+    _getPushModel: function() {
+        if(!this._push) throw new WarpError(WarpError.Code.ForbiddenOperation, 'Push models have not been defined');
+        return this._push;
     },
     _getFunction: function(name) {
         var func = this._functions[name];
@@ -253,6 +263,19 @@ _.extend(WarpServer.prototype, {
         session._actionQuery = this.Query.Action;
         session._storage = this.Storage;
         this._session = session;        
+        return this;
+    },
+    registerPushModels: function(installation, push) {
+        if(!installation || !push) return this;
+        // Prepare installation model
+        installation._viewQuery = this.Query.View;
+        installation._actionQuery = this.Query.Action;
+        this._installation = installation;
+        
+        // Prepare push model      
+        push._viewQuery = this.Query.View;
+        push._actionQuery = this.Query.Action;
+        this._push = push;        
         return this;
     },
     registerFunction: function(func) {

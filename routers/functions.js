@@ -26,7 +26,7 @@ module.exports = {
             'session_token': { 
                 'eq' : sessionToken 
             }, 
-            'deleted_at': { 
+            'revoked_at': { 
                 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') 
             } 
         })

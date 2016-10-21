@@ -417,6 +417,7 @@ Aside from the User Model, we should also define a Session Model that, like the 
 - user (pointer)
 - origin
 - session_token
+- revoked_at
 
 An example of a Session Model would be as follows:
 
@@ -425,6 +426,7 @@ var Session = WarpServer.Model.create({
     className: 'session',
     keys: {
         // NOTE: The user field is a pointer to the 'user' table
+        // revoked_at is part of the table but is not viewable and actionable
         viewable: ['user', 'origin', 'session_token'],
         actionable: ['user', 'origin'],
         pointers: {
@@ -433,8 +435,7 @@ var Session = WarpServer.Model.create({
                 via: 'user_id'
             }
         }
-    },
-    
+    }
     // NOTE: In order for us to generate special session tokens, we must use the Pre-defined PreSave function.
     // For more info on these pre-defined functions, please see the secion on PreSave functions.
     beforeSave: WarpServer.Model.PreSave.Session(30)

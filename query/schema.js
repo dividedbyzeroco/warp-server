@@ -5,7 +5,6 @@ var WarpError = require('../error');
 
 /******************************************************/
 
-
 // Factory
 var QueryFactory = {
     DataTypes: {
