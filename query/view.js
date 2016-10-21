@@ -119,6 +119,17 @@ var QueryFactory = {
                     subQuery._limit = value.limit || null;
                     subQuery._skip = value.skip || null;
                     subQuery._isSubQuery = true;
+                    if(value.select.indexOf('.'))
+                    {
+                        // Join is assumed to be based on `id`
+                        var parts = value.select.split('.');
+                        subQuery.join({
+                            className: parts[0],
+                            alias: parts[0],
+                            via: parts[0] + '_id',
+                            to: parts[0] + '.id',
+                        });
+                    }
                     return [key, 'IN', '(', subQuery._getFindViewQuery(), ')'].join(' ');
 
                     case 'nfi':
@@ -130,6 +141,17 @@ var QueryFactory = {
                     subQuery._limit = value.limit || null;
                     subQuery._skip = value.skip || null;
                     subQuery._isSubQuery = true;
+                    if(value.select.indexOf('.'))
+                    {
+                        // Join is assumed to be based on `id`
+                        var parts = value.select.split('.');
+                        subQuery.join({
+                            className: parts[0],
+                            alias: parts[0],
+                            via: parts[0] + '_id',
+                            to: parts[0] + '.id',
+                        });
+                    }
                     return [key, 'NOT IN', '(', subQuery._getFindViewQuery(), ')'].join(' ');
                 }
             },
