@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jakejosol/warp-server.git"
+    "url": "git+https://github.com/dividedbyzeroco/warp-server.git"
   },
   "keywords": [
     "warp",
@@ -17,9 +17,9 @@
   "author": "Warp",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jakejosol/warp-server/issues"
+    "url": "https://github.com/dividedbyzeroco/warp-server/issues"
   },
-  "homepage": "https://github.com/jakejosol/warp-server#readme",
+  "homepage": "https://github.com/dividedbyzeroco/warp-server#readme",
   "dependencies": {
     "async": "^2.0.0-rc.6",
     "bcryptjs": "^2.3.0",
