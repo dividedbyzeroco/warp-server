@@ -20,12 +20,14 @@ Currently, `Warp Server` uses `mysql`/`mariadb` as its database of choice, but c
 ## Other Resources
 - **Communicating with the Server**
     - [Using the REST API](rest.md)
-    - [Using the JavaScript SDK](http://github.com/jakejosol/warp-sdk-js)
+    - [Using the JavaScript SDK](http://github.com/dividedbyzeroco/warp-sdk-js)
     - Using the Android SDK (coming soon)
     - Using the iOS SDK (coming soon)
     - Using the Xamarin SDK (coming soon)
 - **Command Line Tools**
-    - [Warp Tools for the Command Line](http://github.com/jakejosol/warp-tools)
+    - [Warp Tools for the Command Line](http://github.com/dividedbyzeroco/warp-tools)
+- **References**
+    - [References (Errors, Models, etc.)](references.md)
 
 ## Installation
 
@@ -590,7 +592,7 @@ For example, if we want to make a function for destroying all aliens of a specif
 
 ```javascript
 // Get a modified version of the Warp JS SDK from the API
-// For more info on the Warp JS SDK, please see http://github.com/jakejosol/warp-sdk-js
+// For more info on the Warp JS SDK, please see http://github.com/dividedbyzeroco/warp-sdk-js
 var api = new WarpServer(config);
 var Warp = api.Warp;
 
@@ -686,7 +688,7 @@ For example, if we want to make a queue for sending messages, we can write it as
 
 ```javascript
 // Get a modified version of the Warp JS SDK from the API
-// For more info on the Warp JS SDK, please see http://github.com/jakejosol/warp-sdk-js
+// For more info on the Warp JS SDK, please see http://github.com/dividedbyzeroco/warp-sdk-js
 var api = new WarpServer(config);
 var Warp = api.Warp;
 

@@ -5,7 +5,7 @@ After building your very own **[Warp Server](readme.md)**, you'll now be able to
 
 In order to help simplify the API, we have developed several client-side SDK's which you can use for your applications:
 
-- **[JavaScript SDK](http://github.com/jakejosol/warp-sdk-js)**
+- **[JavaScript SDK](http://github.com/dividedbyzeroco/warp-sdk-js)**
 - Android SDK (coming soon)
 - iOS SDK (coming soon)
 - Xamarin SDK (coming soon)
