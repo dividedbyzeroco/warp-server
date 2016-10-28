@@ -750,9 +750,6 @@ module.exports = new WarpServer({
 
 The Queues are now ready to be used. For more info, see the section regarding the [Queue API](rest.md#queue-api).
 
-### Additional Headers
-
-
 
 ### Third-party Libraries
 
