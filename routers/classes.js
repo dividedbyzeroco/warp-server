@@ -8,7 +8,8 @@ module.exports = {
             where: req.query.where? JSON.parse(req.query.where) : {},
             sort: req.query.sort? JSON.parse(req.query.sort) : [],
             limit: req.query.limit || 100,
-            skip: req.query.skip || 0
+            skip: req.query.skip || 0,
+            sessionToken: req.sessionToken
         };
         
         var find = this._getModel(className).find(options);
@@ -27,7 +28,7 @@ module.exports = {
         var include = req.query.include? JSON.parse(req.query.include) : [];
         var className = req.params.className;
         var id = parseInt(req.params.id);
-        var first = this._getModel(className).first(id, include);
+        var first = this._getModel(className).first(id, include, req.sessionToken);
         
         // View object
         first.then(function(result) 
@@ -42,7 +43,7 @@ module.exports = {
     create: function(req, res, next) {
         var className = req.params.className;
         var fields = _.extend({}, req.body);
-        var create = this._getModel(className).create({ fields: fields }, { client: req.client, sdkVersion: req.sdkVersion, appVersion: req.appVersion });
+        var create = this._getModel(className).create({ fields: fields }, { sessionToken: req.sessionToken, client: req.client, sdkVersion: req.sdkVersion, appVersion: req.appVersion });
         // Create object
         create.then(function(result)
         {
@@ -57,7 +58,7 @@ module.exports = {
         var className = req.params.className;
         var params = _.extend({}, req.body);
         var id = parseInt(req.params.id);
-        var update = this._getModel(className).update({ id: id, fields: params }, { client: req.client, sdkVersion: req.sdkVersion, appVersion: req.appVersion });
+        var update = this._getModel(className).update({ id: id, fields: params }, { sessionToken: req.sessionToken, client: req.client, sdkVersion: req.sdkVersion, appVersion: req.appVersion });
         
         // Update object
         update.then(function(result)
@@ -72,7 +73,7 @@ module.exports = {
     destroy: function(req, res, next) {
         var className = req.params.className;
         var id = parseInt(req.params.id);
-        var destroy = this._getModel(className).destroy({ id: id }, { client: req.client, sdkVersion: req.sdkVersion, appVersion: req.appVersion });
+        var destroy = this._getModel(className).destroy({ id: id }, { sessionToken: req.sessionToken, client: req.client, sdkVersion: req.sdkVersion, appVersion: req.appVersion });
         
         // Delete object
         destroy.then(function(result)

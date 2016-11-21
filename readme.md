@@ -57,7 +57,9 @@ var config = {
         port: 3306,
         user: 'root',
         password: 'password',
-        default: 'default_database',    
+        default: 'default_database',
+        timeout: 3000, // OPTIONAL
+        charset: 'utf8mb4_unicode_ci' // OPTIONAL
     }
 };
 
