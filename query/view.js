@@ -118,7 +118,7 @@ var QueryFactory = {
                     subQuery.limit(value.limit || null);
                     subQuery.skip(value.skip || null);
                     subQuery._isSubQuery = true;
-                    if(value.select.indexOf('.'))
+                    if(value.select.indexOf('.') >= 0)
                     {
                         // Join is assumed to be based on `id`
                         var parts = value.select.split('.');
@@ -145,7 +145,7 @@ var QueryFactory = {
                     subQuery.limit(value.limit || null);
                     subQuery.skip(value.skip || null);
                     subQuery._isSubQuery = true;
-                    if(value.select.indexOf('.'))
+                    if(value.select.indexOf('.') >= 0)
                     {
                         // Join is assumed to be based on `id`
                         var parts = value.select.split('.');
