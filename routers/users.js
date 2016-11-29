@@ -148,6 +148,42 @@ module.exports = {
             next(err);
         });
     },
+    changePassword: function(req, res, next) {
+        var sessionToken = req.sessionToken;
+        var oldPassword = req.body.old_password;
+        var query = new this.Query.View(this._getSessionModel().className);
+
+        query.where({ 'session_token': { 'eq' : sessionToken }, 'revoked_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } })
+        .first(function(result) 
+        {
+            if(!result)
+                throw new WarpError(WarpError.Code.InvalidSessionToken, 'Session does not exist');
+            
+            // Prepare user query
+            var userQuery = new this.Query.View(this._getUserModel().className);
+            userQuery.select({
+                'id': 'id', 
+                'password': 'password'
+            })
+            .where({ 'id': { 'eq': result.user_id } })
+            .first(function(user) {
+                if(!user)
+                    throw new WarpError(WarpError.Code.InvalidSessionToken, 'User does not exist');
+                
+                if(user && WarpSecurity.validate(oldPassword, user.password))
+                {
+                    // Update password, if valid
+                    return this._getUserModel().update({ id: user.id, fields: { password: req.body.new_password } }, { client: req.client, sdkVersion: req.sdkVersion, appVersion: req.appVersion });
+                }
+                else
+                    throw new WarpError(WarpError.Code.InvalidCredentials, 'Invalid credentials');
+            }.bind(this));
+        }.bind(this))
+        .catch(function(err) 
+        {
+            next(err);
+        });
+    },
     login: function(req, res, next) {
         var username = req.body.username;
         var email = req.body.email;
@@ -233,6 +269,7 @@ module.exports = {
         router.get('/users/me', this.me.bind(context));
         router.get('/users/:id', this.first.bind(context));
         router.post('/users', this.create.bind(context));
+        router.post('/users/change-password', this.changePassword.bind(context))
         router.put('/users/:id', this.update.bind(context));
         router.delete('/users/:id', this.destroy.bind(context));
         router.post('/login', this.login.bind(context));
