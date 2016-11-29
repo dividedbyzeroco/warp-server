@@ -161,7 +161,7 @@ module.exports = {
             
             // Prepare user query
             var userQuery = new this.Query.View(this._getUserModel().className);
-            userQuery.select({
+            return userQuery.select({
                 'id': 'id', 
                 'password': 'password'
             })
@@ -169,7 +169,7 @@ module.exports = {
             .first(function(user) {
                 if(!user)
                     throw new WarpError(WarpError.Code.InvalidSessionToken, 'User does not exist');
-                
+
                 if(user && WarpSecurity.validate(oldPassword, user.password))
                 {
                     // Update password, if valid
