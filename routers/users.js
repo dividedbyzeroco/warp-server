@@ -178,7 +178,10 @@ module.exports = {
                 else
                     throw new WarpError(WarpError.Code.InvalidCredentials, 'Invalid credentials');
             }.bind(this));
-        }.bind(this))
+        }.bind(this))        
+        .then(function() {
+            res.json({ status: 200, message: 'Success' });
+        })
         .catch(function(err) 
         {
             next(err);
