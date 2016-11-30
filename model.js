@@ -421,6 +421,22 @@ _.extend(Model, {
                     };
                 }
 
+                // Add deletedAt constraints for subqueries
+                for(var key in where)
+                {
+                    var constraints = where[key];
+                    for(var constraint in constraints)
+                    {
+                        if(constraint == 'fi' || constraint == 'nfi')
+                        {
+                            var details = constraints[constraint];
+                            details.where[details.className + '.' + self._internalKeys.deletedAt] = {
+                                'ex': false
+                            };
+                        }
+                    }
+                }
+
                 // Apply where constraints
                 query.where(where);
                 
