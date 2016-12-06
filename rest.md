@@ -441,6 +441,7 @@ Available constraints:
 - end: ends with the specified string
 - has: contains the specified string  (to search multiple keys, separate the key names with `|`)
 - fi: found in the given subquery, for more info, see the [Subqueries section](#subqueries)
+- fie: found in either of the given subqueries, for more info, see the [Subqueries section](#subqueries)
 - nfi: not found in the given subquery, for more info, see the [Subqueries section](#subqueries)
 
 For example:
@@ -487,6 +488,35 @@ curl -X GET \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 --data-urlencoded 'where={"planet": {"fi": { "className" : "planet", "select": "id", "where": { "type": { "eq" : "friendly" }}}}}' \
 http://localhost:3000/api/1/classes/alien
+```
+
+To see if a value is present in either of several subqueries:
+
+```javascript
+{
+    'planet': {
+        'fie': [
+            {
+                className: 'planet',
+                select: 'id',
+                where: {
+                    'type': {
+                        'eq': 'friendly'
+                    }
+                }
+            },
+            {
+                className: 'planet',
+                select: 'id',
+                where: {
+                    'type': {
+                        'eq': 'good'
+                    }
+                }
+            }
+        ]
+    }
+}
 ```
 
 

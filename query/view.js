@@ -136,6 +136,40 @@ var QueryFactory = {
                     subQuery.select(select);
                     return [key, 'IN', '(', subQuery._getFindViewQuery(), ')'].join(' ');
 
+                    case 'fie':
+                    var subQueryList = [];
+                    for(var index in value)
+                    {
+                        var details = value[index];
+                        var subQuery = new ViewQuery(details.className);
+                        var select = {};
+                        select[details.select] = details.select;
+                        subQuery.where(details.where);
+                        subQuery.limit(details.limit || null);
+                        subQuery.skip(details.skip || null);
+                        subQuery._isSubQuery = true;
+                        if(details.select.indexOf('.') >= 0)
+                        {
+                            // Join is assumed to be based on `id`
+                            var parts = details.select.split('.');
+                            select[details.select] = {
+                                className: parts[0],
+                                field: parts[1]
+                            };
+                            subQuery.join({
+                                className: parts[0],
+                                alias: parts[0],
+                                via: parts[0] + '_id',
+                                to: 'id',
+                            });
+                        }
+                        subQuery.select(select);
+
+                        // Add subquery to the list
+                        subQueryList.push([key, 'IN', '(', subQuery._getFindViewQuery(), ')'].join(' '));
+                    }
+                    return '(' + subQueryList.join(' OR ') + ')';
+
                     case 'nfi':
                     var subQuery = new ViewQuery(value.className);
                     var select = {};
