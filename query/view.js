@@ -101,6 +101,14 @@ var QueryFactory = {
                     }.bind(this)).join(',');
                     var list = ['(', options , ')'].join(' ');
                     return [key, 'IN', list].join(' ');
+
+                    case 'inx':
+                    if(value.length == 0) return '1=1';
+                    var options = value.map(function(option) {
+                        return  ViewQuery._getDatabase().escape(option); 
+                    }.bind(this)).join(',');
+                    var list = ['(', options , ')'].join(' ');
+                    return '(' + [key, 'IN', list].join(' ') + ' OR ' + [key, 'IS NULL'].join(' ') + ')';
                     
                     case 'nin':
                     if(value.length == 0) return '1=1';

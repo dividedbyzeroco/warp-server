@@ -437,6 +437,7 @@ Available constraints:
 - ex: is not null/is null (value is either true or false)
 - in: contained in array
 - nin: not contained in array
+- inx: contained in array, or is null
 - str: starts with the specified string
 - end: ends with the specified string
 - has: contains the specified string  (to search multiple keys, separate the key names with `|`)
