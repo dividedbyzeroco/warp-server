@@ -792,6 +792,7 @@ Model.Formatter = {
         }
     },
     Date: function(value) {
+        if(!value) return null;
         return moment(moment(value).format('YYYY-MM-DD HH:mm:ss') + '+00:00').tz('UTC').format();
     },
     Pointer: function(className) {
