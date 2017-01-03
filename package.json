@@ -1,6 +1,6 @@
 {
   "name": "warp-server",
-  "version": "2.14.10",
+  "version": "2.14.11",
   "description": "Warp Server",
   "main": "index.js",
   "scripts": {
