@@ -18,7 +18,8 @@ var Database = function(config, onConnect) {
     var password = config.password;
     var database = config.default;
     var timeout = config.timeout || 30000;
-    var charset = config.charset || 'utf8mb4_unicode_ci'; // Allows emojis
+    // Temporarily removed charset because of migration issues
+    //var charset = config.charset || 'utf8mb4_unicode_ci'; // Allows emojis
     this._id = config.id || this._id;
     
     this._pool = mysql.createPool({
@@ -27,8 +28,8 @@ var Database = function(config, onConnect) {
         user: user,
         password: password,
         database: database,
-        acquireTimeout: timeout,
-        charset: charset
+        acquireTimeout: timeout
+        //charset: charset
     });
 
     this._pool.on('connection', onConnect);
