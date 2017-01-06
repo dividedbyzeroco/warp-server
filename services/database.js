@@ -28,7 +28,7 @@ var Database = function(config, onConnect) {
         user: user,
         password: password,
         database: database,
-        acquireTimeout: timeout
+        acquireTimeout: timeout,
         charset: charset
     });
 
