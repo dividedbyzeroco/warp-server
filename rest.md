@@ -444,6 +444,7 @@ Available constraints:
 - fi: found in the given subquery, for more info, see the [Subqueries section](#subqueries)
 - fie: found in either of the given subqueries, for more info, see the [Subqueries section](#subqueries)
 - nfi: not found in the given subquery, for more info, see the [Subqueries section](#subqueries)
+- nfe: not found in either of the given subqueries, for more info, see the [Subqueries section](#subqueries)
 
 For example:
 
