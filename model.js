@@ -434,6 +434,18 @@ _.extend(Model, {
                                 'ex': false
                             };
                         }
+                        
+                        if(constraint == 'fie' || constraint == 'nfe')
+                        {
+                            var details = constraints[constraint];
+                            for(var index in details)
+                            {
+                                var subquery = details[index];
+                                subquery.where[subquery.className + '.' + self._internalKeys.deletedAt] = {
+                                    'ex': false
+                                };
+                            }
+                        }
                     }
                 }
 
