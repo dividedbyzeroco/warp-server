@@ -781,6 +781,7 @@ Model.Parser = {
         }
     },
     Date: function(value) {
+        if(!value) return null;
         return moment(value).tz('UTC').format('YYYY-MM-DD HH:mm:ss');
     },
     Pointer: function(pointer) {
