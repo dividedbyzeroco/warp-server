@@ -118,6 +118,14 @@ var QueryFactory = {
                     var list = ['(', options , ')'].join(' ');
                     return [key, 'NOT IN', list].join(' ');
 
+                    case 'hin':
+                    if(value.length == 0) return '1=1';
+                    var matches = value.map(function(match) {
+                        match = ViewQuery._getDatabase().escape('%' + match + '%');
+                        return [key, 'LIKE', match].join(' ');
+                    });
+                    return ['(', matches.join(' OR '), ')'].join(' ');
+
                     case 'fi':
                     var subQuery = new ViewQuery(value.className);
                     var select = {};
