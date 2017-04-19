@@ -90,6 +90,13 @@ var QueryFactory = {
                         value = '%' + value + '%';
                         value = ViewQuery._getDatabase().escape(value);
                     return [key, 'LIKE', value].join(' ');
+                    case 'hasi':
+                    if(value.length == 0) return '1=1';
+                    var matches = value.map(function(match) {
+                        match = ViewQuery._getDatabase().escape('%' + match + '%');
+                        return [key, 'LIKE', match].join(' ');
+                    });
+                    return ['(', matches.join(' OR '), ')'].join(' ');
                             
                     case 'ex':
                     return [key, value? 'IS NOT NULL' : 'IS NULL'].join(' ');
@@ -117,14 +124,6 @@ var QueryFactory = {
                     }.bind(this)).join(',');
                     var list = ['(', options , ')'].join(' ');
                     return [key, 'NOT IN', list].join(' ');
-
-                    case 'hase':
-                    if(value.length == 0) return '1=1';
-                    var matches = value.map(function(match) {
-                        match = ViewQuery._getDatabase().escape('%' + match + '%');
-                        return [key, 'LIKE', match].join(' ');
-                    });
-                    return ['(', matches.join(' OR '), ')'].join(' ');
 
                     case 'fi':
                     var subQuery = new ViewQuery(value.className);
