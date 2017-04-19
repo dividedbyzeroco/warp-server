@@ -118,7 +118,7 @@ var QueryFactory = {
                     var list = ['(', options , ')'].join(' ');
                     return [key, 'NOT IN', list].join(' ');
 
-                    case 'hin':
+                    case 'hase':
                     if(value.length == 0) return '1=1';
                     var matches = value.map(function(match) {
                         match = ViewQuery._getDatabase().escape('%' + match + '%');
