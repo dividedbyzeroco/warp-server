@@ -23,6 +23,7 @@ Often, you would only need to use the SDK's above, without having to worry about
             - **[Deleting Objects](#deleting-objects)**
             - **[Fetching Objects](#fetching-objects)**
             - **[Pointers as Keys](#pointers-as-keys)**
+            - **[Retrieving Model Keys](#Retrieving-model-keys)**
             - **[Uploading Files](#uploading-files)**
             - **[Deleting Files](#deleting-files)**
             - **[Incremental Values](#incremental-values)**
@@ -190,6 +191,43 @@ The expected response would be similar to the following:
         "rows": 1,
         "updated_at": "2016-05-12T22:11:09Z",
         "deleted_at": "2016-05-12T22:11:09Z"
+    }
+}
+```
+
+
+### Retrieving Model Keys
+
+NOTE: Retrieving object keys is only accessible via the master key. Internal keys such as `id`, `created_at`, and `updated_at` are not included by default.
+To retrieve keys for a specific model, execute a GET request to:
+
+`/classes/{CLASS_NAME}`
+
+For example:
+
+```bash
+curl -X GET \
+-G \
+-H 'X-Warp-API-Key: 12345678abcdefg' \
+-H 'X-Warp-Master-Key: abcdefg12345678' \
+http://localhost:3000/api/1/classes/alien
+```
+
+The expected response would be similar to the following:
+
+```json
+{
+    "status": 200,
+    "message": "Success",
+    "result": {
+        "viewable": ["name", "age", "type", "planet"],
+        "actionable": ["name", "age", "type", "planet"],
+        "pointers": {
+            "planet": {
+                "className":"planet",
+                "via":"planet_id"
+            }
+        }
     }
 }
 ```
