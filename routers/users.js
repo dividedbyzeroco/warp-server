@@ -3,6 +3,7 @@ var _ = require('underscore');
 var Promise = require('promise');
 var WarpError = require('../error');
 var WarpSecurity = require('../security');
+var middleware = require('./middleware');
 
 module.exports = {
     find: function(req, res, next) {
@@ -303,9 +304,27 @@ module.exports = {
             next(err);
         });
     },
+    readKeys: function(req, res, next) {
+        var model = this._getUserModel();
+        
+        // Get model keys
+        var keys = {
+            viewable: model.keys.viewable,
+            actionable: model.keys.actionable
+        };
+
+        // Check if pointers exist
+        if(model.keys.pointers)
+            keys['pointers'] = model.keys.pointers;
+
+        // Return keys
+        res.json({ status: 200, message: 'Success', result: keys});
+    },
     apply: function(context, router) {
+        var masterKeyRequired = middleware.requireMasterKey(context._config.security.masterKey);
         router.get('/users', this.find.bind(context));
         router.get('/users/me', this.me.bind(context));
+        router.get('/users/keys', masterKeyRequired, this.readKeys.bind(context));
         router.get('/users/:id', this.first.bind(context));
         router.post('/users', this.create.bind(context));
         router.post('/users/change-password', this.changePassword.bind(context))

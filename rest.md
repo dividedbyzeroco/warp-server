@@ -210,7 +210,7 @@ curl -X GET \
 -G \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 -H 'X-Warp-Master-Key: abcdefg12345678' \
-http://localhost:3000/api/1/classes/alien
+http://localhost:3000/api/1/classes/alien/keys
 ```
 
 The expected response would be similar to the following:

@@ -79,9 +79,26 @@ module.exports = {
             next(err);
         });
     },
+    readKeys: function(req, res, next) {
+        var model = this._getSessionModel();
+        
+        // Get model keys
+        var keys = {
+            viewable: model.keys.viewable,
+            actionable: model.keys.actionable
+        };
+
+        // Check if pointers exist
+        if(model.keys.pointers)
+            keys['pointers'] = model.keys.pointers;
+
+        // Return keys
+        res.json({ status: 200, message: 'Success', result: keys});
+    },
     apply: function(context, router) {
         var masterKeyRequired = middleware.requireMasterKey(context._config.security.masterKey);
         router.get('/sessions', masterKeyRequired, this.find.bind(context));
+        router.get('/sessions/keys', masterKeyRequired, this.readKeys.bind(context));
         router.get('/sessions/:id', masterKeyRequired, this.first.bind(context));
         router.post('/sessions', masterKeyRequired, this.create.bind(context));
         router.put('/sessions/:id', masterKeyRequired, this.update.bind(context));

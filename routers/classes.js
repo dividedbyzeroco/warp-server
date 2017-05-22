@@ -86,14 +86,14 @@ module.exports = {
             next(err);
         });
     },
-    options: function(req, res, next) {
+    readKeys: function(req, res, next) {
         var className = req.params.className;
         var model = this._getModel(className);
         
         // Get model keys
         var keys = {
-            viewable: model._getDefinedKeys('viewable'),
-            actionable: model._getDefinedKeys('actionable')
+            viewable: model.keys.viewable,
+            actionable: model.keys.actionable
         };
 
         // Check if pointers exist
@@ -106,11 +106,11 @@ module.exports = {
     apply: function(context, router) {
         var masterKeyRequired = middleware.requireMasterKey(context._config.security.masterKey);
         router.get('/classes/:className', this.find.bind(context));
+        router.get('/classes/:className/keys', masterKeyRequired, this.readKeys.bind(context));
         router.get('/classes/:className/:id', this.first.bind(context));
         router.post('/classes/:className', this.create.bind(context));
         router.put('/classes/:className/:id', this.update.bind(context));
         router.delete('/classes/:className/:id', this.destroy.bind(context));
-        router.options('/classes/:className', masterKeyRequired, this.options.bind(context));
         return router;
     }
 };
