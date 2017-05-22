@@ -23,7 +23,7 @@ Often, you would only need to use the SDK's above, without having to worry about
             - **[Deleting Objects](#deleting-objects)**
             - **[Fetching Objects](#fetching-objects)**
             - **[Pointers as Keys](#pointers-as-keys)**
-            - **[Retrieving Model Keys](#Retrieving-model-keys)**
+            - **[Retrieving Model Keys](#retrieving-model-keys)**
             - **[Uploading Files](#uploading-files)**
             - **[Deleting Files](#deleting-files)**
             - **[Incremental Values](#incremental-values)**
@@ -198,10 +198,13 @@ The expected response would be similar to the following:
 
 ### Retrieving Model Keys
 
-NOTE: Retrieving object keys is only accessible via the master key. Internal keys such as `id`, `created_at`, and `updated_at` are not included by default.
+NOTE: Retrieving model keys is only accessible via the master key. 
+
+Internal keys such as `id`, `created_at`, and `updated_at` are not included by default.
+
 To retrieve keys for a specific model, execute a GET request to:
 
-`/classes/{CLASS_NAME}`
+`/classes/{CLASS_NAME}/keys`
 
 For example:
 
