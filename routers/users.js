@@ -1,5 +1,6 @@
 var moment = require('moment-timezone');
 var _ = require('underscore');
+var Promise = require('promise');
 var WarpError = require('../error');
 var WarpSecurity = require('../security');
 
@@ -78,17 +79,35 @@ module.exports = {
         var params = _.extend({}, req.body);
         var id = parseInt(req.params.id);
         var sessionToken = req.sessionToken;
+        var masterKey = req.get('X-Warp-Master-Key');
         var query = new this.Query.View(this._getSessionModel().className);
+
+        // Prepare conditional promise
+        var conditionalPromise = Promise.resolve();
         
-        // Check session
-        query.where({ 'session_token': { 'eq' : sessionToken }, 'revoked_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } })
-        .first(function(result) 
+        // Check if master key is set
+        if(masterKey !== this._config.security.masterKey)
         {
-            if(!result)
-                throw new WarpError(WarpError.Code.InvalidSessionToken, 'Session does not exist');
-            if(id != result.user_id)
-                throw new WarpError(WarpError.Code.ForbiddenOperation, 'Users can only edit their own data');
-            
+            conditionalPromise = conditionalPromise.then(function() 
+            { 
+                return query.where({ 
+                    'session_token': { 'eq' : sessionToken }, 
+                    'revoked_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } 
+                })
+                .first();
+            })
+            .then(function(result) 
+            {
+                if(!result)
+                    throw new WarpError(WarpError.Code.InvalidSessionToken, 'Session does not exist');
+                if(id != result.user_id)
+                    throw new WarpError(WarpError.Code.ForbiddenOperation, 'Users can only edit their own data');
+            });
+        }
+
+        // Check session
+        conditionalPromise.then(function()
+        {
             // Update object, if valid    
             return this._getUserModel().update({ id: id, fields: params }, { client: req.client, sdkVersion: req.sdkVersion, appVersion: req.appVersion });
         }.bind(this))
@@ -106,15 +125,32 @@ module.exports = {
         var sessionToken = req.sessionToken;
         var query = new this.Query.View(this._getSessionModel().className);
         
-        // Check session
-        query.where({ 'session_token': { 'eq' : sessionToken }, 'revoked_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } })
-        .first(function(result) 
+        // Prepare conditional promise
+        var conditionalPromise = Promise.resolve();
+
+        // Check if master key is set
+        if(masterKey !== this._config.security.masterKey)
         {
-            if(!result)
-                throw new WarpError(WarpError.Code.InvalidSessionToken, 'Session does not exist');
-            if(id != result.user_id)
-                throw new WarpError(WarpError.Code.ForbiddenOperation, 'Users can only destroy their own data');
-            
+            conditionalPromise = conditionalPromise.then(function() 
+            { 
+                return query.where({ 
+                    'session_token': { 'eq' : sessionToken }, 
+                    'revoked_at': { 'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') } 
+                })
+                .first();
+            })
+            .then(function(result) 
+            {
+                if(!result)
+                    throw new WarpError(WarpError.Code.InvalidSessionToken, 'Session does not exist');
+                if(id != result.user_id)
+                    throw new WarpError(WarpError.Code.ForbiddenOperation, 'Users can only destroy their own data');
+            });
+        }
+
+        // Check session
+        conditionalPromise.then(function()
+        {
             // Destroy object, if valid    
             return this._getUserModel().destroy({ id: id }, { client: req.client, sdkVersion: req.sdkVersion, appVersion: req.appVersion });
         }.bind(this))
