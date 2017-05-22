@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var middleware = require('./middleware');
 
 module.exports = {
     find: function(req, res, next) {
@@ -85,12 +86,31 @@ module.exports = {
             next(err);
         });
     },
+    options: function(req, res, next) {
+        var className = req.params.className;
+        var model = this._getModel(className);
+        
+        // Get model keys
+        var keys = {
+            viewable: model._getDefinedKeys('viewable'),
+            actionable: model._getDefinedKeys('actionable')
+        };
+
+        // Check if pointers exist
+        if(model.keys.pointers)
+            keys['pointers'] = model.keys.pointers;
+
+        // Return keys
+        res.json({ status: 200, message: 'Success', result: keys});
+    },
     apply: function(context, router) {
+        var masterKeyRequired = middleware.requireMasterKey(context._config.security.masterKey);
         router.get('/classes/:className', this.find.bind(context));
         router.get('/classes/:className/:id', this.first.bind(context));
         router.post('/classes/:className', this.create.bind(context));
         router.put('/classes/:className/:id', this.update.bind(context));
         router.delete('/classes/:className/:id', this.destroy.bind(context));
+        router.options('/classes/:className', masterKeyRequired, this.options.bind(context));
         return router;
     }
 };
