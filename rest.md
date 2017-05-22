@@ -482,8 +482,11 @@ Available constraints:
 - str: starts with the specified string
 - end: ends with the specified string
 - has: contains the specified string  (to search multiple keys, separate the key names with `|`)
+- hasi: contains either of the specified strings
+- hasa: contains all of the specified strings
 - fi: found in the given subquery, for more info, see the [Subqueries section](#subqueries)
 - fie: found in either of the given subqueries, for more info, see the [Subqueries section](#subqueries)
+- fia: found in all of the given subqueries, for more info, see the [Subqueries section](#subqueries)
 - nfi: not found in the given subquery, for more info, see the [Subqueries section](#subqueries)
 - nfe: not found in either of the given subqueries, for more info, see the [Subqueries section](#subqueries)
 
