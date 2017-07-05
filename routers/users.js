@@ -124,6 +124,7 @@ module.exports = {
     destroy: function(req, res, next) {
         var id = parseInt(req.params.id);
         var sessionToken = req.sessionToken;
+        var masterKey = req.get('X-Warp-Master-Key');
         var query = new this.Query.View(this._getSessionModel().className);
         
         // Prepare conditional promise
