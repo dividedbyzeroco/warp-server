@@ -43,6 +43,7 @@ module.exports = {
             var request = {
                 keys: new KeyMap(req.body),
                 client: req.client,
+                sessionToken: sessionToken,
                 sdkVersion: req.sdkVersion,
                 appVersion: req.appVersion
             };
