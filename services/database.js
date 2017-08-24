@@ -21,7 +21,7 @@ var Database = function(config, onConnect) {
     // Temporarily removed charset because of migration issues
     var charset = config.charset || 'utf8mb4_unicode_ci'; // Allows emojis
     // Check if pool connections should be persistent
-    var persistentConnections = typeof config.persistentConnections == 'undefined'? true : config.persistentConnections;
+    this._persistentConnections = typeof config.persistentConnections == 'undefined'? true : config.persistentConnections;
     this._id = config.id || this._id;
     
     this._pool = mysql.createPool({
@@ -35,10 +35,6 @@ var Database = function(config, onConnect) {
     });
 
     this._pool.on('connection', onConnect);
-    this._pool.on('release', function(connection) {
-        // If connections should not be persistent, destroy the connection
-        if(!persistentConnections) connection.destroy();
-    });
 };
 
 // Static methods
@@ -66,7 +62,11 @@ _.extend(Database.prototype, {
         return new Promise(function(resolve, reject) {
             this._connect().then(function(connection) {
                 connection.query(query, function(err, rows) {
-                    connection.release();
+                    if(this._persistentConnections)
+                        connection.release();
+                    else
+                        connection.destroy();
+
                     if(err)
                     {
                         console.error(logHeader(), 'Query Error', query, err.message, err.stack);
@@ -90,7 +90,7 @@ _.extend(Database.prototype, {
                         // Return result
                         return resolve(result);
                     }
-                });
+                }.bind(this));
             });
         }.bind(this));
     },
