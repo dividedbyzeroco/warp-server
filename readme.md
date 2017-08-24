@@ -59,7 +59,8 @@ var config = {
         password: 'password',
         default: 'default_database',
         timeout: 3000, // OPTIONAL
-        charset: 'utf8mb4_unicode_ci' // OPTIONAL
+        charset: 'utf8mb4_unicode_ci', // OPTIONAL
+        persistentConnections: true // OPTIONAL, indicate whether pool connections should just be released, or destroyed
     }
 };
 

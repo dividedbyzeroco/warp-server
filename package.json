@@ -29,7 +29,7 @@
     "express": "^4.13.4",
     "moment-timezone": "^0.5.4",
     "multer": "^1.1.0",
-    "mysql": "^2.10.2",
+    "mysql": "^2.14.1",
     "promise": "^7.1.1",
     "underscore": "^1.8.3",
     "warp-sdk-js": "^1.8.3"

@@ -20,6 +20,8 @@ var Database = function(config, onConnect) {
     var timeout = config.timeout || 30000;
     // Temporarily removed charset because of migration issues
     var charset = config.charset || 'utf8mb4_unicode_ci'; // Allows emojis
+    // Check if pool connections should be persistent
+    var persistentConnections = typeof config.persistentConnections == 'undefined'? true : config.persistentConnections;
     this._id = config.id || this._id;
     
     this._pool = mysql.createPool({
@@ -33,6 +35,10 @@ var Database = function(config, onConnect) {
     });
 
     this._pool.on('connection', onConnect);
+    this._pool.on('release', function(connection) {
+        // If connections should not be persistent, destroy the connection
+        if(!persistentConnections) connection.destroy();
+    });
 };
 
 // Static methods
