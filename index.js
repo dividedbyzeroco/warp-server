@@ -23,7 +23,7 @@ var WarpServer = function(config) {
     this._requiredConfig(config.security, 'Security keys');
     this._requiredConfig(config.security.apiKey, 'API Key');
     this._requiredConfig(config.security.masterKey, 'Master Key');
-
+    
     var hasConnected = false;
             
     // Prepare database service based on config
@@ -210,7 +210,10 @@ _.extend(WarpServer.prototype, {
         var fileRouter = require('./routers/files');
         var functionRouter = require('./routers/functions');
         var queueRouter = require('./routers/queues');
-        
+        var rateLimiter = require('limiter').RateLimiter;
+        var bucketLimit = config.throttle ? config.throttle.limit : 20;
+        var throttleLimiter = new rateLimiter(bucketLimit, 'minute', true);
+
         // Apply middleware
         router.use(bodyParser.json());
         router.use(bodyParser.urlencoded({ extended: false }));
@@ -219,6 +222,7 @@ _.extend(WarpServer.prototype, {
         router.use(middleware.client);
         router.use(middleware.sdkVersion);
         router.use(middleware.appVersion);
+        router.use(middleware.limiter(throttleLimiter));
         router.use(middleware.requireAPIKey(config.security.apiKey));
         
         // Apply API routes
