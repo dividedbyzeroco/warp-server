@@ -45,5 +45,17 @@ module.exports = {
     appVersion: function(req, res, next) {
         req.appVersion = req.get('X-App-Version');
         next();
+    },
+    limiter: function(throttleLimiter) {
+        return function (req, res, next) {
+            throttleLimiter.removeTokens(1, (err, remainingRequests) => {
+                if (remainingRequests < 1) {
+                    var error = new WarpError(WarpError.Code.TooManyRequest, 'Too Many Requests');
+                    next(error);
+                } else {
+                    next();
+                }
+            });
+        };
     }
 };

@@ -26,7 +26,8 @@ WarpError.Code = {
     InvalidAPIKey: 109, // Invalid API Key
     ModelNotFound: 110,
     FunctionNotFound: 111,
-    QueueNotFound: 112
+    QueueNotFound: 112,
+    TooManyRequest: 429
 };
 
 module.exports = WarpError;
