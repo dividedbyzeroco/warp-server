@@ -15,11 +15,15 @@ function logHeader() {
 
 // Define Warp Server
 var WarpServer = function(config) {
-    // Check required configurations     
-    this._requiredConfig(config.database, 'DB configuration');
-    this._requiredConfig(config.database.host, 'DB Host');
-    this._requiredConfig(config.database.user, 'DB User');
-    this._requiredConfig(config.database.password, 'DB Password');
+    // Check database configurations
+    if(config.database)
+    {
+        this._requiredConfig(config.database.host, 'DB Host');
+        this._requiredConfig(config.database.user, 'DB User');
+        this._requiredConfig(config.database.password, 'DB Password');
+    }
+        
+    // Check security keys
     this._requiredConfig(config.security, 'Security keys');
     this._requiredConfig(config.security.apiKey, 'API Key');
     this._requiredConfig(config.security.masterKey, 'Master Key');
