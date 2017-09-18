@@ -60,7 +60,10 @@ var config = {
         default: 'default_database',
         timeout: 3000, // OPTIONAL
         charset: 'utf8mb4_unicode_ci', // OPTIONAL
-        persistentConnections: true // OPTIONAL, indicate whether pool connections should just be released, or destroyed
+        persistentConnections: true // OPTIONAL, indicate whether pool connections should just be released, or destroyed,
+    },
+    throttle: {
+        limit: 5, // Default throttle number is 20 if not assigned.
     }
 };
 
