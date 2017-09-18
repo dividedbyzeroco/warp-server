@@ -28,9 +28,43 @@ var WarpServer = function(config) {
             
     // Prepare database service based on config
     var database = require('./services/database');
-    this._database = new database(config.database, function(connection) {
-        if(hasConnected) return;
-        hasConnected = true;
+
+    // Only start database if config is defined
+    if(config.database)
+    {
+        this._database = new database(config.database, function(connection) {
+            if(hasConnected) return;
+            hasConnected = true;
+            console.log();
+            console.log();
+            console.log('       *            *      * *');
+            console.log('  *           *       *               * ');
+            console.log(' *   *     *          *  *         *');
+            console.log();
+            console.log('  ////   //   //   //////  ///////   ////////');
+            console.log('   //   //   //  //   //  //    //  //    //');
+            console.log('   //  //   //  ///////  ///////   ///////');
+            console.log('   // //  //   //   //  //  //    //');
+            console.log('   //  //     //   //  //    //  //');
+            console.log();
+            console.log('       *            *      * *      *  *');
+            console.log('  *            *       *              *');
+            console.log(' *   *     *          *  *      *          *');
+            console.log();
+            console.log(' VERSION ', require('./package.json').version);
+            console.log();
+            console.log('+-------------------------------------+');
+            console.log('|   The server has been initialized   |');
+            console.log('+-------------------------------------+');
+            console.log('|      Connected to the database      |');
+            console.log('+-------------------------------------+');
+            console.log();
+            console.log();
+            console.log(logHeader(), 'Service started...');
+        });
+    }
+    else
+    {
         console.log();
         console.log();
         console.log('       *            *      * *');
@@ -46,18 +80,19 @@ var WarpServer = function(config) {
         console.log('       *            *      * *      *  *');
         console.log('  *            *       *              *');
         console.log(' *   *     *          *  *      *          *');
+        console.log(' ::::::::::::: NO DATABASE ::::::::::::');
         console.log();
         console.log(' VERSION ', require('./package.json').version);
         console.log();
         console.log('+-------------------------------------+');
         console.log('|   The server has been initialized   |');
         console.log('+-------------------------------------+');
-        console.log('|      Connected to the database      |');
+        console.log('|   WARNING: No Database Configured   |');
         console.log('+-------------------------------------+');
         console.log();
         console.log();
         console.log(logHeader(), 'Service started...');
-    });
+    }
     
     // Extend query classes based on database service
     this.Query = {
