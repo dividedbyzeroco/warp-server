@@ -277,7 +277,7 @@ _.extend(WarpServer.prototype, {
         this._router = router;
         
         // Force the database to start the conection pool
-        this._database.query('SELECT 1+1 AS result');
+        if(this._database) this._database.query('SELECT 1+1 AS result');
         
         // Return router
         return this._router;
