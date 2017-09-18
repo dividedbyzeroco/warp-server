@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var Promise = require('promise');
 var moment = require('moment-timezone');
 
 // Utils classes
@@ -18,27 +19,37 @@ var KeyMap = function(keys) {
 
 module.exports = {
     run: function(req, res, next) {
+        // Create auth promise
+        var authPromise = Promise.resolve();
         var sessionToken = req.sessionToken;
-        var query = new this.Query.View(this._getSessionModel().className);
+
+        // Check if session and user models are defined
+        if(this._session && this._user)
+        {
+            var query = new this.Query.View(this._getSessionModel().className);
         
-        // Check session
-        query.where({ 
-            'session_token': { 
-                'eq' : sessionToken 
-            }, 
-            'revoked_at': { 
-                'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') 
-            } 
-        })
-        .first(result => {
-            if(result)
-            {
-                var userQuery = new this.Warp.Query(this.Warp.User);
-                return userQuery.get(result.user_id);
-            }
-            else return null;            
-        })
-        .then(user => {
+            // Check session
+            authPromise = authPromise.then(() => {
+                query.where({ 
+                    'session_token': { 
+                        'eq' : sessionToken 
+                    }, 
+                    'revoked_at': { 
+                        'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') 
+                    } 
+                })
+                .first(result => {
+                    if(result)
+                    {
+                        var userQuery = new this.Warp.Query(this.Warp.User);
+                        return userQuery.get(result.user_id);
+                    }
+                    else return null;
+                })
+            });
+        }
+
+        authPromise.then(user => {
             var name = req.params.name;
             var request = {
                 keys: new KeyMap(req.body),
