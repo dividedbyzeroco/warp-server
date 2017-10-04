@@ -30,7 +30,7 @@ module.exports = {
         
             // Check session
             authPromise = authPromise.then(() => {
-                query.where({ 
+                return query.where({ 
                     'session_token': { 
                         'eq' : sessionToken 
                     }, 
