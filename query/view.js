@@ -86,7 +86,7 @@ var QueryFactory = {
                                 var className = parts[0];
                                 var value = parts[1];
                                 return  '`' + className + '`.`' + value + '`';
-                            }).join(',') + ')';
+                            }).join(",' ',") + ')';
                         value = '%' + value + '%';
                         value = ViewQuery._getDatabase().escape(value);
                     return [key, 'LIKE', value].join(' ');
