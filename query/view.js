@@ -286,6 +286,10 @@ var QueryFactory = {
                         subQueryList.push([key, 'NOT IN', '(', subQuery._getFindViewQuery(), ')'].join(' '));
                     }
                     return '(' + subQueryList.join(' AND ') + ')';
+
+                    // To-Do JSON Queries
+                    // JSON_QUERY = objects, arrays
+                    // JSON_VALUE = scalars
                 }
             },
             _parseOrder: function(key, direction) {

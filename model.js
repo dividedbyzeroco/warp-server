@@ -791,6 +791,14 @@ Model.Parser = {
     File: function(file) {
         if(file === null) return null;
         return file.key;
+    },
+    Object: function(value) {
+        if(!value)
+            return null;
+        else if(typeof value === 'string')
+            return value;
+        else
+            return JSON.stringify(value);
     }
 };
 
@@ -818,6 +826,12 @@ Model.Formatter = {
         if(!key) return null;
         var url = context._storage.getUrl(key);
         return { type: 'File', key: key, url: url };
+    },
+    Object: function(value) {
+        if(!value)
+            return null;
+        else
+            return JSON.parse(value);
     }
 };
 
