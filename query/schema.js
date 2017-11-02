@@ -18,7 +18,8 @@ var QueryFactory = {
         Money: 'money',
         GeoPoint: 'geopoint',
         Integer: 'integer',
-        Pointer: 'pointer'
+        Pointer: 'pointer',
+        Object: 'object'
     },
     Addons: {
         Primary: 'primary',
@@ -70,6 +71,7 @@ var QueryFactory = {
                         break;
                         
                     case QueryFactory.DataTypes.Acl:
+                    case QueryFactory.DataTypes.Object:
                     case QueryFactory.DataTypes.Text:
                         dataType = 'TEXT';
                         break;
