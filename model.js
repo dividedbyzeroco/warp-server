@@ -526,6 +526,7 @@ _.extend(Model, {
                 // Get where options
                 var where = {};
                 where[self._internalKeys.id] = { 'eq': id };
+                where[self._internalKeys.deletedAt] = { 'ex': false };
                 query.where(where);
                                 
                 return query.first(function(result) {
