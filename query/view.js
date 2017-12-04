@@ -299,6 +299,12 @@ var QueryFactory = {
                     value = ViewQuery._getDatabase().escape(rawValue.value);
                     type = type.replace('j', '');
                     return [`${key}->>'$.${path}'`, this._operands[type], value].join(' ');
+
+                    case 'jex':
+                    rawValue = value;
+                    path = rawValue.path;
+                    value = rawValue.value;
+                    return [key, value? 'IS NOT NULL' : 'IS NULL'].join(' ');
                 }
             },
             _parseOrder: function(key, direction) {
