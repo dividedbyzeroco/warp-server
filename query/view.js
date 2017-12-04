@@ -294,17 +294,36 @@ var QueryFactory = {
                     case 'jgte':
                     case 'jlt':
                     case 'jlte':
-                    rawValue = value;
-                    path = rawValue.path;
+                    var rawValue = value;
+                    var path = ViewQuery._getDatabase().escape(rawValue.path);
                     value = ViewQuery._getDatabase().escape(rawValue.value);
                     type = type.replace('j', '');
-                    return [`${key}->>'$.${path}'`, this._operands[type], value].join(' ');
+                    return [`JSON_UNQUOTE(JSON_EXTRACT(${key},'$.${path}'))`, this._operands[type], value].join(' ');
 
-                    case 'jex':
-                    rawValue = value;
-                    path = rawValue.path;
+                    case 'jhas':
+                    var rawValue = value;
+                    var path = ViewQuery._getDatabase().escape(rawValue.path);
+                    var exists = rawValue.exists? 1 : 0;
+                    value = JSON.stringify(rawValue.value);
+                    return `JSON_CONTAINS(${key}, '${value}', '$.${path}') == ${exists}`;
+
+                    case 'jin':
+                    var rawValue = value;
+                    var path = ViewQuery._getDatabase().escape(rawValue.path);
                     value = rawValue.value;
-                    return [key, value? 'IS NOT NULL' : 'IS NULL'].join(' ');
+                    var options = value.map(function(option) {
+                        return  ViewQuery._getDatabase().escape(option); 
+                    }.bind(this)).join(',');
+                    return `JSON_UNQUOTE(JSON_EXTRACT(${key}, '$.${path}')) IN (${options})`;
+
+                    case 'jnin':
+                    var rawValue = value;
+                    var path = ViewQuery._getDatabase().escape(rawValue.path);
+                    value = rawValue.value;
+                    var options = value.map(function(option) {
+                        return  ViewQuery._getDatabase().escape(option); 
+                    }.bind(this)).join(',');
+                    return `JSON_UNQUOTE(JSON_EXTRACT(${key}, '$.${path}')) NOT IN (${options})`;
                 }
             },
             _parseOrder: function(key, direction) {
