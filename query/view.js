@@ -331,17 +331,20 @@ var QueryFactory = {
                     return `JSON_UNQUOTE(JSON_EXTRACT(${key}, '$.${path}')) NOT IN (${options})`;
 
                     case 'jstr':
-                    var rawValue = '%' + value;
+                    var rawValue = value;
+                    value = '%' + rawValue.value;
                     var path = rawValue.path;
                     return `JSON_SEARCH(${key}, 'one', '${value}', NULL, '$.${path}') IS NOT NULL`;
 
                     case 'jend':
-                    var rawValue = value + '%';
+                    var rawValue = value;
+                    value = rawValue.value + '%';
                     var path = rawValue.path;
                     return `JSON_SEARCH(${key}, 'one', '${value}', NULL, '$.${path}') IS NOT NULL`;
 
                     case 'jhas':
-                    var rawValue = '%' + value + '%';
+                    var rawValue = value;
+                    value = '%' + rawValue.value + '%';
                     var path = rawValue.path;
                     return `JSON_SEARCH(${key}, 'one', '${value}', NULL, '$.${path}') IS NOT NULL`;
                 }
