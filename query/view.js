@@ -295,26 +295,26 @@ var QueryFactory = {
                     case 'jlt':
                     case 'jlte':
                     var rawValue = value;
-                    var path = ViewQuery._getDatabase().escape(rawValue.path);
+                    var path = rawValue.path;
                     value = ViewQuery._getDatabase().escape(rawValue.value);
                     type = type.replace('j', '');
                     return [`JSON_UNQUOTE(JSON_EXTRACT(${key},'$.${path}'))`, this._operands[type], value].join(' ');
 
                     case 'jmt':
                     var rawValue = value;
-                    var path = ViewQuery._getDatabase().escape(rawValue.path);
+                    var path = rawValue.path;
                     value = JSON.stringify(rawValue.value);
                     return `JSON_CONTAINS(${key}, '${value}', '$.${path}') == 1`;
 
                     case 'jnmt':
                     var rawValue = value;
-                    var path = ViewQuery._getDatabase().escape(rawValue.path);
+                    var path = rawValue.path;
                     value = JSON.stringify(rawValue.value);
                     return `JSON_CONTAINS(${key}, '${value}', '$.${path}') == 0`;
 
                     case 'jin':
                     var rawValue = value;
-                    var path = ViewQuery._getDatabase().escape(rawValue.path);
+                    var path = rawValue.path;
                     value = rawValue.value;
                     var options = value.map(function(option) {
                         return  ViewQuery._getDatabase().escape(option); 
@@ -323,7 +323,7 @@ var QueryFactory = {
 
                     case 'jnin':
                     var rawValue = value;
-                    var path = ViewQuery._getDatabase().escape(rawValue.path);
+                    var path = rawValue.path;
                     value = rawValue.value;
                     var options = value.map(function(option) {
                         return  ViewQuery._getDatabase().escape(option); 
@@ -332,17 +332,17 @@ var QueryFactory = {
 
                     case 'jstr':
                     var rawValue = '%' + value;
-                    var path = ViewQuery._getDatabase().escape(rawValue.path);
+                    var path = rawValue.path;
                     return `JSON_SEARCH(${key}, 'one', '${value}', NULL, '$.${path}') IS NOT NULL`;
 
                     case 'jend':
                     var rawValue = value + '%';
-                    var path = ViewQuery._getDatabase().escape(rawValue.path);
+                    var path = rawValue.path;
                     return `JSON_SEARCH(${key}, 'one', '${value}', NULL, '$.${path}') IS NOT NULL`;
 
                     case 'jhas':
                     var rawValue = '%' + value + '%';
-                    var path = ViewQuery._getDatabase().escape(rawValue.path);
+                    var path = rawValue.path;
                     return `JSON_SEARCH(${key}, 'one', '${value}', NULL, '$.${path}') IS NOT NULL`;
                 }
             },
