@@ -833,6 +833,12 @@ Model.Formatter = {
             return null;
         else
             return JSON.parse(value);
+    },
+    JSON: function(value) {
+        if(!value)
+            return null;
+        else
+            return JSON.parse(value);
     }
 };
 

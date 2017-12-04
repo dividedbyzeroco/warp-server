@@ -19,7 +19,8 @@ var QueryFactory = {
         GeoPoint: 'geopoint',
         Integer: 'integer',
         Pointer: 'pointer',
-        Object: 'object'
+        Object: 'object',
+        JSON: 'json'
     },
     Addons: {
         Primary: 'primary',
@@ -74,6 +75,10 @@ var QueryFactory = {
                     case QueryFactory.DataTypes.Object:
                     case QueryFactory.DataTypes.Text:
                         dataType = 'TEXT';
+                        break;
+
+                    case QueryFactory.DataTypes.JSON:
+                        dataType = 'JSON';
                         break;
                     
                     case QueryFactory.DataTypes.Password:

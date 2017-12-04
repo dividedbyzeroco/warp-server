@@ -287,9 +287,18 @@ var QueryFactory = {
                     }
                     return '(' + subQueryList.join(' AND ') + ')';
 
-                    // To-Do JSON Queries
-                    // JSON_QUERY = objects, arrays
-                    // JSON_VALUE = scalars
+                    // JSON Queries
+                    case 'jeq':
+                    case 'jneq':
+                    case 'jgt':
+                    case 'jgte':
+                    case 'jlt':
+                    case 'jlte':
+                    rawValue = value;
+                    path = rawValue.path;
+                    value = ViewQuery._getDatabase().escape(rawValue.value);
+                    type = type.replace('j', '');
+                    return [`${key}->>'$.${path}'`, this._operands[type], value].join(' ');
                 }
             },
             _parseOrder: function(key, direction) {
