@@ -300,12 +300,17 @@ var QueryFactory = {
                     type = type.replace('j', '');
                     return [`JSON_UNQUOTE(JSON_EXTRACT(${key},'$.${path}'))`, this._operands[type], value].join(' ');
 
-                    case 'jhas':
+                    case 'jmt':
                     var rawValue = value;
                     var path = ViewQuery._getDatabase().escape(rawValue.path);
-                    var exists = rawValue.exists? 1 : 0;
                     value = JSON.stringify(rawValue.value);
-                    return `JSON_CONTAINS(${key}, '${value}', '$.${path}') == ${exists}`;
+                    return `JSON_CONTAINS(${key}, '${value}', '$.${path}') == 1`;
+
+                    case 'jnmt':
+                    var rawValue = value;
+                    var path = ViewQuery._getDatabase().escape(rawValue.path);
+                    value = JSON.stringify(rawValue.value);
+                    return `JSON_CONTAINS(${key}, '${value}', '$.${path}') == 0`;
 
                     case 'jin':
                     var rawValue = value;
@@ -324,6 +329,21 @@ var QueryFactory = {
                         return  ViewQuery._getDatabase().escape(option); 
                     }.bind(this)).join(',');
                     return `JSON_UNQUOTE(JSON_EXTRACT(${key}, '$.${path}')) NOT IN (${options})`;
+
+                    case 'jstr':
+                    var rawValue = '%' + value;
+                    var path = ViewQuery._getDatabase().escape(rawValue.path);
+                    return `JSON_SEARCH(${key}, 'one', '${value}', NULL, '$.${path}') IS NOT NULL`;
+
+                    case 'jend':
+                    var rawValue = value + '%';
+                    var path = ViewQuery._getDatabase().escape(rawValue.path);
+                    return `JSON_SEARCH(${key}, 'one', '${value}', NULL, '$.${path}') IS NOT NULL`;
+
+                    case 'jhas':
+                    var rawValue = '%' + value + '%';
+                    var path = ViewQuery._getDatabase().escape(rawValue.path);
+                    return `JSON_SEARCH(${key}, 'one', '${value}', NULL, '$.${path}') IS NOT NULL`;
                 }
             },
             _parseOrder: function(key, direction) {
