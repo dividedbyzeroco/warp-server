@@ -304,13 +304,13 @@ var QueryFactory = {
                     var rawValue = value;
                     var path = rawValue.path;
                     value = JSON.stringify(rawValue.value);
-                    return `JSON_CONTAINS(${key}, '${value}', '$.${path}') == 1`;
+                    return `JSON_CONTAINS(${key}, '${value}', '$.${path}') = 1`;
 
                     case 'jnmt':
                     var rawValue = value;
                     var path = rawValue.path;
                     value = JSON.stringify(rawValue.value);
-                    return `JSON_CONTAINS(${key}, '${value}', '$.${path}') == 0`;
+                    return `JSON_CONTAINS(${key}, '${value}', '$.${path}') = 0`;
 
                     case 'jin':
                     var rawValue = value;
