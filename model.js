@@ -800,6 +800,14 @@ Model.Parser = {
             return value;
         else
             return JSON.stringify(value);
+    },
+    JSON: function(value) {
+        if(!value)
+            return null;
+        else if(typeof value === 'string')
+            return value;
+        else
+            return JSON.stringify(value);
     }
 };
 
