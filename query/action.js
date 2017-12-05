@@ -5,6 +5,16 @@ var WarpError = require('../error');
 
 /******************************************************/
 
+function isJson(str) {
+    try {
+        JSON.parse(str);
+    }
+    catch (err) {
+        return false;
+    }
+    return true;
+}
+
 // Factory
 var QueryFactory = {
     extend: function(database) {
@@ -40,12 +50,14 @@ var QueryFactory = {
                             
                             case 'json-append':
                                 var escapedValue = ActionQuery._getDatabase().escape(value.value);
+                                if(isJson(value.value)) escapedValue = `CAST(${escapedValue} AS JSON)`;
                                 value = `JSON_ARRAY_APPEND(JSON_ARRAY(), '$', ${escapedValue})`;
                             break;
                             
                             case 'json-set':
                                 var escapedPath = ActionQuery._getDatabase().escape(value.path);
                                 var escapedValue = ActionQuery._getDatabase().escape(value.value);
+                                if(isJson(value.value)) escapedValue = `CAST(${escapedValue} AS JSON)`;
                                 value = `JSON_SET(JSON_OBJECT(), ${escapedPath}, ${escapedValue})`;
                             break;
                         }
@@ -78,6 +90,7 @@ var QueryFactory = {
                                 newKey = '`' + key + '`';
                                 var escapedPath = ActionQuery._getDatabase().escape(value.path);
                                 var escapedValue = ActionQuery._getDatabase().escape(value.value);
+                                if(isJson(value.value)) escapedValue = `CAST(${escapedValue} AS JSON)`;
                                 newValue = `JSON_ARRAY_APPEND(IFNULL(${newKey}, JSON_ARRAY()), ${escapedPath}, ${escapedValue})`;
                             break;
                             
@@ -85,6 +98,7 @@ var QueryFactory = {
                                 newKey = '`' + key + '`';
                                 var escapedPath = ActionQuery._getDatabase().escape(value.path);
                                 var escapedValue = ActionQuery._getDatabase().escape(value.value);
+                                if(isJson(value.value)) escapedValue = `CAST(${escapedValue} AS JSON)`;
                                 newValue = `JSON_SET(IFNULL(${newKey}, JSON_OBJECT()), ${escapedPath}, ${escapedValue})`;
                             break;
                         }
