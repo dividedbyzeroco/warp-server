@@ -59,69 +59,77 @@ _.extend(Model, {
     create: function(config) {
         var self = this;
         
-        // Validate subclass
-        if(!config.className)
-            throw new WarpError(WarpError.Code.MissingConfiguration, 'A `className` was not defined for this model');
-        if(!config.keys)
-            throw new WarpError(WarpError.Code.MissingConfiguration,
-            `\`keys\` have not been defined (Model: \`${config.className}\`)`);
-        if(config.pointers) 
-            throw new WarpError(WarpError.Code.ForbiddenOperation, 
-            `The \`pointers\` definition should be inside of the \`keys\` definition (Model: \`${config.className}\`)`);
-        if(config.files) 
-            throw new WarpError(WarpError.Code.ForbiddenOperation, 
-            `The \`files\` definition should be inside of the \`keys\` definition (Model: \`${config.className}\`)`);
-        
-        // Prepare subclass
-        // To-do: Emulate Warp.Object
-        var ModelSubclass =  {
-            _viewQuery: null,
-            _actionQuery: null,
-            className: config.className,
-            source: config.source || config.className,
-            keys: config.keys || {},
-            validate: config.validate || {},
-            parse: config.parse || {},
-            format: config.format || {},
-            beforeSave: config.beforeSave,
-            afterSave: config.afterSave
-        };
-        
-        // Set defaults for important items
-        ModelSubclass.keys.viewable = ModelSubclass.keys.viewable || [];
-        ModelSubclass.keys.actionable = ModelSubclass.keys.actionable || [];
-        ModelSubclass.keys.pointers = ModelSubclass.keys.pointers || {};
-        ModelSubclass.keys.files = ModelSubclass.keys.files || [];
-        
-        // Prepare parsers and formatters for pointers
-        for(var key in ModelSubclass.keys.pointers)
+        try
         {
-            var pointer = ModelSubclass.keys.pointers[key];
-
-            if(ModelSubclass.keys.actionable.find(item => item === key) 
-                && (pointer.via && pointer.via.indexOf('.') >= 0 || pointer.where))
+            // Validate subclass
+            if(!config.className)
+                throw new WarpError(WarpError.Code.MissingConfiguration, 'A `className` was not defined for this model');
+            if(!config.keys)
+                throw new WarpError(WarpError.Code.MissingConfiguration,
+                `\`keys\` have not been defined (Model: \`${config.className}\`)`);
+            if(config.pointers) 
                 throw new WarpError(WarpError.Code.ForbiddenOperation, 
-                    `Second-level pointer \`${key}\` cannot be defined as actionable (Model: \`${config.className}\`)`);
+                `The \`pointers\` definition should be inside of the \`keys\` definition (Model: \`${config.className}\`)`);
+            if(config.files) 
+                throw new WarpError(WarpError.Code.ForbiddenOperation, 
+                `The \`files\` definition should be inside of the \`keys\` definition (Model: \`${config.className}\`)`);
             
-            if(!ModelSubclass.validate[key])
-                ModelSubclass.validate[key] = Model.Validation._pointer(pointer.className);
-            if(!ModelSubclass.parse[key])
-                ModelSubclass.parse[key] = Model.Parser._pointer;
-            if(!ModelSubclass.format[key])
-                ModelSubclass.format[key] = Model.Formatter._pointer(pointer.className);
+            // Prepare subclass
+            // To-do: Emulate Warp.Object
+            var ModelSubclass =  {
+                _viewQuery: null,
+                _actionQuery: null,
+                className: config.className,
+                source: config.source || config.className,
+                keys: config.keys || {},
+                validate: config.validate || {},
+                parse: config.parse || {},
+                format: config.format || {},
+                beforeSave: config.beforeSave,
+                afterSave: config.afterSave
+            };
+            
+            // Set defaults for important items
+            ModelSubclass.keys.viewable = ModelSubclass.keys.viewable || [];
+            ModelSubclass.keys.actionable = ModelSubclass.keys.actionable || [];
+            ModelSubclass.keys.pointers = ModelSubclass.keys.pointers || {};
+            ModelSubclass.keys.files = ModelSubclass.keys.files || [];
+            
+            // Prepare parsers and formatters for pointers
+            for(var key in ModelSubclass.keys.pointers)
+            {
+                var pointer = ModelSubclass.keys.pointers[key];
+
+                if(ModelSubclass.keys.actionable.find(item => item === key) 
+                    && (pointer.via && pointer.via.indexOf('.') >= 0 || pointer.where))
+                    throw new WarpError(WarpError.Code.ForbiddenOperation, 
+                        `Second-level pointer \`${key}\` cannot be defined as actionable (Model: \`${config.className}\`)`);
+                
+                if(!ModelSubclass.validate[key])
+                    ModelSubclass.validate[key] = Model.Validation._pointer(pointer.className);
+                if(!ModelSubclass.parse[key])
+                    ModelSubclass.parse[key] = Model.Parser._pointer;
+                if(!ModelSubclass.format[key])
+                    ModelSubclass.format[key] = Model.Formatter._pointer(pointer.className);
+            }
+            
+            // Prepare parsers and formatters for files
+            for(var key in ModelSubclass.keys.files)
+            {
+                var file = ModelSubclass.keys.files[key];
+                
+                if(!ModelSubclass.validate[file])
+                    ModelSubclass.validate[file] = Model.Validation._file;
+                if(!ModelSubclass.parse[file])
+                    ModelSubclass.parse[file] = Model.Parser._file;
+                if(!ModelSubclass.format[file])
+                    ModelSubclass.format[file] = Model.Formatter._file;
+            }
         }
-        
-        // Prepare parsers and formatters for files
-        for(var key in ModelSubclass.keys.files)
+        catch(err) 
         {
-            var file = ModelSubclass.keys.files[key];
-            
-            if(!ModelSubclass.validate[file])
-                ModelSubclass.validate[file] = Model.Validation._file;
-            if(!ModelSubclass.parse[file])
-                ModelSubclass.parse[file] = Model.Parser._file;
-            if(!ModelSubclass.format[file])
-                ModelSubclass.format[file] = Model.Formatter._file;
+            console.error('[WarpServer] The server could not start...', err.message);
+            throw err;
         }
         
         // Prepare formatters for timestamps
