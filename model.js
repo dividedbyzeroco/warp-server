@@ -824,7 +824,7 @@ Model.Parser = {
 Model.Formatter = {
     Integer: function(value) {
         if(value === null) return null;
-        else if(typeof value === 'object' && value.type == 'increment') return null;
+        else if(typeof value === 'object' && value.type == 'increment') return undefined;
         else return parseInt(value, 10);
     },
     Float: function(decimals) {
@@ -857,9 +857,9 @@ Model.Formatter = {
         if(!value)
             return null;
         else if(typeof value === 'object' && value.type === 'json-append')
-            return null;
+            return undefined;
         else if(typeof value === 'object' && value.type === 'json-set')
-            return null;
+            return undefined;
         else
             return JSON.parse(value);
     }
