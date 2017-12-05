@@ -669,8 +669,8 @@ _.extend(Model, {
                     }
 
                     keys.id = request.keys.id;
-                    keys.created_at = request.keys.createdAt;
-                    keys.updated_at = request.keys.updatedAt;
+                    keys.created_at = moment.tz(request.keys.createdAt, 'UTC').format();
+                    keys.updated_at = moment.tz(request.keys.updatedAt, 'UTC').format();
 
                     return keys;
                 }.bind(this));
@@ -703,7 +703,7 @@ _.extend(Model, {
                     }                    
 
                     keys.id = request.keys.id;
-                    keys.updated_at = request.keys.updatedAt;
+                    keys.updated_at = moment.tz(request.keys.updatedAt, 'UTC').format();
 
                     return keys;
                 }.bind(this));                
