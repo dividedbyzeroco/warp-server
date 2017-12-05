@@ -39,11 +39,14 @@ var QueryFactory = {
                             break;
                             
                             case 'json-append':
-                                value = `JSON_ARRAY_APPEND(JSON_ARRAY(), '$', '${value.value}')`;
+                                var escapedValue = ActionQuery._getDatabase().escape(value.value);
+                                value = `JSON_ARRAY_APPEND(JSON_ARRAY(), '$', ${escapedValue})`;
                             break;
                             
                             case 'json-set':
-                                value = `JSON_SET(JSON_OBJECT(), '${value.path}', '${value.value}')`;
+                                var escapedPath = ActionQuery._getDatabase().escape(value.path);
+                                var escapedValue = ActionQuery._getDatabase().escape(value.value);
+                                value = `JSON_SET(JSON_OBJECT(), ${escapedPath}, ${escapedValue})`;
                             break;
                         }
                     }
@@ -73,12 +76,16 @@ var QueryFactory = {
 
                             case 'json-append':
                                 newKey = '`' + key + '`';
-                                newValue = `JSON_ARRAY_APPEND(IFNULL(${newKey}, JSON_ARRAY()), '${value.path}', '${value.value}')`;
+                                var escapedPath = ActionQuery._getDatabase().escape(value.path);
+                                var escapedValue = ActionQuery._getDatabase().escape(value.value);
+                                newValue = `JSON_ARRAY_APPEND(IFNULL(${newKey}, JSON_ARRAY()), ${escapedPath}, ${escapedValue})`;
                             break;
                             
                             case 'json-set':
                                 newKey = '`' + key + '`';
-                                newValue = `JSON_SET(IFNULL(${newKey}, JSON_OBJECT()), '${value.path}', '${value.value}')`;
+                                var escapedPath = ActionQuery._getDatabase().escape(value.path);
+                                var escapedValue = ActionQuery._getDatabase().escape(value.value);
+                                newValue = `JSON_SET(IFNULL(${newKey}, JSON_OBJECT()), ${escapedPath}, ${escapedValue})`;
                             break;
                         }
                     }
