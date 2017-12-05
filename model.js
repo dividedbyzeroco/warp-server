@@ -6,6 +6,11 @@ var WarpSecurity = require('./security');
 
 /******************************************************/
 
+// Prepare log header
+function logHeader() {
+    return '[Warp Server ' + moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') + ']';
+}
+
 // Class constructor
 var Model = {};
 
@@ -128,7 +133,7 @@ _.extend(Model, {
         }
         catch(err) 
         {
-            console.error('[WarpServer] Error Code:', err.code, err.message);
+            console.error(logHeader(), 'Error Code: ' + err.code + ',', err.message);
             throw err;
         }
         
