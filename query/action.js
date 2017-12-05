@@ -37,6 +37,14 @@ var QueryFactory = {
                             case 'increment':
                                 value = value.value || 0;
                             break;
+                            
+                            case 'json-append':
+                                value = `JSON_ARRAY_APPEND(JSON_ARRAY(), '$', '${value.value}')`;
+                            break;
+                            
+                            case 'json-set':
+                                value = `JSON_SET(JSON_OBJECT(), '${value.path}', '${value.value}')`;
+                            break;
                         }
                     }
                     return ActionQuery._getDatabase().escape(value);
@@ -61,6 +69,16 @@ var QueryFactory = {
                         {
                             case 'increment':
                                 newValue = 'IFNULL(`' + key + '`, 0) + (' + parseInt(value.value) +')';
+                            break;
+
+                            case 'json-append':
+                                newKey = '`' + key + '`';
+                                newValue = `JSON_ARRAY_APPEND(IFNULL(${newKey}, JSON_ARRAY()), '${value.path}', '${value.value}')`;
+                            break;
+                            
+                            case 'json-set':
+                                newKey = '`' + key + '`';
+                                newValue = `JSON_SET(IFNULL(${newKey}, JSON_OBJECT()), '${value.path}', '${value.value}')`;
                             break;
                         }
                     }

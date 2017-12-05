@@ -298,19 +298,19 @@ var QueryFactory = {
                     var path = rawValue.path;
                     value = ViewQuery._getDatabase().escape(rawValue.value);
                     type = type.replace('j', '');
-                    return [`JSON_UNQUOTE(JSON_EXTRACT(${key},'$.${path}'))`, this._operands[type], value].join(' ');
+                    return [`JSON_UNQUOTE(JSON_EXTRACT(${key},'${path}'))`, this._operands[type], value].join(' ');
 
                     case 'jmt':
                     var rawValue = value;
                     var path = rawValue.path;
                     value = JSON.stringify(rawValue.value);
-                    return `JSON_CONTAINS(${key}, '${value}', '$.${path}') = 1`;
+                    return `JSON_CONTAINS(${key}, '${value}', '${path}') = 1`;
 
                     case 'jnmt':
                     var rawValue = value;
                     var path = rawValue.path;
                     value = JSON.stringify(rawValue.value);
-                    return `JSON_CONTAINS(${key}, '${value}', '$.${path}') = 0`;
+                    return `JSON_CONTAINS(${key}, '${value}', '${path}') = 0`;
 
                     case 'jin':
                     var rawValue = value;
@@ -319,7 +319,7 @@ var QueryFactory = {
                     var options = value.map(function(option) {
                         return  ViewQuery._getDatabase().escape(option); 
                     }.bind(this)).join(',');
-                    return `JSON_UNQUOTE(JSON_EXTRACT(${key}, '$.${path}')) IN (${options})`;
+                    return `JSON_UNQUOTE(JSON_EXTRACT(${key}, '${path}')) IN (${options})`;
 
                     case 'jnin':
                     var rawValue = value;
@@ -328,25 +328,25 @@ var QueryFactory = {
                     var options = value.map(function(option) {
                         return  ViewQuery._getDatabase().escape(option); 
                     }.bind(this)).join(',');
-                    return `JSON_UNQUOTE(JSON_EXTRACT(${key}, '$.${path}')) NOT IN (${options})`;
+                    return `JSON_UNQUOTE(JSON_EXTRACT(${key}, '${path}')) NOT IN (${options})`;
 
                     case 'jstr':
                     var rawValue = value;
                     value = '%' + rawValue.value;
                     var path = rawValue.path;
-                    return `JSON_SEARCH(${key}, 'one', '${value}', NULL, '$.${path}') IS NOT NULL`;
+                    return `JSON_SEARCH(${key}, 'one', '${value}', NULL, '${path}') IS NOT NULL`;
 
                     case 'jend':
                     var rawValue = value;
                     value = rawValue.value + '%';
                     var path = rawValue.path;
-                    return `JSON_SEARCH(${key}, 'one', '${value}', NULL, '$.${path}') IS NOT NULL`;
+                    return `JSON_SEARCH(${key}, 'one', '${value}', NULL, '${path}') IS NOT NULL`;
 
                     case 'jhas':
                     var rawValue = value;
                     value = '%' + rawValue.value + '%';
                     var path = rawValue.path;
-                    return `JSON_SEARCH(${key}, 'one', '${value}', NULL, '$.${path}') IS NOT NULL`;
+                    return `JSON_SEARCH(${key}, 'one', '${value}', NULL, '${path}') IS NOT NULL`;
                 }
             },
             _parseOrder: function(key, direction) {

@@ -427,7 +427,7 @@ _.extend(Model, {
                     var constraints = where[key];
                     for(var constraint in constraints)
                     {
-                        if(constraint == 'fi' || constraint == 'nfi')
+                        if(constraint === 'fi' || constraint === 'nfi')
                         {
                             var details = constraints[constraint];
                             details.where[details.className + '.' + self._internalKeys.deletedAt] = {
@@ -435,7 +435,7 @@ _.extend(Model, {
                             };
                         }
                         
-                        if(constraint == 'fie' || constraint == 'nfe')
+                        if(constraint === 'fie' || constraint === 'nfe')
                         {
                             var details = constraints[constraint];
                             for(var index in details)
@@ -806,6 +806,10 @@ Model.Parser = {
             return null;
         else if(typeof value === 'string')
             return value;
+        else if(typeof value === 'object' && value.type === 'JsonAppend')
+            return { type: 'json-append', path: value.path, value: value.value };
+        else if(typeof value === 'object' && value.type === 'JsonSet')
+            return { type: 'json-set', path: value.path, value: value.value };
         else
             return JSON.stringify(value);
     }
