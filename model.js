@@ -99,6 +99,21 @@ _.extend(Model, {
             ModelSubclass.keys.actionable = ModelSubclass.keys.actionable || [];
             ModelSubclass.keys.pointers = ModelSubclass.keys.pointers || {};
             ModelSubclass.keys.files = ModelSubclass.keys.files || [];
+
+            // Check keys for potential pointers
+            for(var key in ModelSubclass.keys.viewable)
+            {
+                if(key.indexOf('_id') >= 0)
+                    console.log(logHeader(), 
+                        `WARNING: \`${key}\` appears to be pointing to another class. It would be best to make this a pointer instead.`);
+            }
+
+            for(var key in ModelSubclass.keys.actionable)
+            {
+                if(key.indexOf('_id') >= 0)
+                    console.log(logHeader(), 
+                        `WARNING: \`${key}\` appears to be pointing to another class. It would be best to make this a pointer instead.`);
+            }
             
             // Prepare parsers and formatters for pointers
             for(var key in ModelSubclass.keys.pointers)
