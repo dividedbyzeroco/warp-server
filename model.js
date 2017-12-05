@@ -58,7 +58,20 @@ _.extend(Model, {
     },  
     create: function(config) {
         var self = this;
-                
+        
+        // Validate subclass
+        if(!config.className)
+            throw new WarpError(WarpError.Code.MissingConfiguration, 'A `className` was not defined for this model');
+        if(!config.keys)
+            throw new WarpError(WarpError.Code.MissingConfiguration,
+            `\`keys\` have not been defined (Model: \`${config.className}\`)`);
+        if(config.pointers) 
+            throw new WarpError(WarpError.Code.ForbiddenOperation, 
+            `The \`pointers\` definition should be inside of the \`keys\` definition (Model: \`${config.className}\`)`);
+        if(config.files) 
+            throw new WarpError(WarpError.Code.ForbiddenOperation, 
+            `The \`files\` definition should be inside of the \`keys\` definition (Model: \`${config.className}\`)`);
+        
         // Prepare subclass
         // To-do: Emulate Warp.Object
         var ModelSubclass =  {
@@ -73,8 +86,10 @@ _.extend(Model, {
             beforeSave: config.beforeSave,
             afterSave: config.afterSave
         };
-                
-        // Set defaults for pointers and files
+        
+        // Set defaults for important items
+        ModelSubclass.keys.viewable = ModelSubclass.keys.viewable || [];
+        ModelSubclass.keys.actionable = ModelSubclass.keys.actionable || [];
         ModelSubclass.keys.pointers = ModelSubclass.keys.pointers || {};
         ModelSubclass.keys.files = ModelSubclass.keys.files || [];
         
@@ -82,13 +97,18 @@ _.extend(Model, {
         for(var key in ModelSubclass.keys.pointers)
         {
             var pointer = ModelSubclass.keys.pointers[key];
+
+            if(ModelSubclass.keys.actionable.find(item => item === key) 
+                && (pointer.via && pointer.via.indexOf('.') >= 0 || pointer.where))
+                throw new WarpError(WarpError.Code.ForbiddenOperation, 
+                    `Second-level pointer \`${key}\` cannot be defined as actionable (Model: \`${config.className}\`)`);
             
             if(!ModelSubclass.validate[key])
-                ModelSubclass.validate[key] = Model.Validation.Pointer(pointer.className);
+                ModelSubclass.validate[key] = Model.Validation._pointer(pointer.className);
             if(!ModelSubclass.parse[key])
-                ModelSubclass.parse[key] = Model.Parser.Pointer;
+                ModelSubclass.parse[key] = Model.Parser._pointer;
             if(!ModelSubclass.format[key])
-                ModelSubclass.format[key] = Model.Formatter.Pointer(pointer.className);
+                ModelSubclass.format[key] = Model.Formatter._pointer(pointer.className);
         }
         
         // Prepare parsers and formatters for files
@@ -97,11 +117,11 @@ _.extend(Model, {
             var file = ModelSubclass.keys.files[key];
             
             if(!ModelSubclass.validate[file])
-                ModelSubclass.validate[file] = Model.Validation.File;
+                ModelSubclass.validate[file] = Model.Validation._file;
             if(!ModelSubclass.parse[file])
-                ModelSubclass.parse[file] = Model.Parser.File;
+                ModelSubclass.parse[file] = Model.Parser._file;
             if(!ModelSubclass.format[file])
-                ModelSubclass.format[file] = Model.Formatter.File;
+                ModelSubclass.format[file] = Model.Formatter._file;
         }
         
         // Prepare formatters for timestamps
@@ -261,6 +281,21 @@ _.extend(Model, {
                                 var isValid = this.validate[key](value, key);
                                 if(typeof isValid === 'string')
                                     throw new WarpError(WarpError.Code.InvalidObjectKey, isValid);
+                            }
+
+                            // Data type checkers
+                            if(typeof value === 'object') 
+                            {
+                                if(value.type === 'Pointer' && this.parse[key] !== Model.Parser._pointer)
+                                    throw new WarpError(WarpError.Code.InvalidObjectKey, 'Pointers can only be used by keys defined as pointers');
+                                if(value.type === 'File' && this.parse[key] !== Model.Parser._file)
+                                    throw new WarpError(WarpError.Code.InvalidObjectKey, 'Files can only be used by keys defined as files');
+                                if(value.type === 'Increment' && this.parse[key] !== Model.Parser.Integer)
+                                    throw new WarpError(WarpError.Code.InvalidObjectKey, 'Increments can only be used by keys with Integer parsers');
+                                if(value.type === 'JsonAppend' && this.parse[key] !== Model.Parser.JSON)
+                                    throw new WarpError(WarpError.Code.InvalidObjectKey, 'JSON operations can only be used by keys with JSON parsers');
+                                if(value.type === 'JsonSet' && this.parse[key] !== Model.Parser.JSON)
+                                    throw new WarpError(WarpError.Code.InvalidObjectKey, 'JSON operations can only be used by keys with JSON parsers');
                             }
                             
                             // Parse value
@@ -730,7 +765,7 @@ Model.Validation = {
         if(isNaN(value) || parseFloat(value) != value) return key + ' must be a float value';
         return;
     },
-    Pointer: function(className) {
+    _pointer: function(className) {
         return function(value, key) {
             try
             {
@@ -747,7 +782,7 @@ Model.Validation = {
             return;
         };
     },
-    File: function(value, key) {
+    _file: function(value, key) {
         try
         {
             if(value === null) return;
@@ -785,11 +820,11 @@ Model.Parser = {
         if(!value) return null;
         return moment(value).tz('UTC').format('YYYY-MM-DD HH:mm:ss');
     },
-    Pointer: function(pointer) {
+    _pointer: function(pointer) {
         if(pointer === null) return null;
         return pointer.id;
     },
-    File: function(file) {
+    _file: function(file) {
         if(file === null) return null;
         return file.key;
     },
@@ -836,13 +871,13 @@ Model.Formatter = {
         if(!value) return null;
         return moment(moment(value).format('YYYY-MM-DD HH:mm:ss') + '+00:00').tz('UTC').format();
     },
-    Pointer: function(className) {
+    _pointer: function(className) {
         return function(value) {
             if(!value) return null;            
             return { type: 'Pointer', className: className, id: value };
         }
     },
-    File: function(key, context) {
+    _file: function(key, context) {
         if(!key) return null;
         var url = context._storage.getUrl(key);
         return { type: 'File', key: key, url: url };
