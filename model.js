@@ -128,7 +128,7 @@ _.extend(Model, {
         }
         catch(err) 
         {
-            console.error('[WarpServer] The server could not start...', err.message);
+            console.error('[WarpServer] Error Code:', err.code, err.message);
             throw err;
         }
         
