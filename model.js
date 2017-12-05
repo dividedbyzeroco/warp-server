@@ -807,9 +807,15 @@ Model.Parser = {
         else if(typeof value === 'string')
             return value;
         else if(typeof value === 'object' && value.type === 'JsonAppend')
-            return { type: 'json-append', path: value.path, value: value.value };
+        {
+            var newValue = typeof value.value == 'object'? JSON.stringify(value.value) : value.value;
+            return { type: 'json-append', path: value.path, value: newValue };
+        }
         else if(typeof value === 'object' && value.type === 'JsonSet')
-            return { type: 'json-set', path: value.path, value: value.value };
+        {
+            var newValue = typeof value.value == 'object'? JSON.stringify(value.value) : value.value;
+            return { type: 'json-set', path: value.path, value: newValue };
+        }
         else
             return JSON.stringify(value);
     }
@@ -818,7 +824,8 @@ Model.Parser = {
 Model.Formatter = {
     Integer: function(value) {
         if(value === null) return null;
-        return parseInt(value, 10);
+        else if(typeof value === 'object' && value.type == 'Increment') return null;
+        else return parseInt(value, 10);
     },
     Float: function(decimals) {
         return function(value) {
@@ -848,6 +855,10 @@ Model.Formatter = {
     },
     JSON: function(value) {
         if(!value)
+            return null;
+        else if(typeof value === 'object' && value.type === 'JsonAppend')
+            return null;
+        else if(typeof value === 'object' && value.type === 'JsonSet')
             return null;
         else
             return JSON.parse(value);
