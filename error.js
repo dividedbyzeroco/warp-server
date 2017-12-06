@@ -27,6 +27,7 @@ WarpError.Code = {
     ModelNotFound: 110,
     FunctionNotFound: 111,
     QueueNotFound: 112,
+    FunctionError: 113,
     TooManyRequest: 429
 };
 

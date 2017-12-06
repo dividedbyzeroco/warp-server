@@ -250,7 +250,7 @@ _.extend(WarpServer.prototype, {
         var functionRouter = require('./routers/functions');
         var queueRouter = require('./routers/queues');
         var rateLimiter = require('limiter').RateLimiter;
-        var bucketLimit = config.throttle ? config.throttle.limit : 20;
+        var bucketLimit = config.throttle ? config.throttle.limit : 1800; // Increased default throttle limit to 30 req/sec
         var throttleLimiter = new rateLimiter(bucketLimit, 'minute', true);
 
         // Apply middleware

@@ -1,6 +1,7 @@
 var _ = require('underscore');
 var Promise = require('promise');
 var moment = require('moment-timezone');
+var WarpError = require('../error');
 
 // Utils classes
 var KeyMap = function(keys) {
@@ -65,8 +66,7 @@ module.exports = {
                 },
                 error: function(message) {
                     if(typeof message == 'object' && message.getMessage) message = message.getMessage();
-                    var error = new Error(message);
-                    error.code = 101;
+                    var error = new WarpError(WarpError.Code.FunctionError, message);
                     next(error);
                 }
             };
