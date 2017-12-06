@@ -312,7 +312,7 @@ _.extend(Model, {
                             }
 
                             // Data type checkers
-                            if(typeof value === 'object') 
+                            if(value && typeof value === 'object') 
                             {
                                 if(value.type === 'Pointer' && this.parse[key] !== Model.Parser._pointer)
                                     throw new WarpError(WarpError.Code.InvalidObjectKey, 'Pointers can only be used by keys defined as pointers');
