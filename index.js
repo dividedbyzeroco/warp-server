@@ -364,7 +364,8 @@ _.extend(WarpServer, {
     Migration: require('./migration'),
     Storage: require('./storage'),
     Function: require('./function'),
-    Queue: require('./queue')
+    Queue: require('./queue'),
+    Error: require('./error')
 });
 
 // Export modules
