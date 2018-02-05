@@ -30,24 +30,31 @@ module.exports = {
             var query = new this.Query.View(this._getSessionModel().className);
         
             // Check session
-            authPromise = authPromise.then(() => {
-                return query.where({ 
-                    'session_token': { 
-                        'eq' : sessionToken 
-                    }, 
-                    'revoked_at': { 
-                        'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') 
-                    } 
-                })
-                .first(result => {
-                    if(result)
-                    {
-                        var userQuery = new this.Warp.Query(this.Warp.User);
-                        return userQuery.get(result.user_id);
-                    }
-                    else return null;
-                })
-            });
+            if(this._auth && typeof this._auth.session == 'function')
+                authPromise = authPromise.then(() => {
+                    return new Promise((resolve, reject) => {
+                        this._auth.session(sessionToken, resolve, reject).bind(this);
+                    });
+                });
+            else
+                authPromise = authPromise.then(() => {
+                    return query.where({ 
+                        'session_token': { 
+                            'eq' : sessionToken 
+                        }, 
+                        'revoked_at': { 
+                            'gt': moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') 
+                        } 
+                    })
+                    .first(result => {
+                        if(result)
+                        {
+                            var userQuery = new this.Warp.Query(this.Warp.User);
+                            return userQuery.get(result.user_id);
+                        }
+                        else return null;
+                    })
+                });
         }
 
         authPromise.then(user => {

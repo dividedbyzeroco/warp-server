@@ -121,6 +121,7 @@ var WarpServer = function(config) {
     this._models = {};
     this._user = null;
     this._session = null;
+    this._auth = {};
     this._installation = null;
     this._push = null;
     this._router = null;
@@ -202,6 +203,15 @@ _.extend(WarpServer.prototype, {
             
             // Register auth models
             this.registerAuthModels(user, session);
+        }
+
+        // Add custom authenticators
+        if(config.auth)
+        {
+            this.registerLoginAuth(config.auth.login);
+            this.registerMeAuth(config.auth.me);
+            this.registerLogoutAuth(config.auth.logout);
+            this.registerSessionAuth(config.auth.session);
         }
         
         // Show warnings, if need be
@@ -309,6 +319,22 @@ _.extend(WarpServer.prototype, {
         session._actionQuery = this.Query.Action;
         session._storage = this.Storage;
         this._session = session;        
+        return this;
+    },
+    registerLoginAuth: function(loginAuth) {
+        this._auth.login = loginAuth;
+        return this;
+    },
+    registerMeAuth: function(meAuth) {
+        this._auth.me = meAuth;
+        return this;
+    },
+    registerLogoutAuth: function(logoutAuth) {
+        this._auth.logout = logoutAuth;
+        return this;
+    },
+    registerSessionAuth: function(sessionAuth) {
+        this._auth.session = sessionAuth;
         return this;
     },
     registerPushModels: function(installation, push) {
