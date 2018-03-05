@@ -13,15 +13,11 @@ class FunctionClass {
 
     _metadata: MetadataType;
     _currentUser: User.Class;
-    _keyMap: KeyMap;
+    _keyMap: KeyMap = new KeyMap();
 
     constructor({ metadata, currentUser, keys }: FunctionOptionsType = {}) {
         // Check if metadata is provided
         if(typeof metadata !== 'undefined') this._metadata = metadata;
-
-        // Check if master is required
-        if(this.masterOnly && !this._metadata.isMaster)
-            throw new Error(Error.Code.ForbiddenOperation, `This function is only accessible via master`);
 
         // Check if current user is provided
         if(typeof currentUser !== 'undefined') this._currentUser = currentUser;
@@ -54,6 +50,10 @@ class FunctionClass {
         this._keyMap.get(key);
     }
 
+    get isMaster(): boolean {
+        return this._metadata.isMaster;
+    }
+
     static get functionName(): string {
         throw new Error(Error.Code.MissingConfiguration, 
             'Functions extended from `Function.Class` must define a static getter for functionName');
@@ -65,6 +65,14 @@ class FunctionClass {
 
     async run() {
         return;
+    }
+
+    async execute() {
+        // Check if master is required
+        if(this.constructor.masterOnly && (typeof this._metadata === 'undefined' || !this.isMaster))
+            throw new Error(Error.Code.ForbiddenOperation, `This function is only accessible via master`);
+
+        return await this.run();
     }
 
 }

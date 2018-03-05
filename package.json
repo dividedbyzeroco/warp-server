@@ -40,6 +40,7 @@
     "mysql": "^2.14.1",
     "parse-url": "^3.0.2",
     "promise": "^7.1.1",
+    "rimraf": "^2.6.2",
     "underscore": "^1.8.3",
     "uniqid": "^4.1.1"
   },

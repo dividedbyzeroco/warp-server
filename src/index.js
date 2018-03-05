@@ -257,7 +257,7 @@ export default class WarpServer {
                 }
                 catch(err) {
                     this._log.error(err, err.message);
-                    throw new Error(Error.Code.FunctionNotFound, `Model \`${functionName}\` does not exist`);
+                    throw new Error(Error.Code.FunctionNotFound, `Function \`${functionName}\` does not exist`);
                 }
             }
         };
@@ -512,6 +512,7 @@ export {
     Model,
     User,
     Session,
+    Function,
     Key,
     WarpServer
 };

@@ -1,6 +1,6 @@
 // References
-import Database from '../services/database';
-import { KeyValue } from '../utils/key-map';
+import Database from '../../adapters/database';
+import { KeyValue } from '../../utils/key-map';
 
 export default class Increment {
 

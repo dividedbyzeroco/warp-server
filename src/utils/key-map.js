@@ -78,7 +78,7 @@ export default class KeyMap {
         // Check if immutable
         if(this._immutable)    
             throw new Error(Error.Code.ForbiddenOperation, 'Cannot set a value for an immutable KeyMap');       
-            
+        
         // Check if key exists
         if(typeof this._map[key] === 'undefined')
             this._map[key] = new KeyValuePair(key, value);

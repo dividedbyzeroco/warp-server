@@ -1,8 +1,8 @@
 import Increment from './increment';
-import { JsonAppend, JsonSet } from './json';
+import { AppendJson, SetJson } from './json';
 
 export {
     Increment,
-    JsonAppend,
-    JsonSet
+    AppendJson,
+    SetJson
 };

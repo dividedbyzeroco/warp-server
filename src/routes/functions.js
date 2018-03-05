@@ -16,7 +16,7 @@ export const run = async ({ api, metadata, currentUser, functionName, keys }: Ru
     const func = new functionClass({ metadata, currentUser, keys });
 
     // Run the function
-    const result = await func.run();
+    const result = await func.execute();
 
     // Return the result
     return result;

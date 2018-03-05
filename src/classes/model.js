@@ -154,7 +154,7 @@ class Pointer {
         if(value === null) return true;
         if(typeof value !== 'object') return false;
         if(value.type !== 'Pointer') return false;
-        if(value.className !== this.model.className) return false;
+        if(value[InternalKeys.Pointers.ClassName] !== this.model.className) return false;
         if(value.id <= 0) return false;
         return true;
     }
@@ -168,7 +168,7 @@ class Pointer {
             // Otherwise, return a pointer object
             return {
                 type: 'Pointer',
-                className: this.model.className,
+                [InternalKeys.Pointers.ClassName]: this.model.className,
                 id: value
             };
         }
@@ -331,18 +331,17 @@ class ModelClass {
                 if(typeof keyDescriptor === 'undefined') { 
                     Object.defineProperty(this.prototype, toCamelCase(key.name), {
                         set(value) {
-                            key.set = this._keyMap.set.bind(this);
-                            key.setter(value);
+                            value = key.setter(value);
+                            this._keyMap.set(key.name, value);
                         },
                         get() {
-                            key.get = this._keyMap.get.bind(this);
-                            return key.getter();
+                            return key.getter(this._keyMap.get(key.name));
                         }
                     });
                 }
             }
-            else if(key instanceof Key) {
-                throw new Error(Error.Code.MissingConfiguration, `Key \`${key}\` must be defined with its data type`);
+            else if(Key.isImplementedBy(key)) {
+                throw new Error(Error.Code.MissingConfiguration, `Key \`${key.name}\` must be defined with a data type`);
             }
             
             // Return the map
@@ -805,7 +804,7 @@ class ModelClass {
         if(this._isPointer) 
             keys = { 
                 type: 'Pointer',
-                className: this.constructor.className,
+                [InternalKeys.Pointers.ClassName]: this.constructor.className,
                 [InternalKeys.Pointers.Attributes]: Object.keys(keys).length > 0 ? keys : undefined
             };
 

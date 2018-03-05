@@ -1,5 +1,6 @@
-import Database from '../services/database';
-import { KeyValue } from '../utils/key-map';
+// References
+import Database from '../../adapters/database';
+import { KeyValue } from '../../utils/key-map';
 
 const isJson = str => {
     try {
