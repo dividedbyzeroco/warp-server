@@ -1,7 +1,7 @@
 Warp Server
 ===========
 
-__Warp Server__ is an `express` middleware that implements an easy-to-use API for managing and querying data from your backend.
+__Warp Server__ is an `express` middleware that implements an easy-to-use API for managing and querying data from your database.
 
 Currently, `Warp Server` uses `mysql`/`mariadb` as its database of choice, but can be extended to use other data storage providers.
 
