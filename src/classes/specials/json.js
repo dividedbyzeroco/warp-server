@@ -11,12 +11,19 @@ const isJson = str => {
     return true;
 };
 
-class JsonAppend {
+class AppendJson {
 
     constructor(key, definition, isNew = false) {
         this._isNew = isNew;
         this._keyValue = new KeyValue(key, definition.value);
         this._path = definition.path;
+    }
+
+    static isImplementedBy(value) {
+        if(value === null) return false;
+        if(typeof value !== 'object') return false;
+        if(value.type !== 'AppendJson') return false;
+        return true;
     }
 
     get isNew() {
@@ -33,13 +40,6 @@ class JsonAppend {
 
     get path() {
         return Database.escape(this._path);
-    }
-
-    isImplementedBy(value) {
-        if(value === null) return false;
-        if(typeof value !== 'object') return false;
-        if(value.type !== 'JsonAppend') return false;
-        return true;
     }
 
     toString() {
@@ -51,12 +51,19 @@ class JsonAppend {
 
 }
 
-class JsonSet {
+class SetJson {
 
     constructor(key, definition, isNew = false) {
         this._isNew = isNew;
         this._keyValue = new KeyValue(key, definition.value);
         this._path = definition.path;
+    }
+
+    static isImplementedBy(value) {
+        if(value === null) return false;
+        if(typeof value !== 'object') return false;
+        if(value.type !== 'SetJson') return false;
+        return true;
     }
 
     get isNew() {
@@ -73,13 +80,6 @@ class JsonSet {
 
     get path() {
         return Database.escape(this._path);
-    }
-
-    isImplementedBy(value) {
-        if(value === null) return false;
-        if(typeof value !== 'object') return false;
-        if(value.type !== 'JsonSet') return false;
-        return true;
     }
 
     toString() {
@@ -92,6 +92,6 @@ class JsonSet {
 }
 
 export {
-    JsonAppend,
-    JsonSet
+    AppendJson,
+    SetJson
 };

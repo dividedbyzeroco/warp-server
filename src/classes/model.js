@@ -3,6 +3,7 @@
  * References
  */
 import moment from 'moment-timezone';
+import Key, { KeyManager } from './key';
 import Error from '../utils/error';
 import KeyMap from '../utils/key-map';
 import { toCamelCase } from '../utils/format';
@@ -317,6 +318,31 @@ class ModelClass {
                         }
                     });
                 }
+            }
+            // Else, if it is a key manager
+            else if(key instanceof KeyManager) {
+                // Use the name of the key
+                map[key.name] = key.name;
+
+                // Override pointer getter and setter
+                const keyDescriptor = Object.getOwnPropertyDescriptor(this.prototype, toCamelCase(key.name));
+
+                // If key descriptor doesn't exist
+                if(typeof keyDescriptor === 'undefined') { 
+                    Object.defineProperty(this.prototype, toCamelCase(key.name), {
+                        set(value) {
+                            key.set = this._keyMap.set.bind(this);
+                            key.setter(value);
+                        },
+                        get() {
+                            key.get = this._keyMap.get.bind(this);
+                            return key.getter();
+                        }
+                    });
+                }
+            }
+            else if(key instanceof Key) {
+                throw new Error(Error.Code.MissingConfiguration, `Key \`${key}\` must be defined with its data type`);
             }
             
             // Return the map

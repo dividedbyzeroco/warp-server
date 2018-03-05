@@ -11,6 +11,7 @@ import Model from './classes/model';
 import User from './classes/user';
 import Function from './classes/function';
 import Session from './classes/session';
+import Key from './classes/key';
 import Database from './adapters/database';
 import Logger from './adapters/logger';
 import Crypto from './adapters/crypto';
@@ -30,15 +31,6 @@ import classesRouter from './routes/classes';
 import usersRouter  from './routes/users';
 import sessionsRouter from './routes/sessions';
 import functionsRouter from './routes/functions';
-
-/**
- * Export classes
- */
-export {
-    Model,
-    User,
-    Session
-};
 
 /**
  * Extend enforce validations
@@ -513,7 +505,13 @@ export default class WarpServer {
     }
 }
 
-// Export WarpServer manually for systems that don't use `import`
+/**
+ * Export classes
+ */
 export {
+    Model,
+    User,
+    Session,
+    Key,
     WarpServer
 };
