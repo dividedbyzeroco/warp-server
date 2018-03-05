@@ -5,7 +5,7 @@ __Warp Server__ is an `express` middleware that implements an easy-to-use API fo
 
 Currently, `Warp Server` uses `mysql`/`mariadb` as its database of choice, but can be extended to use other data storage providers.
 
-> NOTE: This readme is being updated for version 5.0.0. For the legacy version (i.e. versions < 5.0.0), see [readme-legacy.md](#readme-legacy.md)
+> NOTE: This readme is being updated for version 5.0.0. For the legacy version (i.e. versions < 5.0.0), see [readme-legacy.md](readme-legacy.md)
 
 ## Table of Contents
 - **[Installation](#installation)**  
