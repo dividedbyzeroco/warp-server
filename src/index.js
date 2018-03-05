@@ -512,3 +512,8 @@ export default class WarpServer {
         return this._router;
     }
 }
+
+// Export WarpServer manually for systems that don't use `import`
+export {
+    WarpServer
+};
