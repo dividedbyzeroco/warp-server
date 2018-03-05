@@ -52,7 +52,7 @@ module.exports = {
         }});
         var findEmail = this._getUserModel().find({ where: {
             'email': { 'eq' : fields.email }
-        }})
+        }});
                 
         // Create object
         findUsername.then(function(result) {
@@ -329,7 +329,7 @@ module.exports = {
         router.get('/users/keys', masterKeyRequired, this.readKeys.bind(context));
         router.get('/users/:id', this.first.bind(context));
         router.post('/users', this.create.bind(context));
-        router.post('/users/change-password', this.changePassword.bind(context))
+        router.post('/users/change-password', this.changePassword.bind(context));
         router.put('/users/:id', this.update.bind(context));
         router.delete('/users/:id', this.destroy.bind(context));
         router.post('/login', this.login.bind(context));

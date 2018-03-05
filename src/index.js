@@ -1,398 +1,514 @@
-// References
-var fs = require('fs');
-var path = require('path');
-var express = require('express');
-var bodyParser = require('body-parser');
-var moment = require('moment-timezone');
-var _ = require('underscore');
-var WarpError = require('./error');
-var Warp = require('warp-sdk-js');
+// @flow
+/**
+ * References
+ */
+import express from 'express';
+import enforce from 'enforce-js';
+import moment from 'moment-timezone';
+import uniqid from 'uniqid';
+import parseUrl from 'parse-url';
+import Model from './classes/model';
+import User from './classes/user';
+import Function from './classes/function';
+import Session from './classes/session';
+import Database from './adapters/database';
+import Logger from './adapters/logger';
+import Crypto from './adapters/crypto';
+import Error from './utils/error';
+import { Subqueries } from './utils/constraint-map';
+import type { ServerConfigType } from './types/server';
+import type { SecurityConfigType } from './types/security';
+import type { DatabaseOptionsType, IDatabaseAdapter } from './types/database';
+import type { ThrottlingConfigType } from './types/throttling';
+import type { ModelMapType, ModelFunctionsType } from './types/model';
+import type { AuthMapType, AuthFunctionsType, AuthOptionsType } from './types/auth';
+import type { FunctionMethodsType, FunctionMapType } from './types/functions';
+import type { ResponseFunctionsType } from './types/response';
+import type { ILogger } from './types/logger';
+import middleware from './routes/middleware';
+import classesRouter from './routes/classes';
+import usersRouter  from './routes/users';
+import sessionsRouter from './routes/sessions';
+import functionsRouter from './routes/functions';
 
-// Prepare log header
-function logHeader() {
-    return '[Warp Server ' + moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss') + ']';
-}
-
-// Define Warp Server
-var WarpServer = function(config) {
-    // Check database configurations
-    if(config.database)
-    {
-        this._requiredConfig(config.database.host, 'DB Host');
-        this._requiredConfig(config.database.user, 'DB User');
-        this._requiredConfig(config.database.password, 'DB Password');
-    }
-        
-    // Check security keys
-    this._requiredConfig(config.security, 'Security keys');
-    this._requiredConfig(config.security.apiKey, 'API Key');
-    this._requiredConfig(config.security.masterKey, 'Master Key');
-    
-    var hasConnected = false;
-            
-    // Prepare database service based on config
-    var database = require('./services/database');
-
-    // Only start database if config is defined
-    if(config.database)
-    {
-        this._database = new database(config.database, function(connection) {
-            if(hasConnected) return;
-            hasConnected = true;
-            console.log();
-            console.log();
-            console.log('       *            *      * *');
-            console.log('  *           *       *               * ');
-            console.log(' *   *     *          *  *         *');
-            console.log();
-            console.log('  ////   //   //   //////  ///////   ////////');
-            console.log('   //   //   //  //   //  //    //  //    //');
-            console.log('   //  //   //  ///////  ///////   ///////');
-            console.log('   // //  //   //   //  //  //    //');
-            console.log('   //  //     //   //  //    //  //');
-            console.log();
-            console.log('       *            *      * *      *  *');
-            console.log('  *            *       *              *');
-            console.log(' *   *     *          *  *      *          *');
-            console.log();
-            console.log(' VERSION ', require('./package.json').version);
-            console.log();
-            console.log('+-------------------------------------+');
-            console.log('|   The server has been initialized   |');
-            console.log('+-------------------------------------+');
-            console.log('|      Connected to the database      |');
-            console.log('+-------------------------------------+');
-            console.log();
-            console.log();
-            console.log(logHeader(), 'Service started...');
-        });
-    }
-    else
-    {
-        console.log();
-        console.log();
-        console.log('       *            *      * *');
-        console.log('  *           *       *               * ');
-        console.log(' *   *     *          *  *         *');
-        console.log();
-        console.log('  ////   //   //   //////  ///////   ////////');
-        console.log('   //   //   //  //   //  //    //  //    //');
-        console.log('   //  //   //  ///////  ///////   ///////');
-        console.log('   // //  //   //   //  //  //    //');
-        console.log('   //  //     //   //  //    //  //');
-        console.log();
-        console.log('       *            *      * *      *  *');
-        console.log('  *            *       *              *');
-        console.log(' *   *     *          *  *      *          *');
-        console.log(' ::::::::::::: NO DATABASE ::::::::::::');
-        console.log();
-        console.log(' VERSION ', require('./package.json').version);
-        console.log();
-        console.log('+-------------------------------------+');
-        console.log('|   The server has been initialized   |');
-        console.log('+-------------------------------------+');
-        console.log('|   WARNING: No Database Configured   |');
-        console.log('+-------------------------------------+');
-        console.log();
-        console.log();
-        console.log(logHeader(), 'Service started...');
-    }
-    
-    // Extend query classes based on database service
-    this.Query = {
-        View: WarpServer.Query.View.extend(this._database),
-        Action: WarpServer.Query.Action.extend(this._database),
-        Schema: WarpServer.Query.Schema.extend(this._database)
-    };
-    
-    // Extend storage class based on config
-    this.Storage = WarpServer.Storage.extend(config.storage);    
-    
-    // Extend migrations based on config and query classes
-    this.Migration = WarpServer.Migration.extend(config.migrations || {}, this.Query);
-
-    // Extend queues based on config and query classes
-    //this.Queue = WarpServer.Queue.extend(config.migrations || {}, this.Query);
-    
-    // Store config
-    this._config = config;
-    
-    // Prepare instance definitions
-    this._models = {};
-    this._user = null;
-    this._session = null;
-    this._auth = {};
-    this._installation = null;
-    this._push = null;
-    this._router = null;
-    this._functions = {};
-    this._queues = {};
+/**
+ * Export classes
+ */
+export {
+    Model,
+    User,
+    Session
 };
 
-// Instance methods
-_.extend(WarpServer.prototype, {
-    _requiredConfig: function(config, name) {
-        if(typeof config === 'undefined') throw new WarpError(WarpError.Code.MissingConfiguration, name + ' must be set');
-    },
-    _getModel: function(className) {
-        if(this._user && className == this._user.className) throw new WarpError(WarpError.Code.ForbiddenOperation, 'User operations must use the appropriate API');
-        if(this._session && className == this._session.className) throw new WarpError(WarpError.Code.ForbiddenOperation, 'Session operations must use the appropriate API');
-        var model = this._models[className];
-        if(!model) throw new WarpError(WarpError.Code.ModelNotFound, 'Model not found');
-        return model;
-    },
-    _getUserModel: function() {
-        if(!this._user) throw new WarpError(WarpError.Code.ForbiddenOperation, 'Authentication models have not been defined');
-        return this._user;
-    },
-    _getSessionModel: function() {
-        if(!this._session) throw new WarpError(WarpError.Code.ForbiddenOperation, 'Authentication models have not been defined');
-        return this._session;
-    },
-    _getInstallationModel: function() {
-        if(!this._installation) throw new WarpError(WarpError.Code.ForbiddenOperation, 'Push models have not been defined');
-        return this._installation;
-    },
-    _getPushModel: function() {
-        if(!this._push) throw new WarpError(WarpError.Code.ForbiddenOperation, 'Push models have not been defined');
-        return this._push;
-    },
-    _getFunction: function(name) {
-        var func = this._functions[name];
-        if(!func) throw new WarpError(WarpError.Code.FunctionNotFound, 'Function not found');
-        return func;
-    },
-    _getQueue: function(name) {
-        var queue = this._queues[name];
-        if(!queue) throw new WarpError(WarpError.Code.QueueNotFound, 'Queue not found');
-        return queue;
-    },
-    _isAScriptFile(file) {
-        return (file.indexOf('.') !== 0) && (file.slice(-3) === '.js');
-    },
-    _prepareRouter: function() {
-        // Get warp
-        this.Warp = Warp.bind(this);
-        
-        // Set config
-        var config = this._config;
-        
-        // Register model classes
-        if(config.models && config.models.source && (Object.keys(this._models).length == 0 || this._user && this._session))
-        {
-            // Get model source
-            var source = config.models.source;
-            
-            // Define default auth models
-            var user = null;
-            var session = null;
-            
-            // Iterate through each model file
-            fs.readdirSync(source)
-            .filter(this._isAScriptFile)
-            .forEach(function(file) {
-                var model = require(path.join(source, file));
-                
-                if(file.replace('.js', '') === config.models.user)
-                    user = model;
-                else if(file.replace('.js', '') === config.models.session)
-                    session = model;
-                else
-                    this.registerModel(model);
-            }.bind(this));
-            
-            // Register auth models
-            this.registerAuthModels(user, session);
-        }
-
-        // Add custom authenticators
-        if(config.auth)
-        {
-            this.registerLoginAuth(config.auth.login);
-            this.registerMeAuth(config.auth.me);
-            this.registerLogoutAuth(config.auth.logout);
-            this.registerSessionAuth(config.auth.session);
-        }
-        
-        // Show warnings, if need be
-        if(Object.keys(this._models).length == 0)
-            console.log(logHeader(), 'WARNING: Models have not yet been defined');
-        if(!this._user || !this._session)
-            console.log(logHeader(), 'WARNING: User and/or session models have not been defined');
-                    
-        // Register function classes
-        if(config.functions && config.functions.source && Object.keys(this._functions).length == 0)
-        {
-            // Get function source
-            var source = config.functions.source;
-            
-            // Iterate through each function file
-            fs.readdirSync(source)
-            .filter(this._isAScriptFile)
-            .forEach(function(file) {
-                var func = require(path.join(source, file));
-                this.registerFunction(func);
-            }.bind(this));
-        }
-        
-        // Register queue classes
-        if(config.queues && config.queues.source && Object.keys(this._queues).length == 0)
-        {
-            // Get queue source
-            var source = config.queues.source;
-            
-            fs.readdirSync(source)
-            .filter(this._isAScriptFile)
-            .forEach(function(file) {
-                var queue = require(path.join(source, file));
-                this.registerQueue(queue);
-            }.bind(this));
-        }
-        
-        // Prepare routers
-        var router = express.Router();
-        var middleware = require('./routers/middleware');
-        var classRouter = require('./routers/classes');
-        var userRouter = require('./routers/users');
-        var sessionRouter = require('./routers/sessions');
-        var migrationRouter = require('./routers/migrations');
-        var fileRouter = require('./routers/files');
-        var functionRouter = require('./routers/functions');
-        var queueRouter = require('./routers/queues');
-        var rateLimiter = require('limiter').RateLimiter;
-        var bucketLimit = config.throttle ? config.throttle.limit : 1800; // Increased default throttle limit to 30 req/sec
-        var throttleLimiter = new rateLimiter(bucketLimit, 'minute', true);
-
-        // Apply middleware
-        router.use(bodyParser.json());
-        router.use(bodyParser.urlencoded({ extended: false }));
-        router.use(middleware.enableCors);
-        router.use(middleware.sessionToken);
-        router.use(middleware.client);
-        router.use(middleware.sdkVersion);
-        router.use(middleware.appVersion);
-        router.use(middleware.limiter(throttleLimiter));
-        router.use(middleware.requireAPIKey(config.security.apiKey));
-        
-        // Apply API routes
-        classRouter.apply(this, router);
-        userRouter.apply(this, router);
-        sessionRouter.apply(this, router);
-        fileRouter.apply(this, router);
-        functionRouter.apply(this, router);
-        migrationRouter.apply(this, router);
-        queueRouter.apply(this, router);
-        
-        // Set the router
-        this._router = router;
-        
-        // Force the database to start the conection pool
-        if(this._database) this._database.query('SELECT 1+1 AS result');
-        
-        // Return router
-        return this._router;
-    },
-    registerModel: function(model) {
-        // Prepare model
-        model._viewQuery = this.Query.View;
-        model._actionQuery = this.Query.Action;
-        model._storage = this.Storage;
-        this._models[model.className] = model;
-        return this;
-    },
-    registerModels: function(models) {
-        models.forEach(function(model) {
-            this.registerModel(model);
-        }.bind(this));
-        return this;
-    },
-    registerAuthModels: function(user, session) {
-        if(!user || !session) return this;
-        // Prepare user model
-        user._viewQuery = this.Query.View;
-        user._actionQuery = this.Query.Action;
-        user._storage = this.Storage;
-        this._user = user;  
-        
-        // Prepare session model      
-        session._viewQuery = this.Query.View;
-        session._actionQuery = this.Query.Action;
-        session._storage = this.Storage;
-        this._session = session;        
-        return this;
-    },
-    registerLoginAuth: function(loginAuth) {
-        this._auth.login = loginAuth;
-        return this;
-    },
-    registerMeAuth: function(meAuth) {
-        this._auth.me = meAuth;
-        return this;
-    },
-    registerLogoutAuth: function(logoutAuth) {
-        this._auth.logout = logoutAuth;
-        return this;
-    },
-    registerSessionAuth: function(sessionAuth) {
-        this._auth.session = sessionAuth;
-        return this;
-    },
-    registerPushModels: function(installation, push) {
-        if(!installation || !push) return this;
-        // Prepare installation model
-        installation._viewQuery = this.Query.View;
-        installation._actionQuery = this.Query.Action;
-        this._installation = installation;
-        
-        // Prepare push model      
-        push._viewQuery = this.Query.View;
-        push._actionQuery = this.Query.Action;
-        this._push = push;        
-        return this;
-    },
-    registerFunction: function(func) {
-        this._functions[func.name] = func;    
-        return this;
-    },
-    registerFunctions: function(funcs) {
-        funcs.forEach(function(func) {
-            this.registerFunction(func);
-        }.bind(this));    
-        return this;
-    },
-    registerQueue: function(queue) {
-        this._queues[queue.name] = queue;
-        return this;
-    },
-    registerQueues: function(queues) {
-        queues.forEach(function(queue) {
-            this.registerQueue(queue);
-        }.bind(this));  
-        return this;
-    },
-    // Return express router
-    router: function() {
-        if(this._router)
-            return this._router;
-        else
-            return this._prepareRouter();
+/**
+ * Extend enforce validations
+ */
+enforce.extend(/^equivalent to an array$/i, val => {
+    try {
+        const parsedValue = JSON.parse(val);
+        if(parsedValue instanceof Array) return true;
+        else return false;
+    }
+    catch(err) {
+        return false;
     }
 });
 
-// Static properties and methods
-_.extend(WarpServer, {
-    Query: {
-        View: require('./query/view'),
-        Action: require('./query/action'),
-        Schema: require('./query/schema')
-    },
-    Model: require('./model'),
-    Migration: require('./migration'),
-    Storage: require('./storage'),
-    Function: require('./function'),
-    Queue: require('./queue'),
-    Error: require('./error')
+enforce.extend(/^equivalent to an object$/i, val => {
+    try {
+        const parsedValue = JSON.parse(val);
+        if(typeof parsedValue === 'object') return true;
+        else return false;
+    }
+    catch(err) {
+        return false;
+    }
 });
 
-// Export modules
-module.exports = WarpServer;
+enforce.extend(/^and a valid email address$/i, val => {
+    return /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i.test(val);
+});
+
+/**
+ * @class WarpServer
+ * @description WarpServer definition
+ */
+export default class WarpServer {
+
+    /**
+     * Private properties
+     */
+    
+    _log: ILogger = Logger.use('console', 'Warp Server', process.env.LOG_LEVEL || 'error');
+    _security: SecurityConfigType;
+    _database: IDatabaseAdapter;
+    _throttling: ThrottlingConfigType = { limit: 30, unit: 'second' };
+    _models: ModelMapType = {};
+    _auth: AuthMapType;
+    _functions: FunctionMapType = {};
+    _router: express.Router;
+    _customResponse: boolean = false;
+
+    /**
+     * Constructor
+     * @param {Object} config 
+     */
+    constructor({ 
+        apiKey,
+        masterKey,
+        passwordSalt,
+        sessionDuration,
+        databaseURI,
+        keepConnections,
+        charset,
+        timeout,
+        requestLimit,
+        customResponse
+    }: ServerConfigType): void {
+        // Set security
+        this._setSecurity({ apiKey, masterKey, passwordSalt, sessionDuration });
+
+        // Set database
+        if(typeof databaseURI !== 'undefined')
+            this._setDatabase({ databaseURI, keepConnections, charset, timeout });
+
+        // Set throttling
+        if(typeof requestLimit !== 'undefined')
+            this._setThrottling({ limit: requestLimit, unit: 'second' });
+
+        if(typeof customResponse !== 'undefined')
+            this._customResponse = customResponse;
+    }
+
+    /**
+     * Getters and Setters
+     */
+
+    get apiKey(): string {
+        return this._security.apiKey;
+    }
+
+    get masterKey(): string {
+        return this._security.masterKey;
+    }
+
+    get hasDatabase(): boolean {
+        // Check if database is defined
+        return typeof this._database !== 'undefined';
+    }
+
+    get throttling(): ThrottlingConfigType {
+        return this._throttling;
+    }
+
+    get models(): ModelFunctionsType {
+        return {
+            add: (map: ModelMapType) => {
+                // Enforce
+                enforce`${{ 'models.add(map)': map }} as an object`;
+
+                // Loop through each map item
+                for(let key in map) {
+                    // Get the model
+                    let model = map[key];
+
+                    // Get a sample instance
+                    let modelInstance = new model;
+
+                    // Enforce data type
+                    enforce`${{ [model.className]: modelInstance }} as a ${{ 'Model.Class': Model.Class }}`;
+
+                    // If model is an auth class
+                    if(modelInstance instanceof User.Class || modelInstance instanceof Session.Class)
+                        throw new Error(Error.Code.ForbiddenOperation, 'User and Session classes must be set using `auth` instead of `models`');
+                    else // Otherwise, it is a regular class
+                        this._models[model.className] = model.initialize(this._database);
+                }
+            },
+            get: (className: string): typeof Model.Class => {
+                try {
+                    // Enforce
+                    enforce`${{ className }} as a string`;
+
+                    // Get the model
+                    const modelClass = this._models[className];
+
+                    // Enforce
+                    enforce`${{ [className]: new modelClass }} as a ${{ 'Model.Class': Model.Class }}`;
+
+                    // Return model
+                    return modelClass;
+                }
+                catch(err) {
+                    this._log.error(err, err.message);
+                    throw new Error(Error.Code.ModelNotFound, `Model \`${className}\` does not exist`);
+                }
+            }
+        };
+    }
+
+    get auth(): AuthFunctionsType {
+        return {
+            set: (user: typeof User.Class, session: typeof Session.Class) => {
+                // Get sample instances
+                let userInstance = new user;
+                let sessionInstance = new session;
+
+                // Enforce data type
+                enforce`${{ [user.className]: userInstance }} as a ${{ 'User.Class': User.Class }}`;
+                enforce`${{ [session.className]: sessionInstance }} as a ${{ 'Session.Class': Session.Class }}`;
+
+                // Create and assign crypto to user
+                const crypto = Crypto.use('bcrypt', this._security.passwordSalt);
+                user.setCrypto(crypto);
+
+                // Assign user to session
+                session.setUser(user);
+
+                // Set auth classes
+                this._auth = { user: user.initialize(this._database), session: session.initialize(this._database) };
+            },
+            user: (): typeof User.Class => {
+                // Check if auth exists
+                if(typeof this._auth === 'undefined')
+                    throw new Error(Error.Code.MissingConfiguration, 'Authentication has not been defined');
+
+                // Return model
+                return this._auth.user;
+            },
+            session: (): typeof Session.Class => {
+                // Check if auth exists
+                if(typeof this._auth === 'undefined')
+                    throw new Error(Error.Code.MissingConfiguration, 'Authentication has not been defined');
+
+                // Return model
+                return this._auth.session;
+            }
+        };
+    }
+
+    get functions(): FunctionMethodsType {
+        return {
+            add: (map: FunctionMapType) => {
+                // Enforce
+                enforce`${{ 'functions.add(map)': map }} as an object`;
+
+                // Loop through each map item
+                for(let key in map) {
+                    // Get the func
+                    let func = map[key];
+
+                    // Get a sample instance
+                    let funcInstance = new func;
+
+                    // Enforce data type
+                    enforce`${{ [func.functionName]: funcInstance }} as a ${{ 'Function.Class': Function.Class }}`;
+
+                    // Set function
+                    this._functions[func.functionName] = func;
+                }
+
+            },
+            get: (functionName: string) => {
+                try {
+                    // Enforce
+                    enforce`${{ functionName }} as a string`;
+
+                    // Get the function
+                    const functionClass = this._functions[functionName];
+
+                    // Enforce
+                    enforce`${{ [functionName]: new functionClass }} as a ${{ 'Function.Class': Function.Class }}`;
+
+                    // Return function
+                    return functionClass;
+                }
+                catch(err) {
+                    this._log.error(err, err.message);
+                    throw new Error(Error.Code.FunctionNotFound, `Model \`${functionName}\` does not exist`);
+                }
+            }
+        };
+    }
+
+    get response(): ResponseFunctionsType {
+        return {
+            success: (req: express.Request, res: express.Response, next: express.NextFunction) => {
+                // Check if response success exists
+                if(this._customResponse)
+                    next();
+                else {
+                    res.status(200);
+                    res.json({ result: req.result });
+                }
+            },
+            error: (err: Error, req: express.Request, res: express.Response, next: express.NextFunction, ) => {
+                // Check if response error exists
+                if(this._customResponse)
+                    next(err);
+                else {
+                    res.status(400);
+                    res.json({ code: err.code, message: err.message });
+                }
+            }
+        };
+    }
+
+    /**
+     * Private methods
+     */
+
+     /**
+      * Set security configuration
+      * @param {Object} config
+      */
+    _setSecurity({ apiKey, masterKey, passwordSalt = 8, sessionDuration = '2 years' }: SecurityConfigType): void {
+        // Enforce
+        enforce`${{apiKey}} as a string`;
+        enforce`${{masterKey}} as a string`;
+        enforce`${{sessionDuration}} as an optional string`;
+        
+        // Set keys
+        this._security = { 
+            apiKey, 
+            masterKey, 
+            passwordSalt: passwordSalt, 
+            sessionDuration: sessionDuration
+        };
+    }
+
+     /**
+      * Extract database configuration from URI
+      * @param {Object} config
+      */
+    _extractDatabaseConfig(databaseURI: string) {
+        const parsedURI = parseUrl(databaseURI);
+        const identity = parsedURI.user.split(':');
+
+        return {
+            protocol: parsedURI.protocol,
+            host: parsedURI.resource,
+            port: parsedURI.port,
+            user: identity[0],
+            password: identity[1],
+            schema: parsedURI.pathname.slice(1)
+        };
+    }
+
+    /**
+     * Set database configuration
+     * @param {Object} config
+     */
+    _setDatabase({ databaseURI, keepConnections = false, charset = 'utf8mb4_unicode_ci', timeout = 30 * 1000 }: DatabaseOptionsType) {
+        // Extract database config
+        const { protocol, host, port, user, password, schema } = this._extractDatabaseConfig(databaseURI);
+
+        // Enforce
+        enforce`${{protocol}} as a string`;
+        enforce`${{host}} as a string`;
+        enforce`${{port}} as a number`;
+        enforce`${{user}} as a string`;
+        enforce`${{password}} as a string`;
+        enforce`${{schema}} as a string`;
+        enforce`${{keepConnections}} as a boolean`;
+        enforce`${{charset}} as a string`;
+        enforce`${{timeout}} as a number`;
+
+        // Set database
+        this._database = Database.use(protocol, {
+            host,
+            port,
+            user,
+            password,
+            schema,
+            keepConnections,
+            charset,
+            timeout
+        });
+    }
+
+    /**
+     * Set throttling configuration
+     * @param {Object} config
+     */
+    _setThrottling({ 
+        limit = 60, 
+        unit = 'second' 
+    }: ThrottlingConfigType) {
+        // Enforce
+        enforce`${{limit}} as a number`;
+        enforce`${{unit}} as a string`;
+
+        // Set values
+        this._throttling = { limit, unit };
+    }
+
+    /**
+     * Public methods
+     */
+    
+    async initialize() {
+        try {
+            this._log.info('Starting Warp Server...');
+
+            // Attempt to connect to the database
+            if(this.hasDatabase) await this._database.initialize();
+
+
+            // Display startup screen
+            this._log.bare(`
+            -------------------------------------------
+            -------------------------------------------
+            ------------------------------------=/-----
+            ---------------------------------==/ ------
+            -------------------------------==/  -------
+            ----====|__    --====/   ----==/   --------
+            ------=====|   --===/    ---==/   ---------
+            -------====|   --==/     --==/   ----------
+            --------===|   --=/  |   -==/   -----------
+            ---------==|   --/  =|   ==/   ------------
+            ----------=|   -/  ==|   =/   -------------
+            ----------=|   /  -==|   /   --------------
+            ----------=|     --==|      ---------------
+            -------------------------------------------
+            -------------------------------------------
+            -------------------------------------------
+                                                                                            
+                         Warp Server ${require('../package.json').version}
+
+            +-----------------------------------------+
+            |     The server has been initialized     |
+            +-----------------------------------------+
+            `);
+            this._log.info('Service started');
+            if(!this.hasDatabase) this._log.info('NOTE: No database has been configured');
+        }
+        catch(err) {
+            this._log.error(err, err.message);
+        }
+    }
+
+    async authenticate({ sessionToken, username, email, password }: AuthOptionsType): Promise<User.Class | void> {
+        // If session token is provided, search for the matching session
+        if(typeof sessionToken !== 'undefined') {
+            // Get session model
+            const SessionModel = this.auth.session();
+            
+            // Verify session token
+            const user = await SessionModel.verify(sessionToken);
+
+            // Return user
+            return user;
+        }
+        else if(typeof password !== 'undefined') {
+            // Get user model
+            const UserModel = this.auth.user();
+
+            // Validate user credentials
+            const user = await UserModel.verify({ username, email, password });
+
+            // Return user
+            return user;
+        }
+
+        return;
+    }
+
+    createSessionToken(user: User.Class) {
+        return uniqid(`${(user.id * 1024 * 1024).toString(36)}-`) + (Math.random()*1e32).toString(36).slice(0, 8);
+    }
+
+    getRevocationDate() {
+        const sessionDuration = this._security.sessionDuration.split(' ');
+        return this._database.parseDate(moment().add(parseInt(sessionDuration[0]), sessionDuration[1]));
+    }
+
+    parseSubqueries(where: {[name: string]: {[name: string]: any}}): {[name: string]: {[name: string]: any}} {
+        // Get auth classes
+        const userClass = this.auth.user();
+        const sessionClass = this.auth.session();
+
+        // Iterate through the keys
+        for(let key in where) {
+            // Check if there are subquery constraints
+            for(let index in Subqueries) {
+                // Get constraint
+                let constraint = Subqueries[index];
+
+                // Check if the constraint exists
+                if(typeof where[key][constraint] !== 'undefined') {                    
+                    // Prepare subquery parameters
+                    const subquery = where[key][constraint];
+                    const subqueryModelClass = userClass.className === subquery.className? userClass 
+                        : sessionClass.className === subquery.className? sessionClass
+                            : this.models.get(subquery.className);
+                    
+                    // Set the new value for the constraint
+                    where[key][constraint] = subqueryModelClass.getSubquery(subquery);
+                }
+            }
+        }
+
+        // Return the provided where map
+        return where;
+    }
+
+    get router(): express.Router {
+        // If a router has not yet been defined, prepare the router
+        if(typeof this._router === 'undefined') {
+            // Prepare routers
+            const router = express.Router();
+            router.use(middleware(this));
+            router.use(classesRouter(this));
+            router.use(usersRouter(this));
+            router.use(sessionsRouter(this));
+            router.use(functionsRouter(this));
+
+            // Set the router value
+            this._router = router;
+        }
+
+        // Return the router
+        return this._router;
+    }
+}
