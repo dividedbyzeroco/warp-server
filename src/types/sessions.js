@@ -1,11 +1,5 @@
 // @flow
-/**
- * References
- */
-import WarpServer from '../index';
-
 export type FindOptionsType = {
-    api: WarpServer,
     select: Array<string>,
     include: Array<string>,
     where: {[name: string]: {[name: string]: any}},
@@ -15,7 +9,6 @@ export type FindOptionsType = {
 }
 
 export type GetOptionsType = {
-    api: WarpServer,
     id: number,
     select: Array<string>,
     include: Array<string>

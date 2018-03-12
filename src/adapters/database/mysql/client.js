@@ -3,7 +3,6 @@
  * References
  */
 import mysql from 'mysql';
-import moment from 'moment-timezone';
 import type { DatabaseConfigType } from '../../../types/database';
 import Error from '../../../utils/error';
 import { Increment, SetJson, AppendJson } from '../../../classes/specials';
@@ -47,10 +46,6 @@ export default class DatabaseClient {
 
     get pool(): mysql.Pool {
         return this._pool;
-    }
-
-    get currentTimestamp(): string {
-        return this.escape(moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss'));
     }
 
     escape(value: any) {

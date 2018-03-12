@@ -5,184 +5,17 @@
 import express from 'express';
 import enforce from 'enforce-js';
 import WarpServer from '../index';
-import { Defaults } from '../utils/constants';
-import ConstraintMap from '../utils/constraint-map';
-import Error from '../utils/error';
-import type { 
-    GetOptionsType, 
-    FindOptionsType, 
-    CreateOptionsType, 
-    UpdateOptionsType,
-    DestroyOptionsType,
-    LoginOptionsType,
-    MeOptionsType,
-    LogoutOptionsType
-} from '../types/users';
-
-/**
- * Define routes
- */
-
-export const find = async ({ api, select, include, where, sort, skip, limit }: FindOptionsType) => {
-    // Parse subqueries
-    where = api.parseSubqueries(where);
-
-    // Prepare query
-    const query = {
-        select,
-        include,
-        where: new ConstraintMap(where),
-        sort: sort || Defaults.Query.Sort,
-        skip: skip || Defaults.Query.Skip,
-        limit: limit || Defaults.Query.Limit
-    };
-
-    // Get model
-    const modelClass = api.auth.user();
-
-    // Find matching objects
-    const modelCollection = await modelClass.find(query);
-
-    // Return collection
-    return modelCollection;
-};
-
-export const get = async ({ api, id, select, include }: GetOptionsType) => {
-    // Enforce
-    enforce`${{ select }} as an optional array`;
-    enforce`${{ include }} as an optional array`;
-
-    // Prepare query
-    const query = {
-        select: select || [],
-        include: include || [],
-        id
-    };
-
-    // Get model
-    const modelClass = api.auth.user();
-
-    // Find matching object
-    const model = await modelClass.getById(query);
-
-    // Check if model is found
-    if(typeof model === 'undefined')
-        throw new Error(Error.Code.ForbdiddenOperation, `User with id \`${id}\` not found`);
-
-    // Return the model
-    return model;
-};
-
-export const create = async ({ api, metadata, currentUser, keys }: CreateOptionsType) => {
-    // Check if session token is provided
-    if(typeof currentUser !== 'undefined')
-        throw new Error(Error.Code.ForbdiddenOperation, 'Users cannot be created using an active session. Please log out.');
-
-    // Get model
-    const modelClass = api.auth.user();
-    const model = new modelClass({ metadata, currentUser, keys });
-
-    // Save the object
-    await model.save();
-
-    // Return the model
-    return model;
-};
-
-export const update = async ({ api, metadata, currentUser, keys, id }: UpdateOptionsType) => {
-    // Check if the editor is the same user
-    if(!metadata.isMaster && (typeof currentUser === 'undefined' || currentUser.id !== id))
-        throw new Error(Error.Code.ForbdiddenOperation, 'User details can only be edited by their owner or via master');
-
-    // Get model
-    const modelClass = api.auth.user();
-    const model = new modelClass({ metadata, currentUser, keys, id });
-
-    // Save the object
-    await model.save();
-
-    // Return the model
-    return model;
-};
-
-export const destroy = async({ api, metadata, currentUser, id }: DestroyOptionsType) => {
-    // Check if the destroyer is the same user
-    if(!metadata.isMaster && (typeof currentUser === 'undefined' || currentUser.id !== id))
-        throw new Error(Error.Code.ForbdiddenOperation, 'User details can only be destroyed by their owner or via master');
-
-    // Get model
-    const modelClass = api.auth.user();
-    const model = new modelClass({ metadata, currentUser, id });
-
-    // Destroy the object
-    await model.destroy();
-
-    // Return the model
-    return model;
-};
-
-export const logIn = async({ api, metadata, currentUser, username, email, password }: LoginOptionsType) => {
-    // Get session class
-    const sessionClass = api.auth.session();
-
-    // Check if session token is provided
-    if(typeof currentUser !== 'undefined')
-        throw new Error(Error.Code.ForbdiddenOperation, 'Cannot log in using an active session. Please log out.');
-
-    // Authenticate the user
-    const user = await api.authenticate({ username, email, password });
-
-    // If no user found
-    if(!(user instanceof api.auth.user()))
-        throw new Error(Error.Code.InvalidCredentials, 'Invalid username/password');
-
-    // If the user is found, create a new session
-    const keys = {
-        [sessionClass.userKey]: user.toPointer().toJSON(),
-        [sessionClass.originKey]: metadata.client,
-        [sessionClass.sessionTokenKey]: api.createSessionToken(user),
-        [sessionClass.revokedAtKey]: api.getRevocationDate()
-    };
-
-    const session = new sessionClass({ metadata, keys });
-
-    // Save the new session
-    await session.save();
-
-    // Return the session
-    return session;
-};
-
-export const me = async({ currentUser }: MeOptionsType) => {
-    // Check if currentUser exists
-    if(typeof currentUser === 'undefined')
-        throw new Error(Error.Code.InvalidSessionToken, 'Session does not exist');
-    
-    // Return the current user
-    return currentUser;
-};
-
-export const logOut = async({ api, sessionToken }: LogoutOptionsType) => {
-    // Get session class
-    const sessionClass = api.auth.session();
-
-    // Find provided session
-    const session = await sessionClass.getFromToken(sessionToken);
-
-    if(typeof session === 'undefined')
-        throw new Error(Error.Code.InvalidSessionToken, 'Session does not exist');
-
-    // Destroy the session
-    await session.destroy();
-
-    // Return the session
-    return session;
-};
+import UserController from '../controllers/user';
 
 /**
  * Define router    
  */
 const users = (api: WarpServer): express.Router => {
+    /**
+     * Define controller
+     */
+    const controller = new UserController(api);
+
     /**
      * Define router
      */
@@ -211,7 +44,7 @@ const users = (api: WarpServer): express.Router => {
             sort = typeof sort !== 'undefined' ? JSON.parse(sort) : undefined;
 
             // $FlowFixMe
-            const modelCollection = await find({ api, select, include, where, sort, skip, limit });
+            const modelCollection = await controller.find({ select, include, where, sort, skip, limit });
 
             // Return response
             req.result = modelCollection;
@@ -234,7 +67,7 @@ const users = (api: WarpServer): express.Router => {
        try {
             if(id === 'me') {
                 // Get user
-                const user = await me({ currentUser });
+                const user = await controller.me({ currentUser });
 
                 // Return response
                 req.result = user;
@@ -252,7 +85,7 @@ const users = (api: WarpServer): express.Router => {
                 include = typeof include !== 'undefined' ? JSON.parse(include) : undefined;
 
                 // $FlowFixMe
-                const model = await get({ api, id, select, include });
+                const model = await controller.get({ id, select, include });
 
                 // Return response
                 req.result = model;
@@ -276,7 +109,7 @@ const users = (api: WarpServer): express.Router => {
 
         try {
             // Create model
-            const model = await create({ api, metadata, currentUser, keys });
+            const model = await controller.create({ metadata, currentUser, keys });
 
             // Return response
             req.result = model;
@@ -300,7 +133,7 @@ const users = (api: WarpServer): express.Router => {
 
         try {
             // Update model
-            const model = await update({ api, metadata, currentUser, keys, id });
+            const model = await controller.update({ metadata, currentUser, keys, id });
 
             // Return response
             req.result = model;
@@ -323,7 +156,7 @@ const users = (api: WarpServer): express.Router => {
 
         try {
             // Destroy model
-            const model = await destroy({ api, metadata, currentUser, id });
+            const model = await controller.destroy({ metadata, currentUser, id });
 
             // Return response
             req.result = model;
@@ -346,7 +179,7 @@ const users = (api: WarpServer): express.Router => {
 
         try {
             // Get session
-            const session = await logIn({ api, metadata, currentUser, username, email, password });
+            const session = await controller.logIn({ metadata, currentUser, username, email, password });
 
             // Return response
             req.result = session;
@@ -367,7 +200,7 @@ const users = (api: WarpServer): express.Router => {
 
         try {
             // Log out of session
-            const session = await logOut({ api, sessionToken });
+            const session = await controller.logOut({ sessionToken });
 
             // Return response
             req.result = session;

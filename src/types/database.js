@@ -41,7 +41,6 @@ export type SubqueryOptionsType = {
 export interface IDatabaseAdapter {
     constructor(config: DatabaseConfigType): void;
     +currentTimestamp: string;
-    parseDate(date: string): string;
     initialize(): Promise<void>;
     find(
         source: string,

@@ -4,28 +4,17 @@
  */
 import express from 'express';
 import WarpServer from '../index';
-import type { RunOptionsType } from '../types/functions';
-
-/**
- * Define routes
- */
-
-export const run = async ({ api, metadata, currentUser, functionName, keys }: RunOptionsType) => {
-    // Get function
-    const functionClass = api.functions.get(functionName);
-    const func = new functionClass({ metadata, currentUser, keys });
-
-    // Run the function
-    const result = await func.execute();
-
-    // Return the result
-    return result;
-};
+import FunctionController from '../controllers/function';
 
 /**
  * Define router
  */
 const functions = (api: WarpServer): express.Router => {
+    /**
+     * Define controller
+     */
+    const controller = new FunctionController(api);
+
     /**
      * Define router
      */
@@ -43,7 +32,7 @@ const functions = (api: WarpServer): express.Router => {
 
         try {
             // Run function
-            const result = await run({ api, metadata, currentUser, functionName, keys });
+            const result = await controller.run({ metadata, currentUser, functionName, keys });
 
             // Return response
             req.result = result;

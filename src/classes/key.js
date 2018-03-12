@@ -2,9 +2,9 @@
 /**
  * References
  */
-import moment from 'moment-timezone';
 import { Increment, SetJson, AppendJson } from './specials';
 import Error from '../utils/error';
+import { toDatabaseDate, toISODate } from '../utils/format';
 
 export class KeyManager {
 
@@ -59,28 +59,25 @@ function Key(name: string) {
     
             return key;
         },
-        asDate: (format?: string) => {
+        asDate: () => {
             const key = new KeyManager(instance.name);
             key._setter = value => {
                 // If null, set value to null
                 if(typeof value === 'undefined' || value === null) return null;
     
-                // Get the date
-                const date = moment(value);
-    
                 // If the date is not valid, throw an error
-                if(!date.isValid()) {
+                try {
+                    return toDatabaseDate(value);
+                }
+                catch(err) {
                     throw new Error(Error.Code.InvalidObjectKey, `Key \`${instance.name}\` is not a valid date`);
                 }
-                
-                return date.tz('UTC').format('YYYY-MM-DD HH:mm:ss');
             };
     
             key._getter = value => {
                 // Get the date
-                const date = value;
-                if(typeof date === 'undefined' || date === null) return null;
-                else return moment(moment(date).format('YYYY-MM-DD HH:mm:ss') + '+00:00').tz('UTC').format(format);
+                if(typeof value === 'undefined' || value === null) return null;
+                else return toISODate(value);
             };
     
             return key;

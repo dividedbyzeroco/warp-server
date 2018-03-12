@@ -5,72 +5,17 @@
 import express from 'express';
 import enforce from 'enforce-js';
 import WarpServer from '../index';
-import { Defaults } from '../utils/constants';
-import ConstraintMap from '../utils/constraint-map';
-import Error from '../utils/error';
-import type { 
-    GetOptionsType, 
-    FindOptionsType
-} from '../types/sessions';
-
-/**
- * Define routes
- */
-
-export const find = async ({ api, select, include, where, sort, skip, limit }: FindOptionsType) => {
-    // Parse subqueries
-    where = api.parseSubqueries(where);
-
-    // Prepare query
-    const query = {
-        select,
-        include,
-        where: new ConstraintMap(where),
-        sort: sort || Defaults.Query.Sort,
-        skip: skip || Defaults.Query.Skip,
-        limit: limit || Defaults.Query.Limit
-    };
-
-    // Get model
-    const modelClass = api.auth.session();
-
-    // Find matching objects
-    const modelCollection = await modelClass.find(query);
-
-    // Return collection
-    return modelCollection;
-};
-
-export const get = async ({ api, id, select, include }: GetOptionsType) => {
-    // Enforce
-    enforce`${{ select }} as an optional array`;
-    enforce`${{ include }} as an optional array`;
-
-    // Prepare query
-    const query = {
-        select: select || [],
-        include: include || [],
-        id
-    };
-
-    // Get model
-    const modelClass = api.auth.session();
-
-    // Find matching objects
-    const model = await modelClass.getById(query);
-
-    // Check if model is found
-    if(typeof model === 'undefined')
-        throw new Error(Error.Code.ForbdiddenOperation, `Session with id \`${id}\` not found`);
-
-    // Return the model
-    return model;
-};
+import SessionController from '../controllers/session';
 
 /**
  * Define router    
  */
 const sessions = (api: WarpServer): express.Router => {
+    /**
+     * Define controller
+     */
+    const controller = new SessionController(api);
+
     /**
      * Define router
      */
@@ -99,7 +44,7 @@ const sessions = (api: WarpServer): express.Router => {
             sort = typeof sort !== 'undefined' ? JSON.parse(sort) : undefined;
 
             // $FlowFixMe
-            const modelCollection = await find({ api, select, include, where, sort, skip, limit });
+            const modelCollection = await controller.find({ select, include, where, sort, skip, limit });
 
             // Return response
             req.result = modelCollection;
@@ -129,7 +74,7 @@ const sessions = (api: WarpServer): express.Router => {
             include = typeof include !== 'undefined' ? JSON.parse(include) : undefined;
 
            // $FlowFixMe
-            const model = await get({ api, id, select, include });
+            const model = await controller.get({ id, select, include });
 
             // Return response
             req.result = model;

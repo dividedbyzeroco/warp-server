@@ -2,13 +2,13 @@
 /**
  * References
  */
-import moment from 'moment-timezone';
 import Client from './client';
 import Model from '../../../classes/model';
 import Error from '../../../utils/error';
 import KeyMap from '../../../utils/key-map';
 import { InternalKeys } from '../../../utils/constants';
 import ConstraintMap, { Constraints } from '../../../utils/constraint-map';
+import { toDatabaseDate } from '../../../utils/format';
 import type { DatabaseConfigType, FindOptionsType, IDatabaseAdapter, JoinKeyType } from '../../../types/database';
 
 export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
@@ -32,11 +32,8 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
      * @returns {String}
      */
     get currentTimestamp(): string {
-        return this.parseDate(moment());
-    }
-
-    parseDate(date: string) {
-        return moment(date).tz('UTC').format('YYYY-MM-DD HH:mm:ss');
+        const date = new Date();
+        return toDatabaseDate(date.toISOString());
     }
 
     async initialize() {

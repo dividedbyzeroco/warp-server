@@ -4,7 +4,6 @@
  */
 import express from 'express';
 import enforce from 'enforce-js';
-import moment from 'moment-timezone';
 import uniqid from 'uniqid';
 import parseUrl from 'parse-url';
 import Model from './classes/model';
@@ -17,6 +16,7 @@ import Logger from './adapters/logger';
 import Crypto from './adapters/crypto';
 import Error from './utils/error';
 import { Subqueries } from './utils/constraint-map';
+import { addToDate, toDatabaseDate } from './utils/format';
 import type { ServerConfigType } from './types/server';
 import type { SecurityConfigType } from './types/security';
 import type { DatabaseOptionsType, IDatabaseAdapter } from './types/database';
@@ -31,6 +31,10 @@ import classesRouter from './routes/classes';
 import usersRouter from './routes/users';
 import sessionsRouter from './routes/sessions';
 import functionsRouter from './routes/functions';
+import ClassController from './controllers/class';
+import UserController from './controllers/user';
+import SessionController from './controllers/session';
+import FunctionController from './controllers/function';
 
 /**
  * Extend enforce validations
@@ -81,6 +85,10 @@ export default class WarpServer {
     _router: express.Router;
     _customResponse: boolean = false;
     _supportLegacy: boolean = false;
+    _classController: ClassController = new ClassController(this);
+    _userController: UserController = new UserController(this);
+    _sessionController: SessionController = new SessionController(this);
+    _functionController: FunctionController = new FunctionController(this);
 
     /**
      * Constructor
@@ -478,7 +486,10 @@ export default class WarpServer {
 
     getRevocationDate() {
         const sessionDuration = this._security.sessionDuration.split(' ');
-        return this._database.parseDate(moment().add(parseInt(sessionDuration[0]), sessionDuration[1]));
+        const duration: number = parseInt(sessionDuration[0]);
+        const unit: string = sessionDuration[1];
+        const date = new Date();
+        return toDatabaseDate(addToDate(date.toISOString(), duration, unit).toISOString());
     }
 
     parseSubqueries(where: {[name: string]: {[name: string]: any}}): {[name: string]: {[name: string]: any}} {

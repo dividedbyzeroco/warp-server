@@ -2,11 +2,9 @@
 /**
  * References
  */
-import WarpServer from '../index';
 import User from '../classes/user';
 
 export type FindOptionsType = {
-    api: WarpServer,
     select: Array<string>,
     include: Array<string>,
     where: {[name: string]: {[name: string]: any}},
@@ -16,21 +14,18 @@ export type FindOptionsType = {
 }
 
 export type GetOptionsType = {
-    api: WarpServer,
     id: number,
     select: Array<string>,
     include: Array<string>
 };
 
 export type CreateOptionsType = {
-    api: WarpServer,
     metadata: {[name: string]: any},
     currentUser: User.Class,
     keys: {[name: string]: any}
 };
 
 export type UpdateOptionsType = {
-    api: WarpServer,
     metadata: {[name: string]: any},
     currentUser: User.Class,
     id: number,
@@ -38,14 +33,12 @@ export type UpdateOptionsType = {
 };
 
 export type DestroyOptionsType = {
-    api: WarpServer,
     metadata: {[name: string]: any},
     currentUser: User.Class,
     id: number
 };
 
 export type LoginOptionsType = {
-    api: WarpServer,
     metadata: {[name: string]: any},
     currentUser: User.Class,
     username: string,
@@ -58,6 +51,5 @@ export type MeOptionsType = {
 };
 
 export type LogoutOptionsType = {
-    api: WarpServer,
     sessionToken: string
 };

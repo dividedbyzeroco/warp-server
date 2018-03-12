@@ -5,104 +5,17 @@
 import express from 'express';
 import enforce from 'enforce-js';
 import WarpServer from '../index';
-import { Defaults } from '../utils/constants';
-import ConstraintMap from '../utils/constraint-map';
-import Error from '../utils/error';
-import type { 
-    GetOptionsType, 
-    FindOptionsType, 
-    CreateOptionsType, 
-    UpdateOptionsType, 
-    DestroyOptionsType 
-} from '../types/classes';
+import ClassController from '../controllers/class';
 
 /**
- * Define routes
+ * Define router
  */
-
-export const find = async ({ api, className, select, include, where, sort, skip, limit }: FindOptionsType) => {
-    // Parse subqueries
-    where = api.parseSubqueries(where);
-
-    // Prepare query
-    const query = {
-        select,
-        include,
-        where: new ConstraintMap(where),
-        sort: sort || Defaults.Query.Sort,
-        skip: skip || Defaults.Query.Skip,
-        limit: limit || Defaults.Query.Limit
-    };
-
-    // Get model
-    const modelClass = api.models.get(className);
-
-    // Find matching objects
-    const modelCollection = await modelClass.find(query);
-
-    // Return collection
-    return modelCollection;
-};
-
-export const get = async ({ api, className, id, select, include }: GetOptionsType) => {
-    // Prepare query
-    const query = {
-        select: select || [],
-        include: include || [],
-        id
-    };
-
-    // Get model
-    const modelClass = api.models.get(className);
-
-    // Find matching objects
-    const model = await modelClass.getById(query);
-
-    // Check if model is found
-    if(typeof model === 'undefined')
-        throw new Error(Error.Code.ForbdiddenOperation, `Object \`${modelClass.className}\` with id \`${id}\` not found`);
-
-    // Return the model
-    return model;
-};
-
-export const create = async ({ api, metadata, currentUser, className, keys }: CreateOptionsType) => {
-    // Get model
-    const modelClass = api.models.get(className);
-    const model = new modelClass({ metadata, currentUser, keys });
-
-    // Save the object
-    await model.save();
-
-    // Return the model
-    return model;
-};
-
-export const update = async ({ api, metadata, currentUser, className, keys, id }: UpdateOptionsType) => {
-    // Get model
-    const modelClass = api.models.get(className);
-    const model = new modelClass({ metadata, currentUser, keys, id });
-
-    // Save the object
-    await model.save();
-
-    // Return the model
-    return model;
-};
-
-export const destroy = async({ api, metadata, currentUser, className, id }: DestroyOptionsType) => {
-    // Get model
-    const modelClass = api.models.get(className);
-    const model = new modelClass({ metadata, currentUser, id });
-
-    // Destroy the object
-    await model.destroy();
-
-    // Return the model
-    return model;
-};
-
 const classes = (api: WarpServer): express.Router => {
+    /**
+     * Define controller
+     */
+    const controller = new ClassController(api);
+
     /**
      * Define router
      */
@@ -132,7 +45,7 @@ const classes = (api: WarpServer): express.Router => {
             sort = typeof sort !== 'undefined' ? JSON.parse(sort) : undefined;
 
             // $FlowFixMe
-            const modelCollection = await find({ api, className, select, include, where, sort, skip, limit });
+            const modelCollection = await controller.find({ className, select, include, where, sort, skip, limit });
 
             // Return response
             req.result = modelCollection;
@@ -162,7 +75,7 @@ const classes = (api: WarpServer): express.Router => {
             include = typeof include !== 'undefined' ? JSON.parse(include) : undefined;
 
             // $FlowFixMe
-            const model = await get({ api, className, id, select, include });
+            const model = await controller.get({ className, id, select, include });
 
             // Return response
             req.result = model;
@@ -186,7 +99,7 @@ const classes = (api: WarpServer): express.Router => {
 
         try {
             // Create model
-            const model = await create({ api, metadata, currentUser, className, keys });
+            const model = await controller.create({ metadata, currentUser, className, keys });
 
             // Return response
             req.result = model;
@@ -210,7 +123,7 @@ const classes = (api: WarpServer): express.Router => {
 
         try {
             // Update model
-            const model = await update({ api, metadata, currentUser, className, keys, id });
+            const model = await controller.update({ metadata, currentUser, className, keys, id });
 
             // Return response
             req.result = model;
@@ -233,7 +146,7 @@ const classes = (api: WarpServer): express.Router => {
 
         try {
             // Destroy model
-            const model = await destroy({ api, metadata, currentUser, className, id });
+            const model = await controller.destroy({ metadata, currentUser, className, id });
 
             // Return response
             req.result = model;

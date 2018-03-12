@@ -36,7 +36,6 @@
     "enforce-js": "^1.2.6",
     "express": "^4.13.4",
     "limiter": "^1.1.2",
-    "moment-timezone": "^0.5.4",
     "mysql": "^2.14.1",
     "parse-url": "^3.0.2",
     "promise": "^7.1.1",

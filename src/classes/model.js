@@ -2,11 +2,10 @@
 /**
  * References
  */
-import moment from 'moment-timezone';
 import Key, { KeyManager } from './key';
 import Error from '../utils/error';
 import KeyMap from '../utils/key-map';
-import { toCamelCase } from '../utils/format';
+import { toCamelCase, toISODate } from '../utils/format';
 import { InternalKeys } from '../utils/constants';
 import ModelCollection from '../utils/model-collection';
 import ConstraintMap from '../utils/constraint-map';
@@ -728,19 +727,19 @@ class ModelClass {
     get createdAt(): string {
         const dateTime = this._keyMap.get(InternalKeys.Timestamps.CreatedAt);
         if(typeof dateTime === 'undefined' || dateTime === null) return dateTime;
-        else return moment(moment(dateTime).format('YYYY-MM-DD HH:mm:ss') + '+00:00').tz('UTC').format();
+        else return toISODate(dateTime);
     }
 
     get updatedAt(): string {
         const dateTime = this._keyMap.get(InternalKeys.Timestamps.UpdatedAt);
         if(typeof dateTime === 'undefined' || dateTime === null) return dateTime;
-        else return moment(moment(dateTime).format('YYYY-MM-DD HH:mm:ss') + '+00:00').tz('UTC').format();
+        else return toISODate(dateTime);
     }
 
     get deletedAt(): string {
         const dateTime = this._keyMap.get(InternalKeys.Timestamps.DeletedAt);
         if(typeof dateTime === 'undefined' || dateTime === null) return dateTime;
-        else return moment(moment(dateTime).format('YYYY-MM-DD HH:mm:ss') + '+00:00').tz('UTC').format();
+        else return toISODate(dateTime);
     }
 
     set id(value: number) {

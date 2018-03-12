@@ -2,11 +2,6 @@
 /**
  * References
  */
-import moment from 'moment-timezone';
-
-/**
- * Interfaces
- */
 import { ILogger } from '../../../types/logger';
 import type { LogTypes, Levels } from '../../../types/logger';
 import InternalError from '../../../utils/error';
@@ -35,16 +30,13 @@ export default class ConsoleLoggerAdapter implements ILogger  {
         });
     }
 
-    static get timestampFormat(): string {
-        return 'YYYY-MM-DD HH:mm:ss';
-    }
-
     get appName(): string {
         return 'Warp Server';
     }
 
     get timestamp(): string {
-        return moment().tz('UTC').format(this.constructor.timestampFormat);
+        const date = new Date();
+        return date.toISOString().slice(0, 19).replace('T', ' ');
     }
 
     set level(value: Levels) {
