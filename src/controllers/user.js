@@ -71,7 +71,7 @@ export default class UserController {
         return model;
     }
     
-    async create({ metadata, currentUser, keys }: CreateOptionsType): Promise<User.Class> {
+    async create({ Warp, metadata, currentUser, keys }: CreateOptionsType): Promise<User.Class> {
         // Check if session token is provided
         if(typeof currentUser !== 'undefined')
             throw new Error(Error.Code.ForbdiddenOperation, 'Users cannot be created using an active session. Please log out.');
@@ -79,6 +79,9 @@ export default class UserController {
         // Get model
         const modelClass = this._api.auth.user();
         const model = new modelClass({ metadata, currentUser, keys });
+
+        // Bind Warp
+        model.bindSDK(Warp);
     
         // Save the object
         await model.save();
@@ -87,7 +90,7 @@ export default class UserController {
         return model;
     }
     
-    async update({ metadata, currentUser, keys, id }: UpdateOptionsType): Promise<User.Class> {
+    async update({ Warp, metadata, currentUser, keys, id }: UpdateOptionsType): Promise<User.Class> {
         // Check if the editor is the same user
         if(!metadata.isMaster && (typeof currentUser === 'undefined' || currentUser.id !== id))
             throw new Error(Error.Code.ForbdiddenOperation, 'User details can only be edited by their owner or via master');
@@ -96,6 +99,9 @@ export default class UserController {
         const modelClass = this._api.auth.user();
         const model = new modelClass({ metadata, currentUser, keys, id });
     
+        // Bind Warp
+        model.bindSDK(Warp);
+
         // Save the object
         await model.save();
     
@@ -103,7 +109,7 @@ export default class UserController {
         return model;
     }
     
-    async destroy({ metadata, currentUser, id }: DestroyOptionsType): Promise<User.Class> {
+    async destroy({ Warp, metadata, currentUser, id }: DestroyOptionsType): Promise<User.Class> {
         // Check if the destroyer is the same user
         if(!metadata.isMaster && (typeof currentUser === 'undefined' || currentUser.id !== id))
             throw new Error(Error.Code.ForbdiddenOperation, 'User details can only be destroyed by their owner or via master');
@@ -112,6 +118,9 @@ export default class UserController {
         const modelClass = this._api.auth.user();
         const model = new modelClass({ metadata, currentUser, id });
     
+        // Bind Warp
+        model.bindSDK(Warp);
+
         // Destroy the object
         await model.destroy();
     
@@ -119,7 +128,7 @@ export default class UserController {
         return model;
     }
     
-    async logIn({ metadata, currentUser, username, email, password }: LoginOptionsType): Promise<User.Class> {
+    async logIn({ Warp, metadata, currentUser, username, email, password }: LoginOptionsType): Promise<User.Class> {
         // Get session class
         const sessionClass = this._api.auth.session();
     
@@ -143,6 +152,9 @@ export default class UserController {
         };
     
         const session = new sessionClass({ metadata, keys });
+
+        // Bind Warp
+        session.bindSDK(Warp);
     
         // Save the new session
         await session.save();
@@ -160,7 +172,7 @@ export default class UserController {
         return currentUser;
     }
     
-    async logOut({ sessionToken }: LogoutOptionsType): Promise<Session.Class> {
+    async logOut({ Warp, sessionToken }: LogoutOptionsType): Promise<Session.Class> {
         // Get session class
         const sessionClass = this._api.auth.session();
     
@@ -170,6 +182,9 @@ export default class UserController {
         if(typeof session === 'undefined')
             throw new Error(Error.Code.InvalidSessionToken, 'Session does not exist');
     
+        // Bind Warp
+        session.bindSDK(Warp);
+
         // Destroy the session
         await session.destroy();
     

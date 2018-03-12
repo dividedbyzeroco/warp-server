@@ -70,10 +70,13 @@ export default class ClassController {
         return model;
     }
     
-    async create({ metadata, currentUser, className, keys }: CreateOptionsType): Promise<Model.Class> {
+    async create({ Warp, metadata, currentUser, className, keys }: CreateOptionsType): Promise<Model.Class> {
         // Get model
         const modelClass = this._api.models.get(className);
         const model = new modelClass({ metadata, currentUser, keys });
+
+        // Bind Warp
+        model.bindSDK(Warp);
     
         // Save the object
         await model.save();
@@ -82,10 +85,13 @@ export default class ClassController {
         return model;
     }
     
-    async update({ metadata, currentUser, className, keys, id }: UpdateOptionsType): Promise<Model.Class> {
+    async update({ Warp, metadata, currentUser, className, keys, id }: UpdateOptionsType): Promise<Model.Class> {
         // Get model
         const modelClass = this._api.models.get(className);
         const model = new modelClass({ metadata, currentUser, keys, id });
+
+        // Bind Warp
+        model.bindSDK(Warp);
     
         // Save the object
         await model.save();
@@ -94,10 +100,13 @@ export default class ClassController {
         return model;
     }
     
-   async destroy({ metadata, currentUser, className, id }: DestroyOptionsType): Promise<Model.Class> {
+   async destroy({ Warp, metadata, currentUser, className, id }: DestroyOptionsType): Promise<Model.Class> {
         // Get model
         const modelClass = this._api.models.get(className);
         const model = new modelClass({ metadata, currentUser, id });
+
+        // Bind Warp
+        model.bindSDK(Warp);
     
         // Destroy the object
         await model.destroy();

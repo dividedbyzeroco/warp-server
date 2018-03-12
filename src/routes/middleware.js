@@ -6,6 +6,7 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import { RateLimiter } from 'limiter';
+import { Warp } from 'warp-sdk-js';
 import WarpServer from '../index';
 import Error from '../utils/error';
 
@@ -81,6 +82,16 @@ const middleware = (api: WarpServer) => {
             api._log.error(err, 'Could not get current user:', err.message);
             next(err);
         }
+    });
+
+    /**
+     * Create a new Warp instance
+     */
+    router.use((req, res, next) => {
+        const sessionToken = req.metadata.sessionToken;
+        const currentUser = req.currentUser;
+        req.Warp = new Warp({ platform: 'api', api, sessionToken, currentUser });
+        next();
     });
 
     // Return the router

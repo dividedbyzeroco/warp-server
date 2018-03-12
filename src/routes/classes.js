@@ -92,6 +92,7 @@ const classes = (api: WarpServer): express.Router => {
      */
     router.post('/classes/:className', async (req, res, next) => {
         // Get parameters
+        const Warp = req.Warp;
         const metadata = req.metadata;
         const currentUser = req.currentUser;
         const { className } = req.params;
@@ -99,7 +100,7 @@ const classes = (api: WarpServer): express.Router => {
 
         try {
             // Create model
-            const model = await controller.create({ metadata, currentUser, className, keys });
+            const model = await controller.create({ Warp, metadata, currentUser, className, keys });
 
             // Return response
             req.result = model;
@@ -116,6 +117,7 @@ const classes = (api: WarpServer): express.Router => {
      */
     router.put('/classes/:className/:id', async (req, res, next) => {
         // Get parameters
+        const Warp = req.Warp;
         const metadata = req.metadata;
         const currentUser = req.currentUser;
         const { className, id } = req.params;
@@ -123,7 +125,7 @@ const classes = (api: WarpServer): express.Router => {
 
         try {
             // Update model
-            const model = await controller.update({ metadata, currentUser, className, keys, id });
+            const model = await controller.update({ Warp, metadata, currentUser, className, keys, id });
 
             // Return response
             req.result = model;
@@ -140,13 +142,14 @@ const classes = (api: WarpServer): express.Router => {
      */
     router.delete('/classes/:className/:id', async (req, res, next) => {
         // Get parameters
+        const Warp = req.Warp;
         const metadata = req.metadata;
         const currentUser = req.currentUser;
         const { className, id } = req.params;
 
         try {
             // Destroy model
-            const model = await controller.destroy({ metadata, currentUser, className, id });
+            const model = await controller.destroy({ Warp, metadata, currentUser, className, id });
 
             // Return response
             req.result = model;

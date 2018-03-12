@@ -25,6 +25,7 @@ const functions = (api: WarpServer): express.Router => {
      */
     router.post('/functions/:functionName', async (req, res, next) => {
         // Get parameters
+        const Warp = req.Warp;
         const metadata = req.metadata;
         const currentUser = req.currentUser;
         const { functionName } = req.params;
@@ -32,7 +33,7 @@ const functions = (api: WarpServer): express.Router => {
 
         try {
             // Run function
-            const result = await controller.run({ metadata, currentUser, functionName, keys });
+            const result = await controller.run({ Warp, metadata, currentUser, functionName, keys });
 
             // Return response
             req.result = result;

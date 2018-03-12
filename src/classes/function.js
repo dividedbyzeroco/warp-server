@@ -2,6 +2,7 @@
 /**
  * References
  */
+import Warp from 'warp-sdk-js';
 import User from './user';
 import { toCamelCase } from '../utils/format';
 import KeyMap from '../utils/key-map';
@@ -11,6 +12,7 @@ import type { FunctionOptionsType } from '../types/functions';
 
 class FunctionClass {
 
+    _warp: Warp;
     _metadata: MetadataType;
     _currentUser: User.Class;
     _keyMap: KeyMap = new KeyMap();
@@ -48,6 +50,14 @@ class FunctionClass {
 
     get(key: string) {
         this._keyMap.get(key);
+    }
+
+    bindSDK(warp: Warp) {
+        this._warp = warp;
+    }
+
+    get Warp(): Warp {
+        return Warp;
     }
 
     get isMaster(): boolean {

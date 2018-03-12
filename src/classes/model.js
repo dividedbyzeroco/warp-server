@@ -2,6 +2,7 @@
 /**
  * References
  */
+import { Warp } from 'warp-sdk-js';
 import Key, { KeyManager } from './key';
 import Error from '../utils/error';
 import KeyMap from '../utils/key-map';
@@ -231,6 +232,7 @@ class ModelClass {
     static _hidden: {[name: string]: string};
     static _protected: {[name: string]: string};
     static _timestamps: {[name: string]: boolean};
+    _warp: Warp;
     _metadata: MetadataType;
     _currentUser: any;
     _isNew: boolean = true;
@@ -712,6 +714,10 @@ class ModelClass {
      * Public Instance properties and methods
      */
 
+    get Warp(): Warp {
+        return this._warp;
+    }
+
     get isNew(): boolean {
         return this._isNew;
     }
@@ -891,6 +897,10 @@ class ModelClass {
             [InternalKeys.Timestamps.UpdatedAt]: updatedAt,
             [InternalKeys.Timestamps.DeletedAt]: deletedAt
         };
+    }
+
+    bindSDK(warp: Warp) {
+        this._warp = warp;
     }
 
     async runAsMaster(enclosed: () => Promise<any>) {

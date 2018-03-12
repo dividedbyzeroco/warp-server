@@ -103,13 +103,14 @@ const users = (api: WarpServer): express.Router => {
      */
     router.post('/users', async (req, res, next) => {
         // Get parameters
+        const Warp = req.Warp;
         const metadata = req.metadata;
         const currentUser = req.currentUser;
         const keys = req.body;
 
         try {
             // Create model
-            const model = await controller.create({ metadata, currentUser, keys });
+            const model = await controller.create({ Warp, metadata, currentUser, keys });
 
             // Return response
             req.result = model;
@@ -126,6 +127,7 @@ const users = (api: WarpServer): express.Router => {
      */
     router.put('/users/:id', async (req, res, next) => {
         // Get parameters
+        const Warp = req.Warp;
         const metadata = req.metadata;
         const currentUser = req.currentUser;
         const { id } = req.params;
@@ -133,7 +135,7 @@ const users = (api: WarpServer): express.Router => {
 
         try {
             // Update model
-            const model = await controller.update({ metadata, currentUser, keys, id });
+            const model = await controller.update({ Warp, metadata, currentUser, keys, id });
 
             // Return response
             req.result = model;
@@ -150,13 +152,14 @@ const users = (api: WarpServer): express.Router => {
      */
     router.delete('/users/:id', async (req, res, next) => {
         // Get parameters
+        const Warp = req.Warp;
         const metadata = req.metadata;
         const currentUser = req.currentUser;
         const { id } = req.params;
 
         try {
             // Destroy model
-            const model = await controller.destroy({ metadata, currentUser, id });
+            const model = await controller.destroy({ Warp, metadata, currentUser, id });
 
             // Return response
             req.result = model;
@@ -173,13 +176,14 @@ const users = (api: WarpServer): express.Router => {
      */
     router.post('/login', async (req, res, next) => {
         // Get parameters
+        const Warp = req.Warp;
         const metadata = req.metadata;
         const currentUser = req.currentUser;
         const { username, email, password } = req.body;
 
         try {
             // Get session
-            const session = await controller.logIn({ metadata, currentUser, username, email, password });
+            const session = await controller.logIn({ Warp, metadata, currentUser, username, email, password });
 
             // Return response
             req.result = session;
@@ -196,11 +200,12 @@ const users = (api: WarpServer): express.Router => {
      */
     router.post('/logout', async (req, res, next) => {
         // Get parameters
+        const Warp = req.Warp;
         const { sessionToken } = req.metadata;
 
         try {
             // Log out of session
-            const session = await controller.logOut({ sessionToken });
+            const session = await controller.logOut({ Warp, sessionToken });
 
             // Return response
             req.result = session;

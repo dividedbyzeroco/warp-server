@@ -28,7 +28,6 @@
   },
   "homepage": "https://github.com/dividedbyzeroco/warp-server#readme",
   "dependencies": {
-    "async": "^2.0.0-rc.6",
     "bcryptjs": "^2.3.0",
     "body-parser": "^1.15.1",
     "cors": "^2.7.1",
@@ -39,8 +38,8 @@
     "mysql": "^2.14.1",
     "parse-url": "^3.0.2",
     "promise": "^7.1.1",
-    "underscore": "^1.8.3",
-    "uniqid": "^4.1.1"
+    "uniqid": "^4.1.1",
+    "warp-sdk-js": "^5.0.2"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

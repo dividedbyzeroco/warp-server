@@ -2,6 +2,7 @@
 /**
  * References
  */
+import Warp from 'warp-sdk-js';
 import User from '../classes/user';
 
 export type FindOptionsType = {
@@ -22,6 +23,7 @@ export type GetOptionsType = {
 };
 
 export type CreateOptionsType = {
+    Warp?: Warp,
     metadata: {[name: string]: any},
     currentUser: User.Class,
     className: string,
@@ -29,6 +31,7 @@ export type CreateOptionsType = {
 };
 
 export type UpdateOptionsType = {
+    Warp?: Warp,
     metadata: {[name: string]: any},
     currentUser: User.Class,
     className: string,
@@ -37,6 +40,7 @@ export type UpdateOptionsType = {
 };
 
 export type DestroyOptionsType = {
+    Warp?: Warp,
     metadata: {[name: string]: any},
     currentUser: User.Class,
     className: string,
