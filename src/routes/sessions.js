@@ -7,8 +7,9 @@ import enforce from 'enforce-js';
 import WarpServer from '../index';
 import { Defaults } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
+import Error from '../utils/error';
 import type { 
-    FirstOptionsType, 
+    GetOptionsType, 
     FindOptionsType
 } from '../types/sessions';
 
@@ -40,7 +41,7 @@ export const find = async ({ api, select, include, where, sort, skip, limit }: F
     return modelCollection;
 };
 
-export const first = async ({ api, id, select, include }: FirstOptionsType) => {
+export const get = async ({ api, id, select, include }: GetOptionsType) => {
     // Enforce
     enforce`${{ select }} as an optional array`;
     enforce`${{ include }} as an optional array`;
@@ -56,7 +57,11 @@ export const first = async ({ api, id, select, include }: FirstOptionsType) => {
     const modelClass = api.auth.session();
 
     // Find matching objects
-    const model = await modelClass.first(query);
+    const model = await modelClass.getById(query);
+
+    // Check if model is found
+    if(typeof model === 'undefined')
+        throw new Error(Error.Code.ForbdiddenOperation, `Session with id \`${id}\` not found`);
 
     // Return the model
     return model;
@@ -124,7 +129,7 @@ const sessions = (api: WarpServer): express.Router => {
             include = typeof include !== 'undefined' ? JSON.parse(include) : undefined;
 
            // $FlowFixMe
-            const model = await first({ api, id, select, include });
+            const model = await get({ api, id, select, include });
 
             // Return response
             req.result = model;

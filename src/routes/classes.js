@@ -7,8 +7,9 @@ import enforce from 'enforce-js';
 import WarpServer from '../index';
 import { Defaults } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
+import Error from '../utils/error';
 import type { 
-    FirstOptionsType, 
+    GetOptionsType, 
     FindOptionsType, 
     CreateOptionsType, 
     UpdateOptionsType, 
@@ -43,7 +44,7 @@ export const find = async ({ api, className, select, include, where, sort, skip,
     return modelCollection;
 };
 
-export const first = async ({ api, className, id, select, include }: FirstOptionsType) => {
+export const get = async ({ api, className, id, select, include }: GetOptionsType) => {
     // Prepare query
     const query = {
         select: select || [],
@@ -55,7 +56,11 @@ export const first = async ({ api, className, id, select, include }: FirstOption
     const modelClass = api.models.get(className);
 
     // Find matching objects
-    const model = await modelClass.first(query);
+    const model = await modelClass.getById(query);
+
+    // Check if model is found
+    if(typeof model === 'undefined')
+        throw new Error(Error.Code.ForbdiddenOperation, `Object \`${modelClass.className}\` with id \`${id}\` not found`);
 
     // Return the model
     return model;
@@ -97,9 +102,6 @@ export const destroy = async({ api, metadata, currentUser, className, id }: Dest
     return model;
 };
 
-/**
- * Define router
- */
 const classes = (api: WarpServer): express.Router => {
     /**
      * Define router
@@ -160,7 +162,7 @@ const classes = (api: WarpServer): express.Router => {
             include = typeof include !== 'undefined' ? JSON.parse(include) : undefined;
 
             // $FlowFixMe
-            const model = await first({ api, className, id, select, include });
+            const model = await get({ api, className, id, select, include });
 
             // Return response
             req.result = model;

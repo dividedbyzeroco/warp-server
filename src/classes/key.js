@@ -161,9 +161,9 @@ function Key(name: string) {
                     return null;
                 else if(typeof value === 'object') {
                     if(SetJson.isImplementedBy(value))
-                        return new SetJson(value, key._isNew);
+                        return new SetJson(instance.name, value, key._isNew);
                     else if(AppendJson.isImplementedBy(value))
-                        return new AppendJson(value, key._isNew);
+                        return new AppendJson(instance.name, value, key._isNew);
                     else
                         return JSON.stringify(value);
                 }

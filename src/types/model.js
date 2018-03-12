@@ -6,7 +6,6 @@ import Model from '../classes/model';
 import User from '../classes/user';
 import KeyMap from '../utils/key-map';
 import ConstraintMap from '../utils/constraint-map';
-import { InternalKeys } from '../utils/constants';
 
 export type ModelMapType = { [className: string]: typeof Model.Class };
 
@@ -36,7 +35,7 @@ export type QueryOptionsType = {
     limit: number
 };
 
-export type QueryFirstOptionsType = {
+export type QueryGetOptionsType = {
     currentUser?: User.Class,
     select?: Array<string>,
     include?: Array<string>,
@@ -53,7 +52,7 @@ export type MetadataType = {
 
 export type PointerObjectType = {
     type: string,
-    [InternalKeys.Pointes.ClassName]: string,
+    [name: string]: any,
     id: number,
     attributes?: {[name: string]: any},
     created_at?: string,

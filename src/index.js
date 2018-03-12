@@ -28,7 +28,7 @@ import type { ResponseFunctionsType } from './types/response';
 import type { ILogger } from './types/logger';
 import middleware from './routes/middleware';
 import classesRouter from './routes/classes';
-import usersRouter  from './routes/users';
+import usersRouter from './routes/users';
 import sessionsRouter from './routes/sessions';
 import functionsRouter from './routes/functions';
 
@@ -80,6 +80,7 @@ export default class WarpServer {
     _functions: FunctionMapType = {};
     _router: express.Router;
     _customResponse: boolean = false;
+    _supportLegacy: boolean = false;
 
     /**
      * Constructor
@@ -95,7 +96,8 @@ export default class WarpServer {
         charset,
         timeout,
         requestLimit,
-        customResponse
+        customResponse,
+        supportLegacy
     }: ServerConfigType): void {
         // Set security
         this._setSecurity({ apiKey, masterKey, passwordSalt, sessionDuration });
@@ -110,6 +112,9 @@ export default class WarpServer {
 
         if(typeof customResponse !== 'undefined')
             this._customResponse = customResponse;
+
+        if(typeof supportLegacy !== 'undefined')
+            this._supportLegacy = supportLegacy;
     }
 
     /**
@@ -154,7 +159,7 @@ export default class WarpServer {
                     if(modelInstance instanceof User.Class || modelInstance instanceof Session.Class)
                         throw new Error(Error.Code.ForbiddenOperation, 'User and Session classes must be set using `auth` instead of `models`');
                     else // Otherwise, it is a regular class
-                        this._models[model.className] = model.initialize(this._database);
+                        this._models[model.className] = model.initialize(this._database, this._supportLegacy);
                 }
             },
             get: (className: string): typeof Model.Class => {
@@ -198,7 +203,10 @@ export default class WarpServer {
                 session.setUser(user);
 
                 // Set auth classes
-                this._auth = { user: user.initialize(this._database), session: session.initialize(this._database) };
+                this._auth = { 
+                    user: user.initialize(this._database, this._supportLegacy), 
+                    session: session.initialize(this._database, this._supportLegacy) 
+                };
             },
             user: (): typeof User.Class => {
                 // Check if auth exists
@@ -270,8 +278,12 @@ export default class WarpServer {
                 if(this._customResponse)
                     next();
                 else {
+                    // Set result
+                    const result = req.result;
+
+                    // Set status and response
                     res.status(200);
-                    res.json({ result: req.result });
+                    res.json({ result });
                 }
             },
             error: (err: Error, req: express.Request, res: express.Response, next: express.NextFunction, ) => {
@@ -279,8 +291,22 @@ export default class WarpServer {
                 if(this._customResponse)
                     next(err);
                 else {
-                    res.status(400);
-                    res.json({ code: err.code, message: err.message });
+                    // Set code and message
+                    let status = err.status;
+                    let code = err.code;
+                    let message = err.message;
+
+                    // Check error code
+                    if(typeof err.code === 'undefined') {
+                        code = 400;
+                    }
+                    else if(err.code === Error.Code.DatabaseError) {
+                        message = 'Invalid query request';
+                    }
+
+                    // Set status
+                    res.status(status || 400);
+                    res.json({ code, message });
                 }
             }
         };

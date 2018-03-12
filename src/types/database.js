@@ -43,7 +43,6 @@ export interface IDatabaseAdapter {
     +currentTimestamp: string;
     parseDate(date: string): string;
     initialize(): Promise<void>;
-    toRaw(object: Object): Object;
     find(
         source: string,
         className: string, 
@@ -54,7 +53,7 @@ export interface IDatabaseAdapter {
         skip: number,
         limit: number 
     ): Promise<Array<KeyMap>>;
-    first(source: string,
+    get(source: string,
         className: string, 
         select: Array<string>, 
         joins: { [key: string]: JoinKeyType },

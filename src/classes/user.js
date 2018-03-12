@@ -23,7 +23,7 @@ class UserClass extends Model.Class {
     }
     
     static get emailKey(): string {
-        return InternalKeys.Auth.Username;
+        return InternalKeys.Auth.Email;
     }
 
     static get passwordKey(): string {

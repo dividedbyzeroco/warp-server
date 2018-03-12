@@ -12,7 +12,7 @@ import ModelCollection from '../utils/model-collection';
 import ConstraintMap from '../utils/constraint-map';
 import type { IDatabaseAdapter } from '../types/database';
 import type { FindOptionsType, SubqueryOptionsType } from '../types/database';
-import type { ModelOptionsType, MetadataType, QueryOptionsType, QueryFirstOptionsType, PointerObjectType } from '../types/model';
+import type { ModelOptionsType, MetadataType, QueryOptionsType, QueryGetOptionsType, PointerObjectType } from '../types/model';
 
 class Pointer {
 
@@ -23,6 +23,9 @@ class Pointer {
     _aliasKey: string;
     _viaKey: string;
     _pointerIdKey: string = InternalKeys.Id;
+    _isSecondary: boolean = false;
+    _parentAliasKey: string;
+    _parentViaKey: string;
 
     /**
      * Constructor
@@ -136,6 +139,18 @@ class Pointer {
         return `${this.aliasKey}${this.constructor.Delimiter}${this._pointerIdKey}`;
     }
 
+    get isSecondary(): boolean {
+        return this._isSecondary;
+    }
+
+    get parentAliasKey(): string {
+        return this._parentAliasKey;
+    }
+
+    get parentViaKey(): string {
+        return this._parentViaKey;
+    }
+
     /**
      * Public Methods
      */
@@ -150,11 +165,26 @@ class Pointer {
         return this;
     }
 
+    from(key: string): this {
+        // Check if key is for a pointer
+        if(!this.constructor.isUsedBy(key))
+            throw new Error(Error.Code.ForbiddenOperation, `Secondary key \`key\` must be a pointer to an existing key`);
+
+        // Set new via key and set isSecondary to true
+        this._parentAliasKey = this.constructor.getAliasFrom(key);
+        this._parentViaKey = this.constructor.getKeyFrom(key); 
+        this.via(`${this.parentAliasKey}${this.constructor.Delimiter}${this.parentViaKey}_${InternalKeys.Id}`);
+        this._isSecondary = true;
+        
+        return this;
+    }
+
     isImplementedBy(value: Object) {
         if(value === null) return true;
         if(typeof value !== 'object') return false;
         if(value.type !== 'Pointer') return false;
-        if(value[InternalKeys.Pointers.ClassName] !== this.model.className) return false;
+        if((this.model.supportLegacy && value[InternalKeys.Pointers.LegacyClassName] !== this.model.className) 
+            || (!this.model.supportLegacy && value[InternalKeys.Pointers.ClassName] !== this.model.className)) return false;
         if(value.id <= 0) return false;
         return true;
     }
@@ -168,7 +198,9 @@ class Pointer {
             // Otherwise, return a pointer object
             return {
                 type: 'Pointer',
-                [InternalKeys.Pointers.ClassName]: this.model.className,
+                [this.model.supportLegacy? 
+                    InternalKeys.Pointers.LegacyClassName 
+                    : InternalKeys.Pointers.ClassName]: this.model.className,
                 id: value
             };
         }
@@ -194,6 +226,7 @@ class ModelClass {
      * Private Properties
      */
     static _database: IDatabaseAdapter;
+    static _supportLegacy: boolean = false;
     static _keys: {[name: string]: any};
     static _joins: {[name: string]: Pointer};
     static _hidden: {[name: string]: string};
@@ -227,8 +260,13 @@ class ModelClass {
             // Check if setter exists
             const keyDescriptor = Object.getOwnPropertyDescriptor(this.constructor.prototype, toCamelCase(key));
             if(keyDescriptor && typeof keyDescriptor['set'] === 'function') {
-                const setter = keyDescriptor['set'].bind(this);
-                setter(value);
+                try {
+                    const setter = keyDescriptor['set'].bind(this);
+                    setter(value);
+                }
+                catch(err) {
+                    throw new Error(Error.Code.InvalidObjectKey, err.message);
+                }
             }
             // Otherwise, generically set the value
             else this.set(key, value);
@@ -262,9 +300,10 @@ class ModelClass {
      * @param {IDatabaseAdapter} database
      * @returns {WarpServer}
      */
-    static initialize(database: IDatabaseAdapter) {
+    static initialize(database: IDatabaseAdapter, supportLegacy: boolean = false) {
         // Set database
         this._database = database;
+        this._supportLegacy = supportLegacy;
 
         // Prepare joins
         this._joins = {};
@@ -286,6 +325,18 @@ class ModelClass {
             else if(key instanceof Pointer) {
                 // Use the alias key
                 map[key.aliasKey] = key;
+
+                // If it is a secondary key, check if parent and via keys exist
+                if(key.isSecondary) {
+                    const parentJoin = this._joins[key.parentAliasKey];
+                    if(typeof parentJoin === 'undefined')
+                        throw new Error(Error.Code.MissingConfiguration, 
+                            `Parent pointer \`${key.parentAliasKey}\` of \`${key.aliasKey}\` does not exist`);
+
+                    if(!parentJoin.model._keyExists(key.parentViaKey))
+                        throw new Error(Error.Code.MissingConfiguration, 
+                            `Parent pointer key \`${key.parentAliasKey}${Pointer.Delimiter}${key.parentViaKey}\` of \`${key.aliasKey}\` does not exist`);
+                }
 
                 // Add the pointer to joins
                 this._joins[key.aliasKey] = key;
@@ -380,6 +431,10 @@ class ModelClass {
         return this;
     }
 
+    static get isModel(): boolean {
+        return true;
+    }
+
     static get className(): string {
         throw new Error(Error.Code.MissingConfiguration, 
             'Models extended from `Model.Class` must define a static getter for className');
@@ -399,6 +454,10 @@ class ModelClass {
 
     static get protected(): Array<string> {
         return [];
+    }
+
+    static get supportLegacy(): boolean {
+        return this._supportLegacy;
     }
 
     static _keyExists(key: string) {
@@ -443,8 +502,18 @@ class ModelClass {
                 // Get key name
                 const keyName = this._keys[key];
                 
-                // If they key provided is a pointer, use the via key
-                if(keyName instanceof Pointer) keys.push(`${keyName.pointerIdKey}${Pointer.IdDelimiter}${keyName.viaKey}`);
+                // If they key provided is a pointer
+                if(keyName instanceof Pointer) {
+                    // If the pointer is secondary
+                    if(keyName.isSecondary) {
+                        // Move it to the include list
+                        include.push(keyName.pointerIdKey);
+                    }
+                    else {
+                        // Use the via key
+                        keys.push(`${keyName.pointerIdKey}${Pointer.IdDelimiter}${keyName.viaKey}`);
+                    }
+                }
                 else keys.push(key);
             }
             else
@@ -459,6 +528,12 @@ class ModelClass {
             // Add it to the select keys and included joins
             keys.push(key);
             includedJoins[Pointer.getAliasFrom(key)] = true;
+
+            // If the key is from a secondary join, add the parent join
+            const join = this._joins[Pointer.getAliasFrom(key)];
+            if(join.isSecondary) {
+                includedJoins[join.parentAliasKey] = true;
+            }
         }
 
         // Create joins
@@ -606,12 +681,12 @@ class ModelClass {
     /**
      * Find a single object
      */
-    static async first({ select = [], include = [], id }: QueryFirstOptionsType): Promise<this | void> {
+    static async getById({ select = [], include = [], id }: QueryGetOptionsType): Promise<this | void> {
         // Get parameters
         const { keys, joins } = this._getQueryKeys(select, include);
 
         // Execute first
-        const result = await this._database.first(
+        const result = await this._database.get(
             this.source, 
             this.className, 
             keys, 
@@ -804,7 +879,8 @@ class ModelClass {
         if(this._isPointer) 
             keys = { 
                 type: 'Pointer',
-                [InternalKeys.Pointers.ClassName]: this.constructor.className,
+                [this.constructor.supportLegacy? InternalKeys.Pointers.LegacyClassName
+                    : InternalKeys.Pointers.ClassName]: this.constructor.className,
                 [InternalKeys.Pointers.Attributes]: Object.keys(keys).length > 0 ? keys : undefined
             };
 

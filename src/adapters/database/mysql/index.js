@@ -87,14 +87,6 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         throw new Error(Error.Code.ForbiddenOperation, `Constraint not found: ${constraint}`);
     }
 
-    toRaw(object: Object): Object {
-        return {
-            toSqlString: (): string => {
-                return object.toString();
-            }
-        };
-    }
-
     /**
      * Generate Find Statement
      * @description Decoupled from the `find` method
@@ -124,8 +116,9 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         .filter(alias => joins[alias].included)
         .map(alias => {
             const item = joins[alias];
+            const joinKey = item.join.isSecondary? item.join.viaKey : `${classAlias}.${item.join.viaKey}`;
             return `LEFT OUTER JOIN ${escapeKey(item.join.model.source)} AS ${escapeKey(item.join.aliasKey)}
-                ON ${escapeKey(item.join.pointerIdKey)} = ${escapeKey(`${classAlias}.${item.join.viaKey}`)}`;
+                ON ${escapeKey(item.join.pointerIdKey)} = ${escapeKey(joinKey)}`;
         });
 
         // Get columns
@@ -149,7 +142,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         });
         
         // Remove deleted rows
-        where.notExists(`${classAlias}${Model.Pointer.Delimiter}${InternalKeys.Timestamps.DeletedAt}`);
+        where.doesNotExist(`${classAlias}${Model.Pointer.Delimiter}${InternalKeys.Timestamps.DeletedAt}`);
 
         // Get constraints
         const constraints = where.toList()
@@ -272,7 +265,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         return rows;
     }
 
-    async first(
+    async get(
         source: string,
         className: string,
         select: Array<string>,
@@ -281,14 +274,14 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
     ): Promise<KeyMap | null> {
         // Prepare where 
         let where = new ConstraintMap();
-        where.notExists(InternalKeys.Timestamps.DeletedAt);
+        where.doesNotExist(InternalKeys.Timestamps.DeletedAt);
         where.equalTo(InternalKeys.Id, id);
 
-        // Generate first script
-        const firstScript = this._generateFindClause({ source, className, classAlias: className, select, joins, where });
+        // Generate get script
+        const getScript = this._generateFindClause({ source, className, classAlias: className, select, joins, where });
 
         // Get result
-        const result = await this._client.query(firstScript);
+        const result = await this._client.query(getScript);
 
         // Return result as a KeyMap
         return this._mapRowKeys(result.rows[0], joins);

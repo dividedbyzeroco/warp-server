@@ -70,7 +70,7 @@ class SessionClass extends Model.Class {
         if(!session) return;
 
         // Get user details
-        const user = await this.user.first({ id: session.user.id });
+        const user = await this.user.getById({ id: session.user.id });
 
         return user;
     }

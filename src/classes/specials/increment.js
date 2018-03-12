@@ -36,10 +36,4 @@ export default class Increment {
     get max() {
         return this._max;
     }
-
-    toString() {
-        let value = `GREATEST(IFNULL(${this.key}, 0) + (${parseInt(this.value)}), ${this.min})`;
-        if(typeof this.max !== 'undefined') value = `LEAST(${value}, ${this.max})`;
-        return value;
-    }
 }

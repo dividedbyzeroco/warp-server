@@ -16,6 +16,7 @@ export const InternalKeys = Object.freeze({
         RevokedAt: 'revoked_at'
     }),
     Pointers: Object.freeze({
+        LegacyClassName: 'className',
         ClassName: 'class_name',
         Attributes: 'attributes'
     })

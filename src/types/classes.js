@@ -16,7 +16,7 @@ export type FindOptionsType = {
     limit: number
 }
 
-export type FirstOptionsType = {
+export type GetOptionsType = {
     api: WarpServer,
     className: string,
     id: number,

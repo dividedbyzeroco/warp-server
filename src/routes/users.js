@@ -9,7 +9,7 @@ import { Defaults } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
 import Error from '../utils/error';
 import type { 
-    FirstOptionsType, 
+    GetOptionsType, 
     FindOptionsType, 
     CreateOptionsType, 
     UpdateOptionsType,
@@ -47,7 +47,7 @@ export const find = async ({ api, select, include, where, sort, skip, limit }: F
     return modelCollection;
 };
 
-export const first = async ({ api, id, select, include }: FirstOptionsType) => {
+export const get = async ({ api, id, select, include }: GetOptionsType) => {
     // Enforce
     enforce`${{ select }} as an optional array`;
     enforce`${{ include }} as an optional array`;
@@ -62,8 +62,12 @@ export const first = async ({ api, id, select, include }: FirstOptionsType) => {
     // Get model
     const modelClass = api.auth.user();
 
-    // Find matching objects
-    const model = await modelClass.first(query);
+    // Find matching object
+    const model = await modelClass.getById(query);
+
+    // Check if model is found
+    if(typeof model === 'undefined')
+        throw new Error(Error.Code.ForbdiddenOperation, `User with id \`${id}\` not found`);
 
     // Return the model
     return model;
@@ -218,27 +222,6 @@ const users = (api: WarpServer): express.Router => {
             api.response.error(err, req, res, next);
         }
     });
-
-    /**
-     * Getting user behind a session token
-     */
-    router.get('/users/me', async (req, res, next) => {
-        // Get parameters
-        const currentUser = req.currentUser;
-
-        try {
-            // Get user
-            const user = await me({ currentUser });
-
-            // Return response
-            req.result = user;
-            api.response.success(req, res, next);
-        }
-        catch(err) {
-            api._log.error(err, `Could not log in: ${err.message}`);
-            api.response.error(err, req, res, next);
-        }
-    });
     
     /**
     * Finding a single object
@@ -246,23 +229,35 @@ const users = (api: WarpServer): express.Router => {
    router.get('/users/:id', async (req, res, next) => {
        // Get parameters
        const { id } = req.params;
-       let { select, include } = req.query;
+       const currentUser = req.currentUser;
 
        try {
-            // Enforce
-            enforce`${{ select }} as an optional string, equivalent to an array`;
-            enforce`${{ include }} as an optional string, equivalent to an array`;
+            if(id === 'me') {
+                // Get user
+                const user = await me({ currentUser });
 
-            // Parse parameters
-            select = typeof select !== 'undefined' ? JSON.parse(select) : undefined;
-            include = typeof include !== 'undefined' ? JSON.parse(include) : undefined;
+                // Return response
+                req.result = user;
+                api.response.success(req, res, next);
+            }
+            else {
+                let { select, include } = req.query;
 
-           // $FlowFixMe
-            const model = await first({ api, id, select, include });
+                // Enforce
+                enforce`${{ select }} as an optional string, equivalent to an array`;
+                enforce`${{ include }} as an optional string, equivalent to an array`;
 
-            // Return response
-            req.result = model;
-            api.response.success(req, res, next);
+                // Parse parameters
+                select = typeof select !== 'undefined' ? JSON.parse(select) : undefined;
+                include = typeof include !== 'undefined' ? JSON.parse(include) : undefined;
+
+                // $FlowFixMe
+                const model = await get({ api, id, select, include });
+
+                // Return response
+                req.result = model;
+                api.response.success(req, res, next);
+            }
         }
         catch(err) {
             api._log.error(err, `Could not find the user: ${err.message}`);

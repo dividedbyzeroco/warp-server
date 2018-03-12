@@ -12,5 +12,6 @@ export type ServerConfigType = {
     charset: string,
     timeout: number,
     requestLimit?: number,
-    customResponse: boolean
+    customResponse: boolean,
+    supportLegacy: boolean
 }

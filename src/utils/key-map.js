@@ -123,6 +123,10 @@ export default class KeyMap {
         return Object.keys(this._map);
     }
 
+    has(key: string) {
+        return typeof this._map[key] !== 'undefined';
+    }
+
     toList(): Array<KeyValuePair> {
         return this.getKeys().map(key => this._map[key]);
     }

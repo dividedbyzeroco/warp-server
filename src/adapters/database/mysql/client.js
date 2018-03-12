@@ -6,6 +6,7 @@ import mysql from 'mysql';
 import moment from 'moment-timezone';
 import type { DatabaseConfigType } from '../../../types/database';
 import Error from '../../../utils/error';
+import { Increment, SetJson, AppendJson } from '../../../classes/specials';
 
 export default class DatabaseClient {
 
@@ -52,8 +53,27 @@ export default class DatabaseClient {
         return this.escape(moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss'));
     }
 
-    escape(value: string) {
-        return this.pool.escape(value);
+    escape(value: any) {
+        // Handle specials
+        if(value instanceof Increment) {
+            let escaped = `GREATEST(IFNULL(${this.escapeKey(value.key)}, 0) + (${parseInt(value.value)}), ${value.min})`;
+            if(typeof value.max !== 'undefined') escaped = `LEAST(${escaped}, ${value.max})`;
+            return escaped;
+        }
+        else if(value instanceof SetJson) {
+            const key = value.isNew? 'JSON_OBJECT()' : `IFNULL(${this.escapeKey(value.key)}, JSON_OBJECT())`;
+            const path = value.isNew? '$' : this.pool.escape(value.path);
+            const val = typeof value.value === 'object'? `CAST(${JSON.stringify(value.value)} AS JSON)` : this.pool.escape(value.value);
+            const escaped = `JSON_SET(${key}, ${path}, ${val})`;
+            return escaped;
+        }
+        else if(value instanceof AppendJson) {
+            const key = value.isNew? 'JSON_ARRAY()' : `IFNULL(${this.escapeKey(value.key)}, JSON_ARRAY())`;
+            const path = value.isNew? '$' : this.pool.escape(value.path);
+            const val = typeof value.value === 'object'? `CAST(${JSON.stringify(value.value)} AS JSON)` : this.pool.escape(value.value);
+            return `JSON_ARRAY_APPEND(${key}, ${path}, ${val})`;
+        }
+        else return this.pool.escape(value);
     }
 
     escapeKey(value: string, useRaw: boolean = false) {

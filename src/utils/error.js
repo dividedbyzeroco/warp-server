@@ -22,7 +22,7 @@ export default class WarpError extends Error {
             InvalidAPIKey: 109, // Invalid API Key
             ModelNotFound: 110,
             FunctionNotFound: 111,
-            QueueNotFound: 112,
+            RequestTimeout: 112,
             FunctionError: 113,
             TooManyRequests: 114,
             DatabaseError: 115
@@ -31,17 +31,36 @@ export default class WarpError extends Error {
 
     static get Status(): Object {
         return Object.freeze({
+            ServerError: 400,
             Unauthorized: 401,
-            ServerError: 500
+            Forbidden: 403,
+            NotFound: 404,
+            RequestTimeout: 408,
+            TooManyRequests: 429
         });
     }
 
     get status(): string {
-        if(this.code == this.constructor.Code.InvalidCredentials || 
-            this.code == this.constructor.Code.InvalidSessionToken) {
+        if(this.code === this.constructor.Code.InvalidCredentials
+            || this.code === this.constructor.Code.InvalidSessionToken
+            || this.code === this.constructor.Code.UsernameTaken
+            || this.code === this.constructor.Code.EmailTaken) {
             return this.constructor.Status.Unauthorized;
         }
-        else { 
+        else if(this.code === this.constructor.Code.ForbiddenOperation) {
+            return this.constructor.Status.Forbidden;
+        }
+        else if(this.code === this.constructor.Code.ModelNotFound
+            || this.code === this.constructor.Code.FunctionNotFound) {
+                return this.constructor.Status.NotFound;
+        }
+        else if(this.code === this.constructor.Code.RequestTimeout) {
+            return this.constructor.Status.RequestTimeout;
+        }
+        else if(this.code === this.constructor.Code.TooManyRequests) {
+            return this.constructor.Status.TooManyRequests;
+        }
+        else {
             return this.constructor.Status.ServerError;
         }
     }

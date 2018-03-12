@@ -3,7 +3,6 @@
  * References
 */
 import Error from './error';
-import type { FindOptionsType } from '../types/database';
 
 class KeyConstraints {
 
@@ -166,7 +165,7 @@ export default class ConstraintMap {
         this.set(key, Constraints.Exists, true);
     }
 
-    notExists(key: string) {
+    doesNotExist(key: string) {
         this.set(key, Constraints.Exists, false);
     }
 
@@ -202,23 +201,23 @@ export default class ConstraintMap {
         this.set(key, Constraints.ContainsAll, value);
     }
 
-    foundIn(key: string, value: FindOptionsType) {
+    foundIn(key: string, value: Object) {
         this.set(key, Constraints.FoundIn, value);
     }
 
-    foundInEither(key: string, value: FindOptionsType) {
+    foundInEither(key: string, value: Object) {
         this.set(key, Constraints.FoundInEither, value);
     }
 
-    foundInAll(key: string, value: FindOptionsType) {
+    foundInAll(key: string, value: Object) {
         this.set(key, Constraints.FoundInAll, value);
     }
 
-    notFoundIn(key: string, value: FindOptionsType) {
+    notFoundIn(key: string, value: Object) {
         this.set(key, Constraints.NotFoundIn, value);
     }
 
-    notFoundInEither(key: string, value: FindOptionsType) {
+    notFoundInEither(key: string, value: Object) {
         this.set(key, Constraints.NotFoundInEither, value);
     }
 
