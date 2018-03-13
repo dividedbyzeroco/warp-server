@@ -27,6 +27,7 @@ Currently, `Warp Server` uses `mysql@5.7` as its database of choice, but can be 
     - **[Setting the Auth models](#setting-the-auth-models)**
 - **[Functions](#functions)**
     - **[Create a Function](#creating-a-function)**
+    - **[Adding a Function](#adding-a-function)**
 
 # Installation
 
@@ -742,3 +743,22 @@ class GetFavoriteDogs extends Function.Class {
 For the above example, you can see that you need to declare a `functionName` getter as well as a `run()` method. These are the only two things you need in order to create a function. 
 
 However, you might notice the `masterOnly` getter declared atop. What does this does is just basically limits access to the function to masters (i.e. requests made using the `X-Warp-Master-Key`). You can omit this code, and by default is set to be `false`.
+
+## Adding a Function
+
+Right now, the Function you created is still not recognized by your Warp Server. To register its definition, use `.functions.add()`.
+
+```javascript
+// Add the GetFavoriteDogs function
+api.functions.add({ GetFavoriteDogs });
+
+// Apply the router after
+app.use('/api/1', api.router);
+```
+
+`.functions.add()` accepts a mapping of Functions, so you can do the following.
+
+```javascript
+// Add multiple models
+api.models.add({ GetFavoriteDogs, GetGoodDogs });
+
