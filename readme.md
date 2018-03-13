@@ -118,6 +118,7 @@ Then, you need to decalre the Keys that the table is composed of. For that, you 
 If this were shown as a table, it would look similar to the following.
 
 Table: __Dog__
+
 | id     | name     | age      | weight       | created_at          | updated_at          |
 | ------ | -------- | -------- | ------------ | ------------------- | ------------------- |
 | 1      | Bingo    | 4        | 33.2         | 2018-03-09 12:38:56 | 2018-03-09 12:38:56 |
