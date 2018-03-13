@@ -13,14 +13,20 @@ Currently, `Warp Server` uses `mysql@5.7` as its database of choice, but can be 
 - **[Models](#models)**
     - **[Creating a Model](#creating-a-model)**
     - **[Using an Alias](#using-an-alias)**
-    - **[Adding the Model](#adding-the-model)**
     - **[Using Pointers](#using-pointers)**
     - **[Defining Key Types](#defining-key-types)**
     - **[Setters and Getters](#setters-and-getters)**
+    - **[Before Save](#before-save)**
+    - **[After Save](#after-save)**
+    - **[Before Destroy](#before-save)**
+    - **[After Destroy](#after-save)**
+    - **[Adding the Model](#adding-the-model)**
 - **[Authentication](#authentication)**
     - **[Creating a User model](#creating-a-user-model)**
     - **[Creating a Session model](#creating-a-session-model)**
     - **[Setting the Auth models](#setting-the-auth-models)**
+- **[Functions](#functions)**
+    - **[Create a Function](#creating-a-function)**
 
 # Installation
 
@@ -60,7 +66,7 @@ Warp Server accepts several configuration options that you can fully customize.
 | Name              | Description                                                                          |
 | ----------------- | ------------------------------------------------------------------------------------ |
 | apiKey            | API key for your Warp Server (required)                                              |
-| masterKey         | Master key for your Warp Server (required)                                           |
+| masterKey         | Master key for your Warp Server (required), NOTE: Only super users should know this! |
 | databaseURI       | URI of your database (protocol://user:password@server:port/database)                 |
 | requestLimit      | Number of requests allowed per second (default: 30)                                  |
 | sessionDuration   | Validity duration of a logged in user's session (default: '2 years')                 |
@@ -72,7 +78,15 @@ Warp Server accepts several configuration options that you can fully customize.
 
 # Models
 
-A `Model` is a representation of a schema inside a database. It holds all of the logic that has to do with storing and retrieving data from its corresponding table. By defining a model, you can determine how fields, known as `Keys` in Warp, are parsed and formatted.
+A `Model` is a representation of a `table` inside a database. By defining a model, you can determine how fields, known as `Keys` in Warp, are parsed and formatted.
+
+For example, a `dog` table will have a corresponding model called `Dog` that has different `Keys` such as __name__, __age__, and __weight__.
+
+Among these `Keys` are three special ones that are automatically set by the server and cannot be manually edited.
+
+- `id`: a unique identifier that distinguishes an object inside a table
+- `created_at`: a timestamp that records the date and time when an object was created (UTC)
+- `updated_at`: a timestamp that records the date and time when an object was last modified (UTC)
 
 ## Creating a Model
 
@@ -96,21 +110,17 @@ class Dog extends Model.Class {
 
 From the example above you can see a couple of properties that you need to declare in order for your Model to work. 
 
-First, you need to declare the table that the Model is representing. For this, you create a static getter called `className` that returns the name of the table. Then, you need to decalre the Keys that the table is composed of. For that, you create a static getter called `keys`, which returns an array of their names.
+First, you need to declare the table that the Model is representing. For this, you create a static getter called `className` that returns the name of the table. 
 
-Among these `Keys` are three special ones that are automatically set by the server and cannot be manually edited.
-
-- `id`: a unique identifier that distinguishes an object inside a table
-- `created_at`: a timestamp that records the date and time when an object was created (UTC)
-- `updated_at`: a timestamp that records the date and time when an object was last modified (UTC)
+Then, you need to decalre the Keys that the table is composed of. For that, you create a static getter called `keys`, which returns an array of their names. Note that you do not include __id__, __created_at__, and __updated_at__ keys in this area.
 
 If this were shown as a table, it would look similar to the following.
 
 Table: __Dog__
-| id  | name     | age      | weight       | created_at          | updated_at          |
-| --- | -------- | -------- | ------------ | ------------------- | ------------------- |
-| 1   | Bingo    | 4        | 33.2         | 2018-03-09 12:38:56 | 2018-03-09 12:38:56 |
-| 2   | Ringo    | 5        | 36           | 2018-03-09 12:38:56 | 2018-03-09 12:38:56 |
+| id     | name     | age      | weight       | created_at          | updated_at          |
+| ------ | -------- | -------- | ------------ | ------------------- | ------------------- |
+| 1      | Bingo    | 4        | 33.2         | 2018-03-09 12:38:56 | 2018-03-09 12:38:56 |
+| 2      | Ringo    | 5        | 36           | 2018-03-09 12:38:56 | 2018-03-09 12:38:56 |
 
 ## Using an Alias
 
@@ -136,64 +146,11 @@ class Bird extends Model.Class {
 }
 ```
 
-## Adding the Model
-
-Right now, the Model you created is still not recognized by your Warp Server. To register its definition, use `.models.add()`.
-
-```javascript
-// Add the Dog model
-api.models.add({ Dog });
-
-// Apply the router after
-app.use('/api/1', api.router);
-```
-
-`.models.add()` accepts a mapping of Models, so you can do the following.
-
-```javascript
-// Add multiple models
-api.models.add({ Dog, Bird });
-
-// Apply the router after
-app.use('/api/1', api.router);
-```
-
-Now that you've added the Models, once you start the server, you can begin accessing them via the `/classes` endpoint.
-
-```bash
-> curl -H 'X-Warp-API-Key=1234abcd' http://localhost:3000/api/1/classes/dog
-
-{
-    result: [
-        {
-            id: 1,
-            name: "Bingo",
-            age: 4,
-            weight: 33.2,
-            created_at: "2018-03-09T12:38:56.000Z",
-            updated_at: "2018-03-09T12:38:56.000Z"
-        },
-        {
-            id: 2,
-            name: "Ringo",
-            age: 5,
-            weight: 36,
-            created_at: "2018-03-09T12:38:56.000Z",
-            updated_at: "2018-03-09T12:38:56.000Z"
-        }
-    ]
-}
-```
-
-For more information about endpoints, visit the [Endpoints](#endpoints) section.
-
 ## Using Pointers
 
-For relational databases like MySQL, a foreign key is a fairly common concept. It basically represents a link to another table that acts as its parent.
+For relational databases like MySQL, a foreign key is a fairly common concept. It represents a link to another table that acts as its parent.
 
 For example, a `dog` table can have a `location_id` foreign key that points to the `location` table. In terms of Warp, this would mean that the `dog` model would have a pointer to the `location` model.
-
-You can declare these Pointers under the static getter `keys`.
 
 ```javascript
 // Import Model from WarpServer
@@ -222,7 +179,9 @@ class Dog extends Model.Class {
 }
 ```
 
-In the above example, you can see that a new `key` has been added to `dog`, called `location`. We use the extended model `Location` in order to create a new key via the `.as()` method. This means that for our endpoints, we can now interact with the `dog`'s location using the alias `location`.
+In the above example, you can see that a new `key` has been added to `dog`, called `location`. 
+
+We use the extended model `Location` in order to create a new key via the `.as()` method. This means that for our endpoints, we can now interact with the `dog`'s location using the alias `location`.
 
 For more information about endpoints, visit the [Endpoints](#endpoints) section.
 
@@ -298,30 +257,19 @@ class Dog extends Model.Class {
 
 ### Data Types
 
-+ `asString`(minLength?: number, maxLength?: number)
-    - Declare the key as a string
-
-+ `asDate`()
-    - Declare the key as a date
-
-+ `asNumber`(min?: number, max?: number)
-    - Declare the key as a number
-    - Allows you to use `Increment` instead of an actual number when setting its value
-
-+ `asFloat`(decimals?: number, min?: number, max?:number)
-    - Declare the key as a float
-    - Allows you to use `Increment` instead of an actual number when setting its value
-
-+ `asJSON`()
-    - Declare the key as a JSON object (only available on MySQL 5.7+)
-    - Allows you to use `JsonSet` instead of an actual object when setting its value
-    - Allows you to use `JsonAppend` instead of an actual object when setting its value
+| Name          | Parameters                                             | Description                                                           |
+| ------------- | ------------------------------------------------------ | --------------------------------------------------------------------- |
+| asString      | minLength?: number, maxLength?: number                 | Declare the key as a string                                           |
+| asDate        |                                                        | Declare the key as a date                                             |
+| asNumber      | min?: number, max?: number                             | Declare the key as a number, allows the use of `Increment`            |
+| asFloat       | decimals?: number, min?: number, max?: number          | Declare the key as a float, allows the use of `Increment`             |
+| asJSON        | *only available on MySQL 5.7+                          | Declare the key as JSON, allows the use of `JsonSet` and `JsonAppend` |
 
 For more information about specials (`Increment`, `JsonSet`, `JsonAppend`), visit the [Special Values](#special-values) section.
 
 ## Setters and Getters
 
-If the provided Key types are not suitable for your needs, you can opt to manually define setters and getters for your keys. 
+If the provided Key types are not suitable for your needs, you can manually define setters and getters for your keys. 
 
 To define a setter, simply use the `camelCase` version of the key as its name.
 
@@ -380,6 +328,213 @@ class Dog extends Model.Class {
 ```
 
 By using the `.get()` method, you can retrieve the data that was stored and present it back to the response in a different format.
+
+## Before Save
+
+Additionally, if you need to manipulate the data before it is saved to the database, you can declare a `beforeSave()` method.
+
+```javascript
+// Import Model from WarpServer
+import { Model } from 'warp-server';
+import somePromise from './some-promise';
+
+class Dog extends Model.Class {
+
+    static get className() {
+        return 'dog';
+    }
+
+    static get keys() {
+        return ['name', 'age', 'weight'];
+    }
+
+    get weight() {
+        return this.get('weight') * 2.2;
+    }
+
+    async beforeSave() {
+
+        // isNew informs you whether the data being saved is new or just an update
+        if(this.isNew) {
+            // The request is trying to create a new object
+        }
+        else {
+            // The request is trying to update an existing object
+        }
+
+        // You can use .get() as well as getters
+        if(this.get('age') > 5 && this.weight > 120) {
+            this.set('size', 'xl');
+        }
+
+        // Throw an error to prevent the object from being saved
+        if(this.get('age') > 10 && this.weight < 90)
+            throw new Error('The provided age and weight are not logical');
+
+        // Await a promise before saving
+        await somePromise;
+
+        return;
+    }
+}
+```
+
+## After Save
+
+If you need to manipulate the data after it is saved to the database, you can declare an `afterSave()` method. Note that works in the background after the response has been sent. Thus, anything returned or thrown in this area does not affect the response.
+
+```javascript
+// Import Model from WarpServer
+import { Model } from 'warp-server';
+import somePromise from './some-promise';
+
+class Dog extends Model.Class {
+
+    static get className() {
+        return 'dog';
+    }
+
+    static get keys() {
+        return ['name', 'age', 'weight'];
+    }
+
+    get weight() {
+        return this.get('weight') * 2.2;
+    }
+
+    async afterSave() {
+        // isNew informs you whether the data saved was new or just an update
+        if(this.isNew) {
+            // The request created a new object
+        }
+        else {
+            // The request updated an existing object
+        }
+
+        // Throwing an error does nothing to the response
+        throw new Error('The provided age and weight are not logical');
+    }
+}
+```
+## Before Destroy
+
+If you need to manipulate the data before it is destroyed in the database, you can declare a `beforeDestroy()` method.
+
+```javascript
+// Import Model from WarpServer
+import { Model } from 'warp-server';
+
+class Dog extends Model.Class {
+
+    static get className() {
+        return 'dog';
+    }
+
+    static get keys() {
+        return ['name', 'age', 'weight'];
+    }
+
+    get weight() {
+        return this.get('weight') * 2.2;
+    }
+
+    async beforeDestroy() {
+
+        // The only key available before destroy is the `id` key
+        const age = this.get('age'); // === undefined
+
+        // Throw an error to prevent the object from being destroyed
+        if(this.id === 10)
+            throw new Error('You cannot delete id 10!');
+
+        // Await a promise before destroying
+        await somePromise;
+
+        return;
+    }
+}
+```
+
+## After Destroy
+
+If you need to manipulate the data after it has been destroyed from the database, you can declare an `afterDestroy()` method. Note that works in the background after the response has been sent. Thus, anything returned or thrown in this area does not affect the response.
+
+```javascript
+// Import Model from WarpServer
+import { Model } from 'warp-server';
+
+class Dog extends Model.Class {
+
+    static get className() {
+        return 'dog';
+    }
+
+    static get keys() {
+        return ['name', 'age', 'weight'];
+    }
+
+    get weight() {
+        return this.get('weight') * 2.2;
+    }
+
+    async afterDestroy() {
+
+        // Throwing an error does nothing to the response
+        throw new Error('You cannot delete a dog!');
+    }
+}
+```
+
+## Adding the Model
+
+Right now, the Model you created is still not recognized by your Warp Server. To register its definition, use `.models.add()`.
+
+```javascript
+// Add the Dog model
+api.models.add({ Dog });
+
+// Apply the router after
+app.use('/api/1', api.router);
+```
+
+`.models.add()` accepts a mapping of Models, so you can do the following.
+
+```javascript
+// Add multiple models
+api.models.add({ Dog, Bird });
+
+// Apply the router after
+app.use('/api/1', api.router);
+```
+
+Now that you've added the Models, once you start the server, you can begin accessing them via the `/classes` endpoint.
+
+```bash
+> curl -H 'X-Warp-API-Key=1234abcd' http://localhost:3000/api/1/classes/dog
+
+{
+    result: [
+        {
+            id: 1,
+            name: "Bingo",
+            age: 4,
+            weight: 33.2,
+            created_at: "2018-03-09T12:38:56.000Z",
+            updated_at: "2018-03-09T12:38:56.000Z"
+        },
+        {
+            id: 2,
+            name: "Ringo",
+            age: 5,
+            weight: 36,
+            created_at: "2018-03-09T12:38:56.000Z",
+            updated_at: "2018-03-09T12:38:56.000Z"
+        }
+    ]
+}
+```
+
+For more information about endpoints, visit the [Endpoints](#endpoints) section.
 
 # Authentication
 
@@ -530,3 +685,60 @@ class Session extends WarpSession.Class {
     }
 }
 ```
+
+## Setting the Auth Models
+
+To set the newly defined auth models, use the `.auth.set()` methods
+
+```javascript
+// Set auth models
+api.auth.set(User, Session);
+
+// Apply the router after
+app.use('/api/1', api.router);
+```
+
+# Functions
+
+Ideally, you can perform a multitude of tasks using model classes. However, for special operations that you need to perform inside the server, you can use `Functions`.
+
+A `Function` is a piece of code that can be executed via a named endpoint. It receives input `keys` that it processes in order to produce a result.
+
+## Create a Function
+
+To create a Function, create a new class that extends the `Function.Class`.
+
+```javascript
+// Import Function from Warp Server
+import { Function } from 'warp-server';
+import getDogsPromise from './get-dogs';
+
+class GetFavoriteDogs extends Function.Class {
+
+    static get functionName() {
+        return 'get-favorite-dogs';
+    }
+
+    static get masterOnly() {
+        return false;
+    }
+
+    async run() {
+        // collection_id was passed to the request
+        const collectionID = this.get('collection_id');
+
+        // Do some work here...
+        const favoriteDogs = await getDogsPromise(collectionId);
+
+        // Throw an error instead of a result
+        throw new Error('Cannot get your favorite dogs');
+
+        // Return the result
+        return favoriteDogs;
+    }
+}
+```
+
+For the above example, you can see that you need to declare a `functionName` getter as well as a `run()` method. These are the only two things you need in order to create a function. 
+
+However, you might notice the `masterOnly` getter declared atop. What does this does is just basically limits access to the function to masters (i.e. requests made using the `X-Warp-Master-Key`). You can omit this code, and by default is set to be `false`.
