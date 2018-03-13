@@ -17,7 +17,7 @@ Currently, `Warp Server` uses `mysql@5.7` as its database of choice, but can be 
     - **[Using Pointers](#using-pointers)**
     - **[Defining Key Types](#defining-key-types)**
     - **[Setters and Getters](#setters-and-getters)**
-- **[Authentication](#auth)**
+- **[Authentication](#authentication)**
     - **[Creating a User model](#creating-a-user-model)**
     - **[Creating a Session model](#creating-a-session-model)**
     - **[Setting the Auth models](#setting-the-auth-models)**
