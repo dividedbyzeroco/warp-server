@@ -760,6 +760,6 @@ app.use('/api/1', api.router);
 `.functions.add()` accepts a mapping of Functions, so you can do the following.
 
 ```javascript
-// Add multiple models
-api.models.add({ GetFavoriteDogs, GetGoodDogs });
+// Add multiple functions
+api.functions.add({ GetFavoriteDogs, GetGoodDogs });
 
