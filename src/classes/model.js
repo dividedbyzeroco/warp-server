@@ -349,6 +349,8 @@ class ModelClass {
                 if(typeof pointerDescriptor === 'undefined') {
                     Object.defineProperty(this.prototype, toCamelCase(key.aliasKey), {
                         set(value) {
+                            if(key.isSecondary)
+                                throw new Error(Error.Code.ForbiddenOperation, `Cannot manually set secondary pointers`);
                             if(!key.isImplementedBy(value))
                                 throw new Error(Error.Code.ForbiddenOperation, 
                                     `Key \`${key.aliasKey}\` must be a pointer to \`${key.model.className}\``);
