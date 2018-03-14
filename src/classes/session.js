@@ -4,6 +4,7 @@
  */
 import Model from './model';
 import User from './user';
+import { KeyManager } from './key';
 import { InternalKeys } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
 
@@ -35,7 +36,7 @@ class SessionClass extends Model.Class {
         return InternalKeys.Auth.RevokedAt;
     }
 
-    static get keys(): Array<string | Model.Pointer> {
+    static get keys(): Array<string | Model.Pointer | KeyManager> {
         return [this.user.as(this.userKey), this.originKey, this.sessionTokenKey, this.revokedAtKey];
     }
 

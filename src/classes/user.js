@@ -4,6 +4,7 @@
  */
 import enforce from 'enforce-js';
 import Model from './model';
+import { KeyManager } from './key';
 import { InternalKeys } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
 import Error from '../utils/error';
@@ -30,7 +31,7 @@ class UserClass extends Model.Class {
         return InternalKeys.Auth.Password;
     }
 
-    static get keys(): Array<string | Model.Pointer> {
+    static get keys(): Array<string | Model.Pointer | KeyManager> {
         return [this.usernameKey, this.emailKey, this.passwordKey];
     }
 

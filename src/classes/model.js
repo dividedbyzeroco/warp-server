@@ -447,7 +447,7 @@ class ModelClass {
         return this.className;
     }
 
-    static get keys(): Array<string | Pointer> {
+    static get keys(): Array<string | Pointer | KeyManager> {
         return [];
     }
 
