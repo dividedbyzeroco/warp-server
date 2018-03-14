@@ -57,7 +57,7 @@ class FunctionClass {
     }
 
     get Warp(): Warp {
-        return Warp;
+        return this._warp;
     }
 
     get isMaster(): boolean {

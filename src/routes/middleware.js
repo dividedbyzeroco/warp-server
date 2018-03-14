@@ -90,7 +90,7 @@ const middleware = (api: WarpServer) => {
     router.use((req, res, next) => {
         const sessionToken = req.metadata.sessionToken;
         const currentUser = req.currentUser;
-        req.Warp = new Warp({ platform: 'api', api, sessionToken, currentUser });
+        req.Warp = new Warp({ platform: 'api', api, apiKey: req.metadata.apiKey, sessionToken, currentUser });
         next();
     });
 

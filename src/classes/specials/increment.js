@@ -1,6 +1,5 @@
 // References
-import Database from '../../adapters/database';
-import { KeyValue } from '../../utils/key-map';
+import { KeyValuePair } from '../../utils/key-map';
 
 export default class Increment {
 
@@ -8,7 +7,7 @@ export default class Increment {
     _max;
 
     constructor(key, definition, min = 0, max) {
-        this._keyValue = new KeyValue(key, definition.value);
+        this._keyValue = new KeyValuePair(key, definition.value);
         this._min = min;
         this._max = max;
     }
@@ -22,11 +21,11 @@ export default class Increment {
     }
 
     get key() {
-        return Database.escapeKey(this._keyValue.key);
+        return this._keyValue.key;
     }
 
     get value() {
-        return Database.escape(parseInt(this._keyValue.value));
+        return parseInt(this._keyValue.value);
     }
 
     get min() {

@@ -21,14 +21,14 @@ export type GetOptionsType = {
 };
 
 export type CreateOptionsType = {
-    Warp?: Warp,
+    Warp: Warp,
     metadata: {[name: string]: any},
     currentUser: User.Class,
     keys: {[name: string]: any}
 };
 
 export type UpdateOptionsType = {
-    Warp?: Warp,
+    Warp: Warp,
     metadata: {[name: string]: any},
     currentUser: User.Class,
     id: number,
@@ -36,14 +36,14 @@ export type UpdateOptionsType = {
 };
 
 export type DestroyOptionsType = {
-    Warp?: Warp,
+    Warp: Warp,
     metadata: {[name: string]: any},
     currentUser: User.Class,
     id: number
 };
 
 export type LoginOptionsType = {
-    Warp?: Warp,
+    Warp: Warp,
     metadata: {[name: string]: any},
     currentUser: User.Class,
     username: string,
@@ -56,6 +56,6 @@ export type MeOptionsType = {
 };
 
 export type LogoutOptionsType = {
-    Warp?: Warp,
+    Warp: Warp,
     sessionToken: string
 };
