@@ -2,7 +2,7 @@
 /**
  * References
  */
-import Warp from 'warp-sdk-js';
+import { Warp } from 'warp-sdk-js';
 import User from '../classes/user';
 
 export type FindOptionsType = {

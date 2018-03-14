@@ -35,6 +35,7 @@ import ClassController from './controllers/class';
 import UserController from './controllers/user';
 import SessionController from './controllers/session';
 import FunctionController from './controllers/function';
+import chalk from 'chalk';
 
 /**
  * Extend enforce validations
@@ -422,7 +423,7 @@ export default class WarpServer {
 
 
             // Display startup screen
-            this._log.bare(`
+            this._log.bare(chalk.yellow(`
             -------------------------------------------
             -------------------------------------------
             ------------------------------------=/-----
@@ -445,7 +446,7 @@ export default class WarpServer {
             +-----------------------------------------+
             |     The server has been initialized     |
             +-----------------------------------------+
-            `);
+            `));
             this._log.info('Service started');
             if(!this.hasDatabase) this._log.info('NOTE: No database has been configured');
         }
