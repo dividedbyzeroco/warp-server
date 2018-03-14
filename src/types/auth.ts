@@ -2,18 +2,18 @@
 /**
  * References
  */
-import User from '../classes/user';
-import Session from '../classes/session';
+import { UserClass } from '../classes/user';
+import { SessionClass } from '../classes/session';
 
 export type AuthMapType = {
-    user: typeof User.Class,
-    session: typeof Session.Class
+    user: typeof UserClass,
+    session: typeof SessionClass
 };
 
 export type AuthFunctionsType = {
-    set: (user: typeof User.Class, session: typeof Session.Class) => void;
-    user: () => typeof User.Class;
-    session: () => typeof Session.Class;
+    set: (user: typeof UserClass, session: typeof SessionClass) => void;
+    user: () => typeof UserClass;
+    session: () => typeof SessionClass;
 };
 
 export type AuthOptionsType = {

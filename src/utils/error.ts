@@ -7,7 +7,7 @@ export default class WarpError extends Error {
     name: string = 'Warp Server Error';
     code: number;
 
-    static get Code(): Object {
+    static get Code() {
         return Object.freeze({
             MissingConfiguration: 300,
             InternalServerError: 100,

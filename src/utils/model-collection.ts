@@ -2,14 +2,11 @@
 /**
  * References
  */
-import Model from '../classes/model';
+import { ModelClass } from '../classes/model';
 
-export default class ModelCollection<+T: Model.Class> {
+export default class ModelCollection<T extends ModelClass> {
 
-    /**
-     * Private properties
-     */
-    _collection: Array<any>;
+    _collection: Array<T>;
 
     constructor(collection: Array<T>) {
         this._collection = collection;

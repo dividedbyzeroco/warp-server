@@ -1,9 +1,9 @@
 // @flow
 export interface ILogger {
     constructor(appName: string): void;
-    +appName: string;
-    +timestamp: string;
-    +level: Levels;
+    appName: string;
+    timestamp: string;
+    level: Levels;
     header(type: LogTypes): string;
     bare(...message: Array<any>): void;
     info(...message: Array<any>): void;

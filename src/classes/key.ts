@@ -1,10 +1,7 @@
-// @flow
-/**
- * References
- */
 import { Increment, SetJson, AppendJson } from './specials';
-import Error from '../utils/error';
 import { toDatabaseDate, toISODate } from '../utils/format';
+import Error from '../utils/error';
+import { KeyDefinition } from '../types/key';
 
 export class KeyManager {
 
@@ -115,7 +112,7 @@ function Key(name: string) {
                 else return Number(number);
             };
         },
-        asFloat: (decimals?: number = 2, min?: number, max?: number) => {
+        asFloat: (decimals: number = 2, min?: number, max?: number) => {
             const key = new KeyManager(instance.name);
             key._setter = value => {
                 // If null, set value to null
@@ -187,7 +184,7 @@ function Key(name: string) {
     return instance;
 }
 
-Key.isImplementedBy = (value: any) => {
+export const keyIsImplementedBy = (value: KeyDefinition) => {
     if(typeof value !== 'object') return false;
     if(value.type === 'Key') return true;
     else return false;

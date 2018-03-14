@@ -1,8 +1,4 @@
-// @flow
-/**
- * References
- */
-import type { IDatabaseAdapter, DatabaseConfigType } from '../../types/database';
+import { IDatabaseAdapter, DatabaseConfigType } from '../../types/database';
 import MySQLDatabaseAdapter from './mysql';
 import Error from '../../utils/error';
 

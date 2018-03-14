@@ -8,7 +8,7 @@ import { KeyManager } from './key';
 import { InternalKeys } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
 
-class SessionClass extends Model.Class {
+export class SessionClass extends Model.Class {
 
     static _user: typeof User.Class;
 

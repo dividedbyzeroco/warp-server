@@ -1,15 +1,11 @@
-// @flow
-/**
- * References
- */
 import express from 'express';
 import enforce from 'enforce-js';
 import uniqid from 'uniqid';
 import parseUrl from 'parse-url';
 import Model from './classes/model';
-import User from './classes/user';
+import User, { UserClass } from './classes/user';
 import Function from './classes/function';
-import Session from './classes/session';
+import Session, { SessionClass } from './classes/session';
 import Key from './classes/key';
 import Database from './adapters/database';
 import Logger from './adapters/logger';
@@ -17,15 +13,15 @@ import Crypto from './adapters/crypto';
 import Error from './utils/error';
 import { Subqueries } from './utils/constraint-map';
 import { addToDate, toDatabaseDate } from './utils/format';
-import type { ServerConfigType } from './types/server';
-import type { SecurityConfigType } from './types/security';
-import type { DatabaseOptionsType, IDatabaseAdapter } from './types/database';
-import type { ThrottlingConfigType } from './types/throttling';
-import type { ModelMapType, ModelFunctionsType } from './types/model';
-import type { AuthMapType, AuthFunctionsType, AuthOptionsType } from './types/auth';
-import type { FunctionMethodsType, FunctionMapType } from './types/functions';
-import type { ResponseFunctionsType } from './types/response';
-import type { ILogger } from './types/logger';
+import { ServerConfigType } from './types/server';
+import { SecurityConfigType } from './types/security';
+import { DatabaseOptionsType, IDatabaseAdapter } from './types/database';
+import { ThrottlingConfigType } from './types/throttling';
+import { ModelMapType, ModelFunctionsType } from './types/model';
+import { AuthMapType, AuthFunctionsType, AuthOptionsType } from './types/auth';
+import { FunctionMethodsType, FunctionMapType } from './types/functions';
+import { ResponseFunctionsType } from './types/response';
+import { ILogger } from './types/logger';
 import middleware from './routes/middleware';
 import classesRouter from './routes/classes';
 import usersRouter from './routes/users';
@@ -36,9 +32,6 @@ import UserController from './controllers/user';
 import SessionController from './controllers/session';
 import FunctionController from './controllers/function';
 
-/**
- * Extend enforce validations
- */
 enforce.extend(/^equivalent to an array$/i, val => {
     try {
         const parsedValue = JSON.parse(val);
@@ -70,10 +63,6 @@ enforce.extend(/^and a valid email address$/i, val => {
  * @description WarpServer definition
  */
 export default class WarpServer {
-
-    /**
-     * Private properties
-     */
     
     _log: ILogger = Logger.use('console', 'Warp Server', process.env.LOG_LEVEL || 'error');
     _security: SecurityConfigType;
@@ -106,7 +95,7 @@ export default class WarpServer {
         requestLimit,
         customResponse,
         supportLegacy
-    }: ServerConfigType): void {
+    }: ServerConfigType) {
         // Set security
         this._setSecurity({ apiKey, masterKey, passwordSalt, sessionDuration });
 
@@ -126,13 +115,15 @@ export default class WarpServer {
     }
 
     /**
-     * Getters and Setters
+     * API Key
      */
-
     get apiKey(): string {
         return this._security.apiKey;
     }
 
+    /**
+     * Master Key
+     */
     get masterKey(): string {
         return this._security.masterKey;
     }
@@ -146,6 +137,9 @@ export default class WarpServer {
         return this._throttling;
     }
 
+    /**
+     * Model operations
+     */
     get models(): ModelFunctionsType {
         return {
             add: (map: ModelMapType) => {
@@ -192,6 +186,9 @@ export default class WarpServer {
         };
     }
 
+    /**
+     * Authentication operations
+     */
     get auth(): AuthFunctionsType {
         return {
             set: (user: typeof User.Class, session: typeof Session.Class) => {
@@ -216,7 +213,7 @@ export default class WarpServer {
                     session: session.initialize(this._database, this._supportLegacy) 
                 };
             },
-            user: (): typeof User.Class => {
+            user: (): typeof UserClass => {
                 // Check if auth exists
                 if(typeof this._auth === 'undefined')
                     throw new Error(Error.Code.MissingConfiguration, 'Authentication has not been defined');
@@ -224,7 +221,7 @@ export default class WarpServer {
                 // Return model
                 return this._auth.user;
             },
-            session: (): typeof Session.Class => {
+            session: (): typeof SessionClass => {
                 // Check if auth exists
                 if(typeof this._auth === 'undefined')
                     throw new Error(Error.Code.MissingConfiguration, 'Authentication has not been defined');
@@ -235,6 +232,9 @@ export default class WarpServer {
         };
     }
 
+    /**
+     * Function operations
+     */
     get functions(): FunctionMethodsType {
         return {
             add: (map: FunctionMapType) => {
@@ -279,6 +279,9 @@ export default class WarpServer {
         };
     }
 
+    /**
+     * Response format
+     */
     get response(): ResponseFunctionsType {
         return {
             success: (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -321,14 +324,10 @@ export default class WarpServer {
     }
 
     /**
-     * Private methods
+     * Set security configuration
+     * @param {Object} config
      */
-
-     /**
-      * Set security configuration
-      * @param {Object} config
-      */
-    _setSecurity({ apiKey, masterKey, passwordSalt = 8, sessionDuration = '2 years' }: SecurityConfigType): void {
+    private _setSecurity({ apiKey, masterKey, passwordSalt = 8, sessionDuration = '2 years' }: SecurityConfigType): void {
         // Enforce
         enforce`${{apiKey}} as a string`;
         enforce`${{masterKey}} as a string`;
@@ -343,11 +342,11 @@ export default class WarpServer {
         };
     }
 
-     /**
-      * Extract database configuration from URI
-      * @param {Object} config
-      */
-    _extractDatabaseConfig(databaseURI: string) {
+    /**
+     * Extract database configuration from URI
+     * @param {Object} config
+     */
+    private _extractDatabaseConfig(databaseURI: string) {
         const parsedURI = parseUrl(databaseURI);
         const identity = parsedURI.user.split(':');
 
@@ -365,7 +364,7 @@ export default class WarpServer {
      * Set database configuration
      * @param {Object} config
      */
-    _setDatabase({ databaseURI, keepConnections = false, charset = 'utf8mb4_unicode_ci', timeout = 30 * 1000 }: DatabaseOptionsType) {
+    private _setDatabase({ databaseURI, keepConnections = false, charset = 'utf8mb4_unicode_ci', timeout = 30 * 1000 }: DatabaseOptionsType) {
         // Extract database config
         const { protocol, host, port, user, password, schema } = this._extractDatabaseConfig(databaseURI);
 
@@ -397,7 +396,7 @@ export default class WarpServer {
      * Set throttling configuration
      * @param {Object} config
      */
-    _setThrottling({ 
+    private _setThrottling({ 
         limit = 60, 
         unit = 'second' 
     }: ThrottlingConfigType) {
@@ -410,9 +409,8 @@ export default class WarpServer {
     }
 
     /**
-     * Public methods
+     * Initialize the server and connect to the database
      */
-    
     async initialize() {
         try {
             this._log.info('Starting Warp Server...');
@@ -454,7 +452,11 @@ export default class WarpServer {
         }
     }
 
-    async authenticate({ sessionToken, username, email, password }: AuthOptionsType): Promise<User.Class | void> {
+    /**
+     * Authenticate a sessionToken, username, email, or password
+     * @param {AuthOptionsType} options
+     */
+    async authenticate({ sessionToken, username, email, password }: AuthOptionsType): Promise<UserClass | void> {
         // If session token is provided, search for the matching session
         if(typeof sessionToken !== 'undefined') {
             // Get session model
@@ -480,7 +482,7 @@ export default class WarpServer {
         return;
     }
 
-    createSessionToken(user: User.Class) {
+    createSessionToken(user: UserClass) {
         return uniqid(`${(user.id * 1024 * 1024).toString(36)}-`) + (Math.random()*1e32).toString(36).slice(0, 8);
     }
 
@@ -522,6 +524,9 @@ export default class WarpServer {
         return where;
     }
 
+    /**
+     * Get express router
+     */
     get router(): express.Router {
         // If a router has not yet been defined, prepare the router
         if(typeof this._router === 'undefined') {
@@ -542,9 +547,6 @@ export default class WarpServer {
     }
 }
 
-/**
- * Export classes
- */
 export {
     Model,
     User,

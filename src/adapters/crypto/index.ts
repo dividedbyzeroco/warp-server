@@ -2,7 +2,7 @@
 /**
  * References
  */
-import type { ICryptoAdapter } from '../../types/crypto';
+import { ICryptoAdapter } from '../../types/crypto';
 import Error from '../../utils/error';
 import BcryptCryptoAdapter from './bcrypt';
 

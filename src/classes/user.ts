@@ -1,17 +1,13 @@
-// @flow
-/**
- * References
- */
 import enforce from 'enforce-js';
-import Model from './model';
+import Model, { Pointer, ModelClass } from './model';
 import { KeyManager } from './key';
 import { InternalKeys } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
 import Error from '../utils/error';
-import type { ICryptoAdapter } from '../types/crypto';
-import type { CredentialsType } from '../types/auth';
+import { ICryptoAdapter } from '../types/crypto';
+import { CredentialsType } from '../types/auth';
 
-class UserClass extends Model.Class {
+export class UserClass extends ModelClass {
 
     static _crypto: ICryptoAdapter;
 
@@ -31,7 +27,7 @@ class UserClass extends Model.Class {
         return InternalKeys.Auth.Password;
     }
 
-    static get keys(): Array<string | Model.Pointer | KeyManager> {
+    static get keys(): Array<string | Pointer | KeyManager> {
         return [this.usernameKey, this.emailKey, this.passwordKey];
     }
 
@@ -43,7 +39,7 @@ class UserClass extends Model.Class {
         this._crypto = crypto;
     }
 
-    static async verify({ username, email, password }: CredentialsType): Promise<this | void> {
+    static async verify<T extends UserClass>({ username, email, password }: CredentialsType): Promise<T | void> {
         // Prepare where clause
         const where = new ConstraintMap();
         
@@ -52,7 +48,8 @@ class UserClass extends Model.Class {
         else where.equalTo(this.emailKey, email);
 
         // Get matching user
-        const user = (await this.find({ where, skip: 0, limit: 1 })).first();
+        const result = await this.find<T>({ where, skip: 0, limit: 1 });
+        const user = result.first();
 
         // If user is not found, return undefined
         if(typeof user === 'undefined') return;
@@ -62,29 +59,33 @@ class UserClass extends Model.Class {
         else return;
     }
 
-    set username(value: string): void {
-        this.set(this.constructor.usernameKey, value);
+    get statics() {
+        return this.constructor as typeof UserClass;
     }
 
-    set email(value: string): void {
+    set username(value: string) {
+        this.set(this.statics.usernameKey, value);
+    }
+
+    set email(value: string) {
         enforce`${{ email: value }} as a string, and a valid email address`;
-        this.set(this.constructor.emailKey, value);
+        this.set(this.statics.emailKey, value);
     }
 
-    set password(value: string): void {
-        this.set(this.constructor.passwordKey, this.constructor._crypto.hash(value));
+    set password(value: string) {
+        this.set(this.statics.passwordKey, this.statics._crypto.hash(value));
     }
 
     get username(): string {
-        return this.get(this.constructor.usernameKey);
+        return this.get(this.statics.usernameKey);
     }
 
     get email(): string {
-        return this.get(this.constructor.emailKey);
+        return this.get(this.statics.emailKey);
     }
 
     get password(): string {
-        return this._keyMap.get(this.constructor.passwordKey);
+        return this._keyMap.get(this.statics.passwordKey);
     }
 
     async beforeSave() {
@@ -102,16 +103,16 @@ class UserClass extends Model.Class {
 
         // Prepare filters
         const usernameWhere = new ConstraintMap();
-        usernameWhere.equalTo(this.constructor.usernameKey, username);
+        usernameWhere.equalTo((this.constructor as typeof UserClass).usernameKey, username);
         const emailWhere = new ConstraintMap();
-        emailWhere.equalTo(this.constructor.emailKey, email);
+        emailWhere.equalTo((this.constructor as typeof UserClass).emailKey, email);
         
         // Search for existing username
-        const usernameMatch = (await this.constructor.find({ where: usernameWhere, skip: 0, limit: 1 })).first();
+        const usernameMatch = (await (this.constructor as typeof UserClass).find({ where: usernameWhere, skip: 0, limit: 1 })).first();
         if(typeof usernameMatch !== 'undefined') throw new Error(Error.Code.UsernameTaken, 'Username already taken');
         
         // Search for existing email
-        const emailMatch = (await this.constructor.find({ where: emailWhere, skip: 0, limit: 1 })).first();
+        const emailMatch = (await (this.constructor as typeof UserClass).find({ where: emailWhere, skip: 0, limit: 1 })).first();
         if(typeof emailMatch !== 'undefined') throw new Error(Error.Code.EmailTaken, 'Email already taken');
 
         return;

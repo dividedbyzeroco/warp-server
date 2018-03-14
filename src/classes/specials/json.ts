@@ -1,8 +1,5 @@
-// @flow
-/**
- * References
- */
 import { KeyValuePair } from '../../utils/key-map';
+import { JsonDefinition } from '../../types/json';
 
 class SetJson {
     
@@ -10,7 +7,7 @@ class SetJson {
     _keyValue: KeyValuePair;
     _path: string;
 
-    constructor(key: string, definition: Object, isNew: boolean = false) {
+    constructor(key: string, definition: JsonDefinition, isNew: boolean = false) {
         this._isNew = isNew;
         this._keyValue = new KeyValuePair(key, definition.value);
         this._path = definition.path;
@@ -18,7 +15,7 @@ class SetJson {
 
     static isImplementedBy(value: Object) {
         if(value === null) return false;
-        if(value.type !== 'SetJson') return false;
+        if(value['type'] !== 'SetJson') return false;
         return true;
     }
 
@@ -45,7 +42,7 @@ class AppendJson {
     _keyValue: KeyValuePair;
     _path: string;
 
-    constructor(key: string, definition: Object, isNew: boolean = false) {
+    constructor(key: string, definition: JsonDefinition, isNew: boolean = false) {
         this._isNew = isNew;
         this._keyValue = new KeyValuePair(key, definition.value);
         this._path = definition.path;

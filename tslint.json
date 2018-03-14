@@ -3,21 +3,11 @@
         "es6": true,
         "node": true
     },
+    "defaultSeverity": "error",
     "extends": [
-        "eslint:recommended",
-        "plugin:flowtype/recommended"
+        "tslint:recommended"
     ],
-    "parser": "babel-eslint",
-    "parserOptions": {
-        "ecmaFeatures": {
-            "modules": true
-        },
-        "ecmaVersion": 2017,
-        "sourceType": "module"
-    },
-    "plugins": [
-        "flowtype"
-    ],
+    "jsRules": {},
     "rules": {
         "quotes": [
             "error",
@@ -33,9 +23,5 @@
           { "argsIgnorePattern": "next" }
         ]
     },
-    "settings": {
-        "flowtype": {
-            "onlyFilesWithFlowAnnotation": true
-        }
-    }
+    "rulesDirectory": []
 }

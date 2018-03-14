@@ -3,9 +3,9 @@
  * References
  */
 import mysql from 'mysql';
-import type { DatabaseConfigType } from '../../../types/database';
 import Error from '../../../utils/error';
 import { Increment, SetJson, AppendJson } from '../../../classes/specials';
+import { DatabaseConfigType } from '../../../types/database';
 
 export default class DatabaseClient {
 
@@ -51,7 +51,7 @@ export default class DatabaseClient {
     escape(value: any) {
         // Handle specials
         if(value instanceof Increment) {
-            let escaped = `GREATEST(IFNULL(${this.escapeKey(value.key)}, 0) + (${parseInt(value.value)}), ${value.min})`;
+            let escaped = `GREATEST(IFNULL(${this.escapeKey(value.key)}, 0) + (${value.value}), ${value.min})`;
             if(typeof value.max !== 'undefined') escaped = `LEAST(${escaped}, ${value.max})`;
             return escaped;
         }
@@ -96,7 +96,7 @@ export default class DatabaseClient {
 
         // Test connection
         const result = await this.query('SELECT 1+1 AS result');
-        if(result.rows[0]['result'] === 2) return;
+        if(result['rows'][0]['result'] === 2) return;
         else throw new Error(Error.Code.InternalServerError, 'Could not connect to the pool');
     }
 
@@ -139,7 +139,7 @@ export default class DatabaseClient {
             // Prepare result
             let result;
             if(rows instanceof Array) result = { rows };
-            else result = { id: rows.insertId };
+            else result = { id: rows['insertId'] };
 
             return result;
         }

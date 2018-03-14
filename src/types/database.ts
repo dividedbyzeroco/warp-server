@@ -40,7 +40,7 @@ export type SubqueryOptionsType = {
 
 export interface IDatabaseAdapter {
     constructor(config: DatabaseConfigType): void;
-    +currentTimestamp: string;
+    currentTimestamp: string;
     initialize(): Promise<void>;
     find(
         source: string,

@@ -6,7 +6,7 @@ import ModelCollection from '../utils/model-collection';
 import { Defaults } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
 import Error from '../utils/error';
-import type { 
+import { 
     GetOptionsType, 
     FindOptionsType, 
     CreateOptionsType, 
@@ -142,10 +142,13 @@ export default class UserController {
         // If no user found
         if(!(user instanceof this._api.auth.user()))
             throw new Error(Error.Code.InvalidCredentials, 'Invalid username/password');
+
+        // Convert user to pointer
+        user.toPointer();
     
         // If the user is found, create a new session
         const keys = {
-            [sessionClass.userKey]: user.toPointer().toJSON(),
+            [sessionClass.userKey]: user.toJSON(),
             [sessionClass.originKey]: metadata.client,
             [sessionClass.sessionTokenKey]: this._api.createSessionToken(user),
             [sessionClass.revokedAtKey]: this._api.getRevocationDate()
