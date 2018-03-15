@@ -6,13 +6,12 @@
   "scripts": {
     "build": "node ./node_modules/babel-cli/bin/babel.js src -d dist",
     "clean": "node ./node_modules/rimraf/bin dist",
-    "copy-flow": "node ./node_modules/flow-copy-source/bin/flow-copy-source.js src dist",
     "test": "npm run clean && npm run build && mocha --require babel-core/register",
     "quicktest": "mocha --require babel-core/register",
     "flow": "flow check",
     "lint": "eslint src/**",
     "lint:auto": "nodemon -w src/ --exec eslint src/**",
-    "prepublish": "npm run clean && npm run build && npm run copy-flow"
+    "prepublish": "npm run clean && npm run build"
   },
   "repository": {
     "type": "git",
