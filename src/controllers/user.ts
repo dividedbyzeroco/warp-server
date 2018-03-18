@@ -15,6 +15,7 @@ import {
     MeOptionsType,
     LogoutOptionsType
 } from '../types/users';
+import KeyMap from '../utils/key-map';
 
 export default class UserController {
 

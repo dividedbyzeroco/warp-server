@@ -505,7 +505,7 @@ export default class WarpServer {
         const duration: number = parseInt(sessionDuration[0]);
         const unit: string = sessionDuration[1];
         const date = new Date();
-        return toDatabaseDate(addToDate(date.toISOString(), duration, unit).toISOString());
+        return addToDate(date.toISOString(), duration, unit).toISOString();
     }
 
     parseSubqueries(where: {[name: string]: {[name: string]: any}}): {[name: string]: {[name: string]: any}} {
