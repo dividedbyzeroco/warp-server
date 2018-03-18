@@ -1,6 +1,6 @@
 import Model, { Pointer } from './model';
 import { UserClass } from './user';
-import { KeyManager } from './key';
+import Key, { KeyManager } from './key';
 import { InternalKeys } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
 
@@ -33,7 +33,7 @@ export class SessionClass extends Model.Class {
     }
 
     static get keys(): Array<string | Pointer | KeyManager> {
-        return [this.user.as(this.userKey), this.originKey, this.sessionTokenKey, this.revokedAtKey];
+        return [this.user.as(this.userKey), this.originKey, this.sessionTokenKey, Key(this.revokedAtKey).asDate()];
     }
 
     static setUser(user: typeof UserClass) {
