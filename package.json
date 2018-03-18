@@ -1,16 +1,13 @@
 {
   "name": "warp-server",
-  "version": "5.0.9",
+  "version": "5.0.10",
   "description": "Warp Server",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "node ./node_modules/babel-cli/bin/babel.js src -d dist",
+    "build": "tsc",
     "clean": "node ./node_modules/rimraf/bin dist",
-    "test": "npm run clean && npm run build && mocha --require babel-core/register",
-    "quicktest": "mocha --require babel-core/register",
-    "flow": "flow check",
+    "test": "mocha --require babel-core/register",
     "lint": "eslint src/**",
-    "lint:auto": "nodemon -w src/ --exec eslint src/**",
     "prepublish": "npm run clean && npm run build"
   },
   "repository": {
@@ -28,30 +25,24 @@
   },
   "homepage": "https://github.com/dividedbyzeroco/warp-server#readme",
   "dependencies": {
+    "@types/es6-promise": "^3.3.0",
+    "@types/node": "^9.4.7",
     "bcryptjs": "^2.3.0",
     "body-parser": "^1.15.1",
     "chalk": "^2.3.2",
     "cors": "^2.7.1",
-    "cron": "^1.1.0",
     "enforce-js": "^1.2.6",
     "express": "^4.13.4",
     "limiter": "^1.1.2",
     "mysql": "^2.14.1",
     "parse-url": "^3.0.2",
     "promise": "^7.1.1",
-    "uniqid": "^4.1.1"
+    "uniqid": "^4.1.1",
+    "warp-sdk-js": "^5.0.6"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-eslint": "^8.2.1",
-    "babel-plugin-shebang": "0.0.0",
-    "babel-preset-env": "^1.6.1",
-    "babel-preset-flow": "^6.23.0",
-    "babel-preset-stage-0": "^6.24.1",
     "chai": "^4.1.2",
     "eslint": "^4.16.0",
-    "eslint-plugin-flowtype": "^2.42.0",
-    "flow-copy-source": "^1.3.0",
     "mocha": "^5.0.1",
     "nodemon": "^1.10.0"
   }

@@ -28,6 +28,9 @@ Currently, `Warp Server` uses `mysql@5.7` as its database of choice, but can be 
 - **[Functions](#functions)**
     - **[Create a Function](#creating-a-function)**
     - **[Adding a Function](#adding-a-function)**
+- **[Using the API](#using-the-api)**
+    - **[via REST](#via-rest)**
+    - **[via JavaScript SDK](#via-javascript-sdk)**
 
 # Installation
 
@@ -60,6 +63,26 @@ api.initialize();
 var app = express();
 app.use('/api/1', api.router);
 ```
+
+> NOTE: Warp Server uses modern node features. If you are transpiling via Babel, be sure to target at least Node 6.
+
+Sample `.babelrc`
+
+```json
+{
+    "presets": [
+      "stage-0",
+      [
+        "env", {
+          "targets": {
+            "node": "6"
+          }
+        }
+      ]
+    ]
+}
+```
+
 ## Configuration Options
 
 Warp Server accepts several configuration options that you can fully customize.
@@ -88,6 +111,8 @@ Among these `Keys` are three special ones that are automatically set by the serv
 - `id`: a unique identifier that distinguishes an object inside a table
 - `created_at`: a timestamp that records the date and time when an object was created (UTC)
 - `updated_at`: a timestamp that records the date and time when an object was last modified (UTC)
+
+> NOTE: Be sure to have `id`, `created_at`, `updated_at`, and `deleted_at` fields on your table in order for Warp Server to work with them.
 
 ## Creating a Model
 
@@ -185,7 +210,7 @@ In the above example, you can see that a new `key` has been added to `dog`, call
 
 We use the extended model `Location` in order to create a new key via the `.as()` method. This means that for our endpoints, we can now interact with the `dog`'s location using the alias `location`.
 
-For more information about endpoints, visit the [Endpoints](#endpoints) section.
+For more information about endpoints, visit the [Using the API](#using-the-api) section.
 
 ### Secondary Pointers
 
@@ -261,13 +286,22 @@ class Dog extends Model.Class {
 
 | Name          | Parameters                                             | Description                                                           |
 | ------------- | ------------------------------------------------------ | --------------------------------------------------------------------- |
-| asString      | minLength?: number, maxLength?: number                 | Declare the key as a string                                           |
+| asString      | `minLength`?: number, `maxLength`?: number             | Declare the key as a string                                           |
 | asDate        |                                                        | Declare the key as a date                                             |
-| asNumber      | min?: number, max?: number                             | Declare the key as a number, allows the use of `Increment`            |
-| asFloat       | decimals?: number, min?: number, max?: number          | Declare the key as a float, allows the use of `Increment`             |
-| asJSON        | *only available on MySQL 5.7+                          | Declare the key as JSON, allows the use of `JsonSet` and `JsonAppend` |
+| asNumber      | `min`?: number, `max`?: number                         | Declare the key as a number, allows the use of `Increment`            |
+| asInteger     | `min`?: number, `max`?: number                         | Declare the key as an integer, allows the use of `Increment`          |
+| asFloat       | `decimals`?: number, `min`?: `number`, `max?`: number  | Declare the key as a float, allows the use of `Increment`             |
+| asJSON        | _*only available in MySQL 5.7+_                        | Declare the key as JSON, allows the use of `SetJson` and `AppendJson` |
 
-For more information about specials (`Increment`, `JsonSet`, `JsonAppend`), visit the [Special Values](#special-values) section.
+### Increment
+
+If a value has been defined as either a `number`, an `integer`, or a `float`, then its value can be incremented and decremented using a relative value. That means if the current value is `5`, for example, then incrementing by `1` will turn its value to `6`. Incrementing by `-1`, on the other hand, will turn its value to `4`.
+
+### JSON
+
+For databases that support JSON data types (MySQL 5.7+), Warp Server has reserved functions that directly manipulate the JSON values on the database. They are `SetJson` and `AppendJson`. By giving the Key name, the path you are trying to manipulate (See MySQL JSON docs for more information), and a value, you can easily `set` or `append` data into a table without the need to parse and format manually.
+
+For more information about specials (`Increment`, `SetJson`, `AppendJson`), visit the [Using the API](#using-the-api) section.
 
 ## Setters and Getters
 
@@ -536,7 +570,7 @@ Now that you've added the Models, once you start the server, you can begin acces
 }
 ```
 
-For more information about endpoints, visit the [Endpoints](#endpoints) section.
+For more information about endpoints, visit the [Using the API](#using-the-api) section.
 
 # Authentication
 
@@ -762,4 +796,16 @@ app.use('/api/1', api.router);
 ```javascript
 // Add multiple functions
 api.functions.add({ GetFavoriteDogs, GetGoodDogs });
+```
 
+# Using the API
+
+Now that you have set up your Warp Server API, you can start using it via either REST or the JavaScript SDK.
+
+## via REST
+
+To learn more about the REST API, visit the [REST](rest.md) documentation.
+
+## via JavaScript SDK
+
+To learn more about the JavaScript SDK, visit the [JavaScript SDK](https://github.com/dividedbyzeroco/warp-sdk-js) documentation.

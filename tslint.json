@@ -1,0 +1,27 @@
+{
+    "env": {
+        "es6": true,
+        "node": true
+    },
+    "defaultSeverity": "error",
+    "extends": [
+        "tslint:recommended"
+    ],
+    "jsRules": {},
+    "rules": {
+        "quotes": [
+            "error",
+            "single",
+            { "allowTemplateLiterals": true }
+        ],
+        "semi": [
+            "error",
+            "always"
+        ],
+        "no-unused-vars": [
+          "error",
+          { "argsIgnorePattern": "next" }
+        ]
+    },
+    "rulesDirectory": []
+}

@@ -5,7 +5,7 @@ After building your very own **[Warp Server](readme.md)**, you'll now be able to
 
 In order to help simplify the API, we have developed several client-side SDK's which you can use for your applications:
 
-- **[JavaScript SDK](http://github.com/dividedbyzeroco/warp-sdk-js)**
+- **[JavaScript SDK](https://github.com/dividedbyzeroco/warp-sdk-js)**
 - Android SDK (coming soon)
 - iOS SDK (coming soon)
 - Xamarin SDK (coming soon)
@@ -23,9 +23,6 @@ Often, you would only need to use the SDK's above, without having to worry about
             - **[Deleting Objects](#deleting-objects)**
             - **[Fetching Objects](#fetching-objects)**
             - **[Pointers as Keys](#pointers-as-keys)**
-            - **[Retrieving Model Keys](#retrieving-model-keys)**
-            - **[Uploading Files](#uploading-files)**
-            - **[Deleting Files](#deleting-files)**
             - **[Incremental Values](#incremental-values)**
         - **[Queries](#queries)**
             - **[Constraints](#constraints)**
@@ -38,23 +35,8 @@ Often, you would only need to use the SDK's above, without having to worry about
         - **[Validating Users/Fetching Current User](#validating-usersfetching-current-user)**
         - **[Signing Up](#signing-up)**
         - **[Logging Out](#logging-out)**
-    - **[Migration API](#migration-api)**
-        - **[Migration](#migration)**
-        - **[Creating Migrations](#creating-migrations)**
-        - **[Updating Migrations](#updating-migrations)**
-        - **[Deleting Migrations](#deleting-migrations)**
-        - **[Fetch Migrations](#fetch-migrations)**
-        - **[Committing Migrations](#committing-migrations)**
-        - **[Fetch Latest Migration Committed](#fetch-latest-migration-committed)**
-        - **[Reverting Migrations](#reverting-migrations)**
-        - **[Resetting Migrations](#resetting-migrations)**
     - **[Function API](#function-api)**
-        - **[Running Functions](#running-functions)**    
-    - **[Queue API](#queue-api)**
-        - **[Starting Queues](#starting-queues)**
-        - **[Stopping Queues](#stopping-queues)**
-        - **[Viewing Queue Status](#viewing-queue-status)**
-- **[References](references.md)**
+        - **[Running Functions](#running-functions)**
 
 ## Headers
 
@@ -116,8 +98,6 @@ The expected response would be similar to the following:
 
 ```json
 {
-    "status": 200,
-    "message": "Success",
     "result": {
         "id": 21,
         "name": "The Doctor",
@@ -128,7 +108,6 @@ The expected response would be similar to the following:
     }
 }
 ```
-
 
 ### Updating Objects
 
@@ -154,8 +133,6 @@ The expected response would be similar to the following:
 
 ```json
 {
-    "status": 200,
-    "message": "Success",
     "result": {
         "id": 141,
         "age": 300,
@@ -164,7 +141,6 @@ The expected response would be similar to the following:
     }
 }
 ```
-
 
 ### Deleting Objects
 
@@ -184,8 +160,6 @@ The expected response would be similar to the following:
 
 ```json
 {
-    "status": 200,
-    "message": "Success",
     "result": {
         "id": 29,
         "rows": 1,
@@ -194,47 +168,6 @@ The expected response would be similar to the following:
     }
 }
 ```
-
-
-### Retrieving Model Keys
-
-NOTE: Retrieving model keys is only accessible via the master key. 
-
-Internal keys such as `id`, `created_at`, and `updated_at` are not included by default.
-
-To retrieve keys for a specific model, execute a GET request to:
-
-`/classes/{CLASS_NAME}/keys`
-
-For example:
-
-```bash
-curl -X GET \
--G \
--H 'X-Warp-API-Key: 12345678abcdefg' \
--H 'X-Warp-Master-Key: abcdefg12345678' \
-http://localhost:3000/api/1/classes/alien/keys
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": {
-        "viewable": ["name", "age", "type", "planet"],
-        "actionable": ["name", "age", "type", "planet"],
-        "pointers": {
-            "planet": {
-                "className":"planet",
-                "via":"planet_id"
-            }
-        }
-    }
-}
-```
-
 
 ### Fetching Objects
 
@@ -255,8 +188,6 @@ The expected response would be similar to the following:
 
 ```json
 {
-    "status": 200,
-    "message": "Success",
     "result": {
         "id": 13,
         "name": "Wormwood",
@@ -268,12 +199,11 @@ The expected response would be similar to the following:
 }
 ```
 
-
 ### Pointers as Keys
 
 In order to pass `pointers` as keys when creating or updating an object, the keys must have a value similar to the following:
 
-`{ "type": "Pointer", "className": "{CLASS_NAME}", "id": "{ID}" }`
+`{ "type": "Pointer", "class_name": "{CLASS_NAME}", "id": "{ID}" }`
 
 For example:
 
@@ -281,93 +211,9 @@ For example:
 curl -X POST \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 -H 'Content-Type: application/json' \
---data '{"name":"The Doctor", "planet": { "type": "Pointer", "className": "planet", "id": 8 }}' \
+--data '{"name":"The Doctor", "planet": { "type": "Pointer", "class_name": "planet", "id": 8 }}' \
 http://localhost:3000/api/1/classes/alien
 ```
-
-### Uploading Files
-
-In order to upload `files` to the server, execute a POST request to:
-
-`/files`
-
-With multipart form data that contains a `file` key pointing to the desired file and a `name` key to set the filename:
-
-`file=@{FILE_PATH}&name={FILE_NAME}`
-
-For example:
-
-```bash
-curl -X POST \
--H 'X-Warp-API-Key: 12345678abcdefg' \
--F 'file=@image_alien_face.jpg' \
--F 'name=image_alien_face.jpg' \
-http://localhost:3000/api/1/files
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": {
-        "key": "20160523005923_1dUfhw81818dh1d_image_alien_face.jpg",
-        "url": "http://localhost:3000/public/storage/20160523005923_1dUfhw81818dh1d_image_alien_face.jpg"
-    }
-}
-```
-
-After receiving the newly named `key`, you may associate this file when creating or updating an object by passing the following value:
-
-`{ "type": "File", "key": "{FILE_KEY}" }`
-
-For example:
-
-```bash
-curl -X PUT \
--H 'X-Warp-API-Key: 12345678abcdefg' \
--H 'Content-Type: application/json' \
---data '{"name": "Straxx", "profile_pic": { "type": "File", "key": "20160523005923_1dUfhw81818dh1d_image_alien_face.jpg" }}' \
-http://localhost:3000/api/1/classes/alien/28
-```
-
-
-### Deleting Files
-
-In order to delete `files` from the server, execute a DELETE request to:
-
-`/files`
-
-with a JSON Object that contains the key of your existing file:
-
-`key={FILE_KEY}`
-
-For example:
-
-```bash
-curl -X DELETE \
--H 'X-Warp-API-Key: 12345678abcdefg' \
--H 'Content-Type: application/json' \
---data '{"key": "20160523005923_1dUfhw81818dh1d_image_alien_face.jpg"}' \
-http://localhost:3000/api/1/files
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": {
-        "key": "20160523005923_1dUfhw81818dh1d_image_alien_face.jpg",
-        "deleted_at": "2016-05-12T22:11:09Z"
-    }
-}
-```
-
-Note: Make sure that before a file is deleted, all objects associated with it are disassociated.
-
 
 ### Incremental Values
 
@@ -385,23 +231,7 @@ curl -X PUT \
 http://localhost:3000/api/1/classes/alien/1
 ```
 
-NOTE: In order for this to work, the model must specify the key's `Validator` and `Parser` as `Integer`.
-
-For example, inside your `Alien` model, you must add the following validation and parser:
-
-```javascript
-// ...previous model details
-validate: {
-    regenerations: WarpServer.Model.Validation.Integer
-},
-parse: {
-    regenerations: WarpServer.Model.Parser.Integer
-}
-// ...succeeding model details
-```
-
-For more info, see the [References](references.md) section.
-
+> NOTE: In order for this to work, the model must specify the key `asNumber`, `asInteger`, or `asFloat`. For more information, visit the [Data Types](readme.md#data-types) section.
 
 ## Queries
 
@@ -424,8 +254,6 @@ The expected response would be similar to the following:
 
 ```json
 {
-    "status": 200,
-    "message": "Success",
     "result": [{
         "id": 21,
         "name": "The Doctor",
@@ -481,7 +309,7 @@ Available constraints:
 - inx: contained in array, or is null
 - str: starts with the specified string
 - end: ends with the specified string
-- has: contains the specified string  (to search multiple keys, separate the key names with `|`)
+- has: contains the specified string
 - hasi: contains either of the specified strings
 - hasa: contains all of the specified strings
 - fi: found in the given subquery, for more info, see the [Subqueries section](#subqueries)
@@ -506,7 +334,7 @@ NOTE: When using constraints, the value of each constraint is automatically filt
 
 There may be special cases when you would like to see if the value of a key exists in another query. For these scenarios, you can use the `fi` (Found in) and `nfi` (Not found in) constraints.
 
-To use these constraints, all you need to do is specify the `className` and the `select` key which you want to check. Additionally, you can set `where` constraints, as well as `limit` and `skip` just as in regular queries. If no `limit` or `skip` is specified, the query searches the entire backend. 
+To use these constraints, all you need to do is specify the `class_name` and the `select` key which you want to check. Additionally, you can set `where` constraints, as well as `limit` and `skip` just as in regular queries. If no `limit` or `skip` is specified, the query searches the entire backend. 
 
 For example, if you want to check whether an alien's planet is part of the friendly planets list, you would add the following constraint:
 
@@ -514,7 +342,7 @@ For example, if you want to check whether an alien's planet is part of the frien
 {
     'planet': {
         'fi': {
-            className: 'planet',
+            class_name: 'planet',
             select: 'id',
             where: {
                 'type': {
@@ -532,7 +360,7 @@ To query the API, you would do the following:
 curl -X GET \
 -G \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
---data-urlencoded 'where={"planet": {"fi": { "className" : "planet", "select": "id", "where": { "type": { "eq" : "friendly" }}}}}' \
+--data-urlencoded 'where={"planet": {"fi": { "class_name" : "planet", "select": "id", "where": { "type": { "eq" : "friendly" }}}}}' \
 http://localhost:3000/api/1/classes/alien
 ```
 
@@ -543,7 +371,7 @@ To see if a value is present in either of several subqueries:
     'planet': {
         'fie': [
             {
-                className: 'planet',
+                class_name: 'planet',
                 select: 'id',
                 where: {
                     'type': {
@@ -552,7 +380,7 @@ To see if a value is present in either of several subqueries:
                 }
             },
             {
-                className: 'planet',
+                class_name: 'planet',
                 select: 'id',
                 where: {
                     'type': {
@@ -585,9 +413,7 @@ http://localhost:3000/api/1/classes/alien
 Sorting determines the order by which the results are returned. They are also crucial when using the `limit` and `skip` parameters. In the `order` parameter of the basic query, a JSON string is expected to be placed with the following format:
 
 ```json
-[
-    { "{NAME_OF_KEY}": "{1 (Ascending) or -1 (Descending)}" }
-]
+["NAME_OF_KEY", "-PREPEND_WITH_DASH_FOR_DESCENDING_KEY"]
 ```
 
 For example:
@@ -596,7 +422,7 @@ For example:
 curl -X GET \
 -G \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
---data-urlencoded 'sort=[{"type":1},{"age":-1}]' \
+--data-urlencoded 'sort=["type","-age"]' \
 http://localhost:3000/api/1/classes/alien
 ```
 
@@ -618,8 +444,6 @@ The expected response would be similar to the following:
 
 ```json
 {
-    "status": 200,
-    "message": "Success",
     "result": [{
         "id": 21,
         "name": "The Doctor",
@@ -627,7 +451,7 @@ The expected response would be similar to the following:
         "type": "gallifreyan",
         "planet": {
             "type": "Pointer",
-            "className": "planet",
+            "class_name": "planet",
             "id": 1,
             "attributes": {
                 "name": "Gallifrey",
@@ -653,7 +477,7 @@ The expected response would be similar to the following:
         "type": "sontaran",
         "planet": {
             "type": "Pointer",
-            "className": "planet",
+            "class_name": "planet",
             "id": 1,
             "attributes": {
                 "name": "Sontar",
@@ -711,17 +535,11 @@ curl -X POST \
 http://localhost:3000/api/1/login
 ```
 
-You will receive a JSON response that contains the user and the session token for the successful login, similar to the following:
+You will receive a JSON response that contains the session token for the successful login, similar to the following:
 
 ```json
 {
-    "status": 200,
-    "message": "Success",
     "result": {
-        "user": {
-            "type": "Pointer",
-            "id": 5
-        },
         "origin": "android",
         "session_token": "981Tu3R831dHdh81s",
         "created_at": "2016-05-12T22:11:09Z",
@@ -759,8 +577,6 @@ The expected response would be similar to the following, if the session token is
 
 ```json
 {
-    "status": 200,
-    "message": "Success",
     "result": {
         "id": 5,
         "username": "sarajanesmith",
@@ -805,8 +621,6 @@ The expected response would be similar to the following:
 
 ```json
 {
-    "status": 200,
-    "message": "Success",
     "result": {
         "id": 9,
         "username": "marthajones",
@@ -842,8 +656,6 @@ The expected response would be similar to the following, if the session token is
 
 ```json
 {
-    "status": 200,
-    "message": "Success",
     "result": {
         "id": 9,
         "updated_at": "2016-05-12T22:11:09Z",
@@ -851,340 +663,6 @@ The expected response would be similar to the following, if the session token is
     }
 }
 ```
-
-## Migration API
-
-Once the `migrations` feature has been activated, you may now access the operations provided by the Migration API. Note that the `X-Warp-Master-Key` must be set for every request done on the Migration API. It is advised to only keep the master key in secure environments. Never make this master key publicly accessible.
-
-### Migration
-
-A `migration` is a JSON object that defines the operations to be made by the `migrations` feature:
-
-- id: a unique identifier for the migration (You can use A-z, 0-9 and '-', '_'); a common pattern would be to usually place a timestamp at the beginning of the ID;
-- up: a JSON object that contains operations to be executed once a `commit` command is executed
-- down: a JSON object that contains operations to be executed once a `revert` command is executed
-
-For the `up` and `down` options, the JSON objects would be defined in the following format:
-
-```javascript
-{
-    // Define schemas which are to be created
-    "create": {
-        "{SCHEMA1}": {
-            // You can define a field via a JSON object of options
-            "{FIELD1}": {
-                "type": "{DATA_TYPE}", // Data type as defined in the Migration Data Types section
-                "size": "{SIZE}", // Field length; See Migration Data Types section for more info
-                "addons": ["{FIELD_DETAIL1}"] // A list of additional details; See Migration Details section for more info
-            }
-        },
-        "{SCHEMA2}": {
-            // You can also define a field via a string, with the desired data type, as a shorthand
-            "{FIELD1}": "{DATA_TYPE}"
-        }
-    },
-    // NOTE: By default, newly created schemas have the following fields included:
-    // - id
-    // - created_at
-    // - updated_at
-    // - deleted_at
-    //
-    // In order to avoid unexpected errors, it is advised to keep these fields untouched
-    
-    // Define schemas which are to be altered
-    "alter": {
-        "{SCHEMA3}": {
-            "{FIELD1}": {
-                "action": "{add|modify|rename|drop}", // Action to be made on the selected field; See Migration Actions section for more info
-                "type": "{DATA_TYPE}", // New data type; only applicable to `add`, `modify`, and `rename` actions
-                "size": "{SIZE}", // New field length; only applicable to `add`, `modify`, and `rename` actions
-                "addons": ["{FIELD_DETAIL1}"], // A list of additional details; only applicable to `add` actions
-                "to": "{NEW_FIELD_NAME}" // New field name; only applicable to `rename` actions 
-            }
-        }
-    },
-    
-    // Define schemas which are to be dropped
-    "drop": ["{SCHEMA4}", "{SCHEMA5}", "{SCHEMA6}"]
-}
-```
-
-### Creating Migrations
-
-To create a Migration, execute a POST request to:
-
-`/migrations/{CLASS_NAME}`
-
-with a JSON Object that contains the keys of your new Migration:
-
-`{"id": "{VALUE1}", "up": "{VALUE2}", "down": "{VALUE3}"}`
-
-or a reference to a `.json` file:
-
-`@{FILE_NAME}.json`
-
-For example:
-
-```bash
-curl -X POST \
--H 'X-Warp-API-Key: 12345678abcdefg' \
--H 'X-Warp-Master-Key: abcdefg12345678' \
--H 'Content-Type: application/json' \
---data @201605251325-migration.json \
-http://localhost:3000/api/1/migrations
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": {        
-        "id": "201605251325-migration",
-        "updated_at": "2016-05-12T22:11:09Z",
-        "created_at": "2016-05-12T22:11:09Z"
-    }
-}
-```
-
-### Updating Migrations
-
-To update a Migration, execute a PUT request to:
-
-`/migrations/{ID}`
-
-with a JSON Object that contains the keys of your existing Migration:
-
-`{"id": "{VALUE1}", "up": "{VALUE2}", "down": "{VALUE3}"}`
-
-or a reference to a `.json` file:
-
-`@{FILE_NAME}.json`
-
-For example:
-
-```bash
-curl -X PUT \
--H 'X-Warp-API-Key: 12345678abcdefg' \
--H 'X-Warp-Master-Key: abcdefg12345678' \
--H 'Content-Type: application/json' \
---data @201605251325-migration.json \
-http://localhost:3000/api/1/migrations/201605251325-migration
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": {        
-        "id": "201605251325-migration",
-        "updated_at": "2016-05-12T22:11:09Z"
-    }
-}
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": {
-        "id": 141,
-        "age": 300,
-        "created_at": "2016-05-12T09:18:44Z",
-        "updated_at": "2016-05-12T14:03:21Z"
-    }
-}
-```
-
-### Deleting Migrations
-
-To delete a Migration, execute a DELETE request to:
-
-`/migrations/{ID}`
-
-For example:
-
-```bash
-curl -X DELETE \
--H 'X-Warp-API-Key: 12345678abcdefg' \
--H 'X-Warp-Master-Key: abcdefg12345678' \
-http://localhost:3000/api/1/migrations/201605251325-migration
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": {
-        "id": "201605251325-migration",
-        "updated_at": "2016-05-12T22:11:09Z",
-        "deleted_at": "2016-05-12T22:11:09Z"
-    }
-}
-```
-
-### Fetch Migrations
-
-To fetch a Migration, execute a GET request to:
-
-`/migrations/{ID}`
-
-For example:
-
-```bash
-curl -X GET \
--H 'X-Warp-API-Key: 12345678abcdefg' \
--H 'X-Warp-Master-Key: abcdefg12345678' \
-http://localhost:3000/api/1/migrations/201605251325-migration
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": {
-        "id": "201605251325-migration",
-        "up": {
-            "create": {
-                "companion": {
-                    "name": {
-                        "type": "string",
-                        "size": 60,
-                        "addons": ["unique"]
-                    }
-                }
-            }
-        },
-        "down": {
-            "drop": ["companion"]
-        }
-}
-```
-
-### Committing Migrations
-
-To commit pending Migrations, execute a POST request to:
-
-`/migrations/commit`
-
-For example:
-
-```bash
-curl -X POST \
--H 'X-Warp-API-Key: 12345678abcdefg' \
--H 'X-Warp-Master-Key: abcdefg12345678' \
-http://localhost:3000/api/1/migrations/commit
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": ["201605221332-first-migration", "201605251325-migration"]
-}
-```
-
-### Fetch Latest Migration Committed
-
-To fetch the latest Migration committed, execute a GET request to:
-
-`/migrations/current`
-
-For example:
-
-```bash
-curl -X GET \
--H 'X-Warp-API-Key: 12345678abcdefg' \
--H 'X-Warp-Master-Key: abcdefg12345678' \
-http://localhost:3000/api/1/migrations/current
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": {
-        "id": "201605251325-migration",
-        "up": {
-            "create": {
-                "companion": {
-                    "name": {
-                        "type": "string",
-                        "size": 60,
-                        "addons": ["unique"]
-                    }
-                }
-            }
-        },
-        "down": {
-            "drop": ["companion"]
-        }
-}
-```
-
-### Reverting Migrations
-
-To revert the latest Migration, execute a POST request to:
-
-`/migrations/revert`
-
-For example:
-
-```bash
-curl -X POST \
--H 'X-Warp-API-Key: 12345678abcdefg' \
--H 'X-Warp-Master-Key: abcdefg12345678' \
-http://localhost:3000/api/1/migrations/revert
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": "201605251325-migration"
-}
-```
-
-### Resetting Migrations
-
-To revert all committed Migrations, execute a POST request to:
-
-`/migrations/reset`
-
-For example:
-
-```bash
-curl -X POST \
--H 'X-Warp-API-Key: 12345678abcdefg' \
--H 'X-Warp-Master-Key: abcdefg12345678' \
-http://localhost:3000/api/1/migrations/reset
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": ["201605221332-first-migration", "201605251325-migration"]
-}
-```
-
 
 ## Function API
 
@@ -1217,97 +695,5 @@ The expected response would be similar to the following:
     "status": 200,
     "message": "Success",
     "result": "Destroyed all `dalek` aliens" 
-}
-```
-
-
-## Queue API
-
-Once the `queue` feature has been set up, you may now access the operations provided by the Queue API. Note that the `X-Warp-Master-Key` must be set for every request done on the Queue API. It is advised to only keep the master key in secure environments. Never make this master key publicly accessible.
-
-### Starting Queues
-
-To start a Queue, execute a POST request to:
-
-`/queues/{QUEUE_NAME}/start`
-
-For example:
-
-```bash
-curl -X POST \
--H 'X-Warp-API-Key: 12345678abcdefg' \
--H 'X-Warp-Master-Key: abcdefg12345678' \
-http://localhost:3000/api/1/queues/send-messages/start
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": {
-        "name": "send-messages"
-    }
-}
-```
-
-### Stopping Queues
-
-To stop a Queue, execute a POST request to:
-
-`/queues/{QUEUE_NAME}/stop`
-
-For example:
-
-```bash
-curl -X POST \
--H 'X-Warp-API-Key: 12345678abcdefg' \
--H 'X-Warp-Master-Key: abcdefg12345678' \
-http://localhost:3000/api/1/queues/send-messages/stop
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": {
-        "name": "send-messages"
-    }
-}
-```
-
-### Viewing Queue Status
-
-To view a Queue's status, execute a GET request to:
-
-`/queues/{QUEUE_NAME}`
-
-For example:
-
-```bash
-curl -X GET \
--H 'X-Warp-API-Key: 12345678abcdefg' \
--H 'X-Warp-Master-Key: abcdefg12345678' \
-http://localhost:3000/api/1/queues/send-messages
-```
-
-The expected response would be similar to the following:
-
-```json
-{
-    "status": 200,
-    "message": "Success",
-    "result": {
-        "name": "send-messages",
-        "is_active": true,
-        "latest_success": "2016-06-09 10:00:00",
-        "latest_error": {
-            "error": "Could not load data",
-            "failed_at": "2016-06-10 10:00:00" 
-        }
-    }
 }
 ```
