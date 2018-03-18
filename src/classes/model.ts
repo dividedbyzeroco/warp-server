@@ -9,6 +9,7 @@ import ConstraintMap from '../utils/constraint-map';
 import { IDatabaseAdapter } from '../types/database';
 import { FindOptionsType, SubqueryOptionsType } from '../types/database';
 import { ModelOptionsType, MetadataType, QueryOptionsType, QueryGetOptionsType, PointerObjectType } from '../types/model';
+import { getPropertyDescriptor } from '../utils/props';
 
 export class Pointer {
 
@@ -236,12 +237,11 @@ export class ModelClass {
 
         // Iterate through each param
         for(let key in keys) {
-
             // Get value
             let value = keys[key];
 
             // Check if setter exists
-            const keyDescriptor = Object.getOwnPropertyDescriptor(this.statics.prototype, toCamelCase(key));
+            const keyDescriptor = getPropertyDescriptor(this, toCamelCase(key));
             if(typeof keyDescriptor !== 'undefined' && typeof keyDescriptor.set === 'function') {
                 try {
                     const setter = keyDescriptor.set.bind(this);
@@ -855,10 +855,10 @@ export class ModelClass {
                 continue;
 
             // Get the key descriptor
-            const keyDescriptor = Object.getOwnPropertyDescriptor(this.statics.prototype, toCamelCase(key));
+            const keyDescriptor = getPropertyDescriptor(this, toCamelCase(key));
 
             // Check if key descriptor exists
-            if(keyDescriptor && typeof keyDescriptor.get === 'function') {
+            if(typeof keyDescriptor !== 'undefined' && typeof keyDescriptor.get === 'function') {
                 const getter = keyDescriptor.get.bind(this);
                 keys[key] = getter();
             }

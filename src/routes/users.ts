@@ -1,4 +1,4 @@
-import express from 'express';
+import * as express from 'express';
 import enforce from 'enforce-js';
 import WarpServer from '../index';
 import UserController from '../controllers/user';

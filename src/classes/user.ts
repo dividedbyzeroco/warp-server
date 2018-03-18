@@ -85,31 +85,31 @@ export class UserClass extends ModelClass {
     }
 
     async beforeSave() {
-        // Get username and email
-        const username = this.username;
-        const email = this.email;
-        const password = this.password;
-
         // Check if username, email and password is provided
         if(this.isNew) {
+            // Get username and email
+            const username = this.username;
+            const email = this.email;
+            const password = this.password;
+            
             enforce`${{username}} as a string`;
             enforce`${{email}} as a string, and a valid email address`;
             enforce`${{password}} as a string`;
+            
+            // Prepare filters
+            const usernameWhere = new ConstraintMap();
+            usernameWhere.equalTo(this.statics<typeof UserClass>().usernameKey, username);
+            const emailWhere = new ConstraintMap();
+            emailWhere.equalTo(this.statics<typeof UserClass>().emailKey, email);
+            
+            // Search for existing username
+            const usernameMatch = (await this.statics<typeof UserClass>().find({ where: usernameWhere, skip: 0, limit: 1 })).first();
+            if(typeof usernameMatch !== 'undefined') throw new Error(Error.Code.UsernameTaken, 'Username already taken');
+            
+            // Search for existing email
+            const emailMatch = (await this.statics<typeof UserClass>().find({ where: emailWhere, skip: 0, limit: 1 })).first();
+            if(typeof emailMatch !== 'undefined') throw new Error(Error.Code.EmailTaken, 'Email already taken');
         }
-
-        // Prepare filters
-        const usernameWhere = new ConstraintMap();
-        usernameWhere.equalTo(this.statics<typeof UserClass>().usernameKey, username);
-        const emailWhere = new ConstraintMap();
-        emailWhere.equalTo(this.statics<typeof UserClass>().emailKey, email);
-        
-        // Search for existing username
-        const usernameMatch = (await this.statics<typeof UserClass>().find({ where: usernameWhere, skip: 0, limit: 1 })).first();
-        if(typeof usernameMatch !== 'undefined') throw new Error(Error.Code.UsernameTaken, 'Username already taken');
-        
-        // Search for existing email
-        const emailMatch = (await this.statics<typeof UserClass>().find({ where: emailWhere, skip: 0, limit: 1 })).first();
-        if(typeof emailMatch !== 'undefined') throw new Error(Error.Code.EmailTaken, 'Email already taken');
 
         return;
     }

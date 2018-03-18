@@ -1,4 +1,4 @@
-import mysql from 'mysql';
+import * as mysql from 'mysql';
 import Error from '../../../utils/error';
 import { Increment, SetJson, AppendJson } from '../../../classes/specials';
 import { DatabaseConfigType, DatabaseResult } from '../../../types/database';

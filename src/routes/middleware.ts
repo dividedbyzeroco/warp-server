@@ -1,6 +1,6 @@
-import express from 'express';
-import cors from 'cors';
-import bodyParser from 'body-parser';
+import * as express from 'express';
+import * as cors from 'cors';
+import * as bodyParser from 'body-parser';
 import { RateLimiter } from 'limiter';
 import { Warp } from 'warp-sdk-js';
 import WarpServer from '../index';
