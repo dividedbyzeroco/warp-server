@@ -13,7 +13,7 @@ class SetJson {
         this._path = definition.path;
     }
 
-    static isImplementedBy(value: Object) {
+    static isImplementedBy(value: any) {
         if(value === null) return false;
         if(value['type'] !== 'SetJson') return false;
         return true;

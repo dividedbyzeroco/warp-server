@@ -1,10 +1,7 @@
-// @flow
-/** 
- * References
-*/
 import Error from './error';
+import { ConstraintObject } from '../types/constraints';
 
-class KeyConstraints {
+export class KeyConstraints {
 
     /**
      * Private properties
@@ -28,7 +25,7 @@ class KeyConstraints {
         return this._key;
     }
 
-    get list(): Array<Object> {
+    get list(): Array<ConstraintObject> {
         return Object.keys(this._map).map(constraint => {
             return { key: this.key, constraint: constraint, value: this._map[constraint] };
         });
@@ -87,7 +84,7 @@ export default class ConstraintMap {
     /**
      * Private properties
      */
-    _map: {[key: string]: KeyConstraints} = {};
+    private _map: {[key: string]: KeyConstraints} = {};
 
     static get Constraints(): {[name: string]: string} {
         return Constraints;

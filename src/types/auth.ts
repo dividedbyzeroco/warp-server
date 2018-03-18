@@ -1,7 +1,3 @@
-// @flow
-/**
- * References
- */
 import { UserClass } from '../classes/user';
 import { SessionClass } from '../classes/session';
 
@@ -11,6 +7,7 @@ export type AuthMapType = {
 };
 
 export type AuthFunctionsType = {
+    exists: () => boolean;
     set: (user: typeof UserClass, session: typeof SessionClass) => void;
     user: () => typeof UserClass;
     session: () => typeof SessionClass;

@@ -1,7 +1,3 @@
-// @flow
-/**
- * References
- */
 import Error from './error';
 
 class KeyValuePair {

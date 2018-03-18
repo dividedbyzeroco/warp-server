@@ -1,12 +1,10 @@
-// @flow
 export const toCamelCase = (value: string) => {
     return value.replace(/_\w/g, (word) => word[1].toUpperCase());
 };
 
 export const toPascalCase = (value: string) => {
     value = toCamelCase(value);
-    // $FlowFixMe
-    value[0] = value[0].toUpperCase();
+    value = value[0].toUpperCase() + value.slice(1);
     return value;
 };
 

@@ -1,6 +1,4 @@
-// @flow
 export interface ILogger {
-    constructor(appName: string): void;
     appName: string;
     timestamp: string;
     level: Levels;
@@ -9,6 +7,10 @@ export interface ILogger {
     info(...message: Array<any>): void;
     warn(...message: Array<any>): void;
     error(err: Error, ...message: Array<any>): void;
+}
+
+export declare const ILogger: {
+    new(appName: string): ILogger;
 }
 
 export type LogTypes = 'INFO' | 'WARNING' | 'ERROR';

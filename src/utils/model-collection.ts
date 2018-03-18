@@ -1,7 +1,3 @@
-// @flow
-/**
- * References
- */
 import { ModelClass } from '../classes/model';
 
 export default class ModelCollection<T extends ModelClass> {

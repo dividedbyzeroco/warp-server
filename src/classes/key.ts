@@ -111,6 +111,43 @@ function Key(name: string) {
                 if(typeof number === 'undefined' || number === null) return null;
                 else return Number(number);
             };
+
+            return key;
+        },
+        asInteger: (min?: number, max?: number) => {
+            const key = new KeyManager(instance.name);
+            key._setter = value => {
+                // If null, set value to null
+                if(typeof value === 'undefined' || value === null) 
+                    return null;
+                else if(typeof value === 'object') {
+                    if(!Increment.isImplementedBy(value))
+                        throw new Error(Error.Code.InvalidObjectKey, `Key \`${instance.name}\` is not a valid Increment object`);
+                    else
+                        return new Increment(instance.name, value);
+                }
+                else if(!isNaN(value)) {
+                    // If the number is not valid, throw an error
+                    throw new Error(Error.Code.InvalidObjectKey, `Key \`${instance.name}\` is not a valid number`);
+                }
+                else if(typeof min !== 'undefined' && value < min) {
+                    throw new Error(Error.Code.InvalidObjectKey, `Key \`${instance.name}\` must be greater than or equal to ${min}`);
+                }
+                else if(typeof max !== 'undefined' && value > max) {
+                    throw new Error(Error.Code.InvalidObjectKey, `Key \`${instance.name}\` must be less than or equal to ${max}`);
+                }
+                
+                return parseInt(value);
+            };
+
+            key._getter = value => {
+                // Get the number
+                const number = value;
+                if(typeof number === 'undefined' || number === null) return null;
+                else return parseInt(number);
+            };
+
+            return key;
         },
         asFloat: (decimals: number = 2, min?: number, max?: number) => {
             const key = new KeyManager(instance.name);
@@ -142,7 +179,7 @@ function Key(name: string) {
                 // Get the number
                 const number = value;
                 if(typeof number === 'undefined' || number === null) return null;
-                else return Number(number);
+                else return Number(Number(value).toFixed(decimals));
             };
 
             return key;

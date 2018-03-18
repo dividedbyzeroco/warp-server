@@ -1,7 +1,3 @@
-//@flow
-/** 
- * References
- */
 import express from 'express';
 
 export type ResponseFunctionsType = {

@@ -1,29 +1,25 @@
-// @flow
-/**
- * References
- */
 import Warp from 'warp-sdk-js';
-import User from '../classes/user';
-import Function from '../classes/function';
-import type { MetadataType } from './model';
+import { UserClass } from '../classes/user';
+import { FunctionClass } from '../classes/function';
+import { MetadataType } from './model';
 
 export type FunctionOptionsType = {
-    metadata: MetadataType,
-    currentUser: User.Class,
+    metadata?: MetadataType,
+    currentUser?: UserClass,
     keys?: {[name: string]: any}
 };
 
 export type FunctionMethodsType = {
     add: (functions: FunctionMapType) => void,
-    get: (functionName: string) =>  typeof Function.Class
+    get: (functionName: string) =>  typeof FunctionClass
 };
 
-export type FunctionMapType = {[functionName: string]: typeof Function.Class};
+export type FunctionMapType = {[functionName: string]: typeof FunctionClass};
 
 export type RunOptionsType = {
     Warp?: Warp,
     metadata: MetadataType,
-    currentUser: User.Class,
+    currentUser: UserClass,
     functionName: string,
     keys?: {[name: string]: any}
 };

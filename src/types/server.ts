@@ -1,7 +1,3 @@
-// @flow
-/**
- * References
- */
 export type ServerConfigType = {
     apiKey: string,
     masterKey: string,

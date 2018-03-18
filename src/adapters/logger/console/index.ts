@@ -1,9 +1,5 @@
-// @flow
-/**
- * References
- */
 import { ILogger } from '../../../types/logger';
-import type { LogTypes, Levels } from '../../../types/logger';
+import { LogTypes, Levels } from '../../../types/logger';
 import InternalError from '../../../utils/error';
 
 export default class ConsoleLoggerAdapter implements ILogger  {
@@ -23,11 +19,15 @@ export default class ConsoleLoggerAdapter implements ILogger  {
 
     static get Levels(): {[name: string]: Levels} {
         return Object.freeze({
-            Verbose: 'verbose',
-            Warning: 'warning',
-            Error: 'error',
-            Disabled: 'disabled'
+            Verbose: 'verbose' as Levels,
+            Warning: 'warning' as Levels,
+            Error: 'error' as Levels,
+            Disabled: 'disabled' as Levels
         });
+    }
+
+    get statics() {
+        return this.constructor as typeof ConsoleLoggerAdapter;
     }
 
     get appName(): string {
@@ -40,13 +40,13 @@ export default class ConsoleLoggerAdapter implements ILogger  {
     }
 
     set level(value: Levels) {
-        if(!Object.values(this.constructor.Levels).includes(value)) return;
+        if(!Object.values(this.statics.Levels).includes(value)) return;
         this._level = value;
     }
 
     get level(): Levels {
         if(!this._level)
-            return this.constructor.Levels.Verbose;
+            return this.statics.Levels.Verbose;
         return this._level;
     }
 
@@ -62,14 +62,14 @@ export default class ConsoleLoggerAdapter implements ILogger  {
 
     info(...message: Array<any>) {
         /* eslint-disable no-console */
-        if(this.level === this.constructor.Levels.Verbose)
+        if(this.level === this.statics.Levels.Verbose)
             console.log.apply(this, [this.header('INFO'), ...message]);
         /* eslint-enable no-console */
     }
 
     warn(...message: Array<any>) {
         /* eslint-disable no-console */
-        if(this.level !== this.constructor.Levels.Error && this.level !== this.constructor.Levels.Disabled)
+        if(this.level !== this.statics.Levels.Error && this.level !== this.statics.Levels.Disabled)
             console.warn.apply(this, [this.header('WARNING'), ...message]);
         /* eslint-enable no-console */
     }
@@ -84,9 +84,9 @@ export default class ConsoleLoggerAdapter implements ILogger  {
         }
 
         /* eslint-disable no-console */
-        if(this.level === this.constructor.Levels.Disabled)
+        if(this.level === this.statics.Levels.Disabled)
             return;
-        else if(this.level === this.constructor.Levels.Verbose)
+        else if(this.level === this.statics.Levels.Verbose)
             console.error.apply(this, [header, ...message, err.stack]);
         else
             console.error.apply(this, [header, ...message]);

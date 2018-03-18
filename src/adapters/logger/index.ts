@@ -1,8 +1,4 @@
-// @flow
-/**
- * References
- */
-import type { ILogger } from '../../types/logger';
+import { ILogger } from '../../types/logger';
 import Error from '../../utils/error';
 import ConsoleLogger from './console';
 
@@ -28,5 +24,4 @@ export default class Logger {
             return logger;
         }
     }
-
 }

@@ -1,14 +1,10 @@
-// @flow
-/**
- * References
- */
 import WarpServer from '../index';
-import Model from '../classes/model';
+import { ModelClass } from '../classes/model';
 import ModelCollection from '../utils/model-collection';
 import Error from '../utils/error';
 import { Defaults } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
-import type { 
+import { 
     GetOptionsType, 
     FindOptionsType, 
     CreateOptionsType, 
@@ -24,7 +20,7 @@ export default class ClassController {
         this._api = api;
     }
 
-    async find({ className, select, include, where, sort, skip, limit }: FindOptionsType): Promise<ModelCollection<Model.Class>> {
+    async find({ className, select, include, where, sort, skip, limit }: FindOptionsType): Promise<ModelCollection<ModelClass>> {
         // Parse subqueries
         where = this._api.parseSubqueries(where);
     
@@ -48,7 +44,7 @@ export default class ClassController {
         return modelCollection;
     }
     
-    async get({ className, id, select, include }: GetOptionsType): Promise<Model.Class> {
+    async get({ className, id, select, include }: GetOptionsType): Promise<ModelClass> {
         // Prepare query
         const query = {
             select: select || [],
@@ -64,13 +60,13 @@ export default class ClassController {
     
         // Check if model is found
         if(typeof model === 'undefined')
-            throw new Error(Error.Code.ForbdiddenOperation, `Object \`${modelClass.className}\` with id \`${id}\` not found`);
+            throw new Error(Error.Code.ForbiddenOperation, `Object \`${modelClass.className}\` with id \`${id}\` not found`);
     
         // Return the model
         return model;
     }
     
-    async create({ Warp, metadata, currentUser, className, keys }: CreateOptionsType): Promise<Model.Class> {
+    async create({ Warp, metadata, currentUser, className, keys }: CreateOptionsType): Promise<ModelClass> {
         // Get model
         const modelClass = this._api.models.get(className);
         const model = new modelClass({ metadata, currentUser, keys });
@@ -85,7 +81,7 @@ export default class ClassController {
         return model;
     }
     
-    async update({ Warp, metadata, currentUser, className, keys, id }: UpdateOptionsType): Promise<Model.Class> {
+    async update({ Warp, metadata, currentUser, className, keys, id }: UpdateOptionsType): Promise<ModelClass> {
         // Get model
         const modelClass = this._api.models.get(className);
         const model = new modelClass({ metadata, currentUser, keys, id });
@@ -100,7 +96,7 @@ export default class ClassController {
         return model;
     }
     
-   async destroy({ Warp, metadata, currentUser, className, id }: DestroyOptionsType): Promise<Model.Class> {
+   async destroy({ Warp, metadata, currentUser, className, id }: DestroyOptionsType): Promise<ModelClass> {
         // Get model
         const modelClass = this._api.models.get(className);
         const model = new modelClass({ metadata, currentUser, id });

@@ -1,7 +1,3 @@
-// @flow
-/**
- * References
- */
 import { ICryptoAdapter } from '../../types/crypto';
 import Error from '../../utils/error';
 import BcryptCryptoAdapter from './bcrypt';

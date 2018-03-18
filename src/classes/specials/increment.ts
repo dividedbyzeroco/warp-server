@@ -1,4 +1,3 @@
-import Database from '../../adapters/database';
 import { KeyValuePair } from '../../utils/key-map';
 
 export default class Increment {

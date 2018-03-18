@@ -1,7 +1,3 @@
-// @flow
-/**
- * References
- */
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -73,9 +69,17 @@ const middleware = (api: WarpServer) => {
      */
     router.use(async (req, res, next) => {
         try {
-            const sessionToken = req.metadata.sessionToken;
-            if(typeof sessionToken === 'undefined') return next();
-            req.currentUser = await api.authenticate({ sessionToken });
+            // Check if auth exists
+            if(api.auth.exists()) {
+                // Get session token
+                const sessionToken = req.metadata.sessionToken;
+
+                // If session token is undefined, continue
+                if(typeof sessionToken === 'undefined') return next();
+
+                // Set current user on request
+                req.currentUser = await api.authenticate({ sessionToken });
+            }
             next();
         }
         catch(err) {

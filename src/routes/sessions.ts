@@ -1,7 +1,3 @@
-// @flow
-/**
- * References
- */
 import express from 'express';
 import enforce from 'enforce-js';
 import WarpServer from '../index';

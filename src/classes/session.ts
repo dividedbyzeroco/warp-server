@@ -1,22 +1,18 @@
-// @flow
-/**
- * References
- */
-import Model from './model';
-import User from './user';
+import Model, { Pointer } from './model';
+import { UserClass } from './user';
 import { KeyManager } from './key';
 import { InternalKeys } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
 
 export class SessionClass extends Model.Class {
 
-    static _user: typeof User.Class;
+    static _user: typeof UserClass;
 
     static get className(): string {
         return InternalKeys.Auth.Session;
     }
 
-    static get user(): typeof User.Class {
+    static get user(): typeof UserClass {
         return this._user;
     }
 
@@ -36,15 +32,15 @@ export class SessionClass extends Model.Class {
         return InternalKeys.Auth.RevokedAt;
     }
 
-    static get keys(): Array<string | Model.Pointer | KeyManager> {
+    static get keys(): Array<string | Pointer | KeyManager> {
         return [this.user.as(this.userKey), this.originKey, this.sessionTokenKey, this.revokedAtKey];
     }
 
-    static setUser(user: typeof User.Class) {
+    static setUser(user: typeof UserClass) {
         this._user = user;
     }
 
-    static async getFromToken(sessionToken: string): Promise<Session.Class | void> { 
+    static async getFromToken(sessionToken: string): Promise<SessionClass | void> { 
         // Prepare current date time
         const now = this._database.currentTimestamp;
 
@@ -57,13 +53,14 @@ export class SessionClass extends Model.Class {
         const sort = [`-${InternalKeys.Timestamps.CreatedAt}`];
 
         // Get matching session
-        const session = (await this.find({ where, sort, skip: 0, limit: 1 })).first();
+        const matches = await this.find<SessionClass>({ where, sort, skip: 0, limit: 1 });
+        const session = matches.first();
 
         // Return session
         return session;
     }
 
-    static async verify(sessionToken: string): Promise<User.Class | void> {
+    static async verify(sessionToken: string): Promise<UserClass | void> {
         // $FlowFixMe
         const session = await this.getFromToken(sessionToken);
 
@@ -71,33 +68,33 @@ export class SessionClass extends Model.Class {
         if(!session) return;
 
         // Get user details
-        const user = await this.user.getById({ id: session.user.id });
+        const user = await this.user.getById({ id: session['user'].id }) as UserClass;
 
         return user;
     }
 
     set origin(value: string) {
-        this.set(this.constructor.originKey, value);
+        this.set(this.statics<typeof SessionClass>().originKey, value);
     }
 
     set sessionToken(value: string) {
-        this.set(this.constructor.sessionTokenKey, value);
+        this.set(this.statics<typeof SessionClass>().sessionTokenKey, value);
     }
 
     set revokedAt(value: string) {
-        this.set(this.constructor.revokedAtKey, value);
+        this.set(this.statics<typeof SessionClass>().revokedAtKey, value);
     }
 
     get origin(): string {
-        return this.get(this.constructor.originKey);
+        return this.get(this.statics<typeof SessionClass>().originKey);
     }
 
     get sessionToken(): string {
-        return this.get(this.constructor.sessionTokenKey);
+        return this.get(this.statics<typeof SessionClass>().sessionTokenKey);
     }
 
     get revokedAt(): string {
-        return this.get(this.constructor.revokedAtKey);
+        return this.get(this.statics<typeof SessionClass>().revokedAtKey);
     }
 }
 

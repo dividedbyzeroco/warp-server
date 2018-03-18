@@ -1,7 +1,3 @@
-// @flow
-/**
- * References
- */
 import Client from './client';
 import Model from '../../../classes/model';
 import Error from '../../../utils/error';
@@ -9,7 +5,8 @@ import KeyMap from '../../../utils/key-map';
 import { InternalKeys } from '../../../utils/constants';
 import ConstraintMap, { Constraints } from '../../../utils/constraint-map';
 import { toDatabaseDate } from '../../../utils/format';
-import type { DatabaseConfigType, FindOptionsType, IDatabaseAdapter, JoinKeyType } from '../../../types/database';
+import { DatabaseConfigType, FindOptionsType, IDatabaseAdapter, JoinKeyType } from '../../../types/database';
+import { ConstraintObject } from '../../../types/constraints';
 
 export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
 
@@ -143,7 +140,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
 
         // Get constraints
         const constraints = where.toList()
-        .reduce((list, constraint) => list.concat(constraint.list), [])
+        .reduce((list: ConstraintObject[], constraint) => list.concat(constraint.list), [])
         .map(({ key, constraint, value }) => this.mapConstraint(key, constraint, value));
 
         // Prepare clause 
@@ -241,7 +238,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         limit: number
     ): Promise<Array<KeyMap>> {
         // Generate find clause
-        const findClause = this._generateFindClause({ source, className, classAlias: className, select, joins, where });
+        const findClause = this._generateFindClause({ source, classAlias: className, select, joins, where });
         
         // Generate sorting clause
         const sortingClause = this._generateSortingClause(className, sort);
@@ -256,7 +253,11 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         const result = await this._client.query(selectScript);
 
         // Map rows
-        const rows = result.rows.map(row => this._mapRowKeys(row, joins));
+        const rows: Array<KeyMap> = [];
+        for(let row of result.rows) {
+            const item = this._mapRowKeys(row, joins);
+            if(item instanceof KeyMap) rows.push(item);
+        }
 
         // Return result as an array of KeyMaps
         return rows;
@@ -275,7 +276,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         where.equalTo(InternalKeys.Id, id);
 
         // Generate get script
-        const getScript = this._generateFindClause({ source, className, classAlias: className, select, joins, where });
+        const getScript = this._generateFindClause({ source, classAlias: className, select, joins, where });
 
         // Get result
         const result = await this._client.query(getScript);
@@ -291,6 +292,8 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         keys.set(InternalKeys.Timestamps.UpdatedAt, now);        
 
         // Get sql input
+        const columns: Array<string> = [];
+        const values: Array<string> = [];
         const sqlInput = keys.toList().reduce((map, keyValuePair) => {
             // Push the values
             const key = this._client.escapeKey(keyValuePair.key);
@@ -300,7 +303,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
 
             // Return the map
             return map;
-        }, { columns: [], values: [] });
+        }, { columns, values });
 
         // Prepare script
         const createScript = `
@@ -325,6 +328,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         keys.set(InternalKeys.Timestamps.UpdatedAt, now);        
 
         // Get sql input
+        const keyPairs: Array<string> = [];
         const sqlInput = keys.toList().reduce((map, keyValuePair) => {
             // Push the vlues
             const key = this._client.escapeKey(keyValuePair.key);
@@ -333,7 +337,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
 
             // Return the map
             return map;
-        }, { keyPairs: [] });
+        }, { keyPairs });
 
         // Prepare script
         const updateScript = `

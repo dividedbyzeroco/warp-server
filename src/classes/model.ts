@@ -1,7 +1,3 @@
-// @flow
-/**
- * References
- */
 import { Warp } from 'warp-sdk-js';
 import Key, { KeyManager, keyIsImplementedBy } from './key';
 import Error from '../utils/error';
@@ -283,7 +279,7 @@ export class ModelClass {
      * @param {IDatabaseAdapter} database
      * @returns {WarpServer}
      */
-    static initialize(database: IDatabaseAdapter, supportLegacy: boolean = false) {
+    static initialize<T extends typeof ModelClass>(database: IDatabaseAdapter, supportLegacy: boolean = false): T {
         // Set database
         this._database = database;
         this._supportLegacy = supportLegacy;
@@ -413,7 +409,7 @@ export class ModelClass {
             [InternalKeys.Timestamps.DeletedAt]: true
         };
 
-        return this;
+        return this as T;
     }
 
     static get isModel(): boolean {
@@ -701,8 +697,8 @@ export class ModelClass {
         return new Pointer(this, key);
     }
     
-    get statics() {
-        return this.constructor as typeof ModelClass;
+    statics<T extends typeof ModelClass>(): T {
+        return this.constructor as T;
     }
 
     get Warp(): Warp {
@@ -772,7 +768,7 @@ export class ModelClass {
     }
 
     get isMaster(): boolean {
-        return this._metadata.isMaster;
+        return !!this._metadata.isMaster;
     }
 
     /**
@@ -782,25 +778,25 @@ export class ModelClass {
      */
     set(key: string, value: any) {
         // Check the key
-        if(this.statics._protected[key] && !this.isMaster) {
+        if(this.statics()._protected[key] && !this.isMaster) {
             // If it is a protected key
             throw new Error(Error.Code.ForbiddenOperation, `Cannot manually set \`${key}\` because it is a protected key`);
         }
-        else if(InternalKeys.Id === key || this.statics._timestamps[key]) {
+        else if(InternalKeys.Id === key || this.statics()._timestamps[key]) {
             // If it is an internal key
             throw new Error(Error.Code.ForbiddenOperation, `Cannot manually set \`${key}\` because it is an internal key`);
         }
-        else if(this.statics._keys[key] instanceof Pointer) {
+        else if(this.statics()._keys[key] instanceof Pointer) {
             // If the key is a pointer
             throw new Error(Error.Code.ForbiddenOperation, `Cannot use the generic \`set\` method for pointers (use the pointer setter instead)`);
         }
-        else if(typeof this.statics._keys[key] !== 'undefined') {
+        else if(typeof this.statics()._keys[key] !== 'undefined') {
             // If the key exists
             this._keyMap.set(key, value);
         }
         else {
             // Otherwise, return an error
-            throw new Error(Error.Code.InvalidObjectKey, `Key \`${key}\` does not exist for \`${this.statics.className}\``);
+            throw new Error(Error.Code.InvalidObjectKey, `Key \`${key}\` does not exist for \`${this.statics().className}\``);
         }
     }
 
@@ -811,15 +807,15 @@ export class ModelClass {
      */
     get(key: string): any {
         // Check the key
-        if(this.statics._hidden[key] && !this.isMaster) {
+        if(this.statics()._hidden[key] && !this.isMaster) {
             // If it is a hidden key
             throw new Error(Error.Code.ForbiddenOperation, `Cannot manually get \`${key}\` because it is a hidden key`);
         }
-        else if(InternalKeys.Id === key || this.statics._timestamps[key]) {
+        else if(InternalKeys.Id === key || this.statics()._timestamps[key]) {
             // If it is an internal key
             throw new Error(Error.Code.ForbiddenOperation, `Cannot manually get \`${key}\` because it is an internal key`);
         }
-        else if(this.statics._keys[key] instanceof Pointer) {
+        else if(this.statics()._keys[key] instanceof Pointer) {
             // If the key is a pointer
             throw new Error(Error.Code.ForbiddenOperation, `Cannot use the generic \`get\` method for pointers (use \`this.${key}\` instead)`);
         }
@@ -855,7 +851,7 @@ export class ModelClass {
                 continue;
 
             // If the key is hidden, skip it
-            if(this.statics._hidden[key])
+            if(this.statics()._hidden[key])
                 continue;
 
             // Get the key descriptor
@@ -874,8 +870,8 @@ export class ModelClass {
         if(this._isPointer) 
             keys = { 
                 type: 'Pointer',
-                [this.statics.supportLegacy? InternalKeys.Pointers.LegacyClassName
-                    : InternalKeys.Pointers.ClassName]: this.statics.className,
+                [this.statics().supportLegacy? InternalKeys.Pointers.LegacyClassName
+                    : InternalKeys.Pointers.ClassName]: this.statics().className,
                 [InternalKeys.Pointers.Attributes]: Object.keys(keys).length > 0 ? keys : undefined
             };
 
@@ -920,11 +916,11 @@ export class ModelClass {
         // If the object is new
         if(this.isNew) {
             // Execute create query and retrieve the new id
-            this._id = await this.statics._database.create(this.statics.className, keys);
+            this._id = await this.statics()._database.create(this.statics().className, keys);
         }
         else {
             // Execute update query
-            await this.statics._database.update(this.statics.className, keys, this.id);
+            await this.statics()._database.update(this.statics().className, keys, this.id);
         }
 
         // Run the afterSave method in the background as master
@@ -945,7 +941,7 @@ export class ModelClass {
         const keys = this._keyMap;
 
         // Execute destroy query
-        await this.statics._database.destroy(this.statics.className, keys, this.id);
+        await this.statics()._database.destroy(this.statics().className, keys, this.id);
 
         // Run the afterDestroy method in the background
         try { this.runAsMaster(this.afterDestroy.bind(this)); } catch(err) { /* Do nothing */ }

@@ -1,9 +1,5 @@
-// @flow
-/**
- * References
- */
 import WarpServer from '../index';
-import type { RunOptionsType } from '../types/functions';
+import { RunOptionsType } from '../types/functions';
 
 export default class FunctionController {
 

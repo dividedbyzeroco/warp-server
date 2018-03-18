@@ -1,20 +1,16 @@
-// @flow
-/**
- * References
- */
 import Warp from 'warp-sdk-js';
-import User from './user';
+import { UserClass } from './user';
 import { toCamelCase } from '../utils/format';
 import KeyMap from '../utils/key-map';
 import Error from '../utils/error';
-import type { MetadataType } from '../types/model';
-import type { FunctionOptionsType } from '../types/functions';
+import { MetadataType } from '../types/model';
+import { FunctionOptionsType } from '../types/functions';
 
-class FunctionClass {
+export class FunctionClass {
 
     _warp: Warp;
     _metadata: MetadataType;
-    _currentUser: User.Class;
+    _currentUser: UserClass;
     _keyMap: KeyMap = new KeyMap();
 
     constructor({ metadata, currentUser, keys }: FunctionOptionsType = {}) {
@@ -32,8 +28,8 @@ class FunctionClass {
 
             // Check if setter exists
             const keyDescriptor = Object.getOwnPropertyDescriptor(this.constructor.prototype, toCamelCase(key));
-            if(keyDescriptor && typeof keyDescriptor['set'] === 'function') {
-                const setter = keyDescriptor['set'].bind(this);
+            if(keyDescriptor && typeof keyDescriptor.set === 'function') {
+                const setter = keyDescriptor.set.bind(this);
                 setter(value);
             }
             // Otherwise, generically set the value
@@ -42,6 +38,10 @@ class FunctionClass {
 
         // After setting values, make the key map immutable
         this._keyMap.setImmutability(true);
+    }
+
+    statics<T extends typeof FunctionClass>(): T {
+        return this.constructor as T;
     }
 
     set(key: string, value: any) {
@@ -61,7 +61,7 @@ class FunctionClass {
     }
 
     get isMaster(): boolean {
-        return this._metadata.isMaster;
+        return !!this._metadata.isMaster;
     }
 
     static get functionName(): string {
@@ -79,7 +79,7 @@ class FunctionClass {
 
     async execute() {
         // Check if master is required
-        if(this.constructor.masterOnly && (typeof this._metadata === 'undefined' || !this.isMaster))
+        if(this.statics().masterOnly && (typeof this._metadata === 'undefined' || !this.isMaster))
             throw new Error(Error.Code.ForbiddenOperation, `This function is only accessible via master`);
 
         return await this.run();

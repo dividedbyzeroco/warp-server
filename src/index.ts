@@ -2,7 +2,7 @@ import express from 'express';
 import enforce from 'enforce-js';
 import uniqid from 'uniqid';
 import parseUrl from 'parse-url';
-import Model from './classes/model';
+import Model from './classes/model'
 import User, { UserClass } from './classes/user';
 import Function from './classes/function';
 import Session, { SessionClass } from './classes/session';
@@ -31,6 +31,7 @@ import ClassController from './controllers/class';
 import UserController from './controllers/user';
 import SessionController from './controllers/session';
 import FunctionController from './controllers/function';
+import { InternalKeys } from './utils/constants';
 
 enforce.extend(/^equivalent to an array$/i, val => {
     try {
@@ -158,7 +159,7 @@ export default class WarpServer {
                     enforce`${{ [model.className]: modelInstance }} as a ${{ 'Model.Class': Model.Class }}`;
 
                     // If model is an auth class
-                    if(modelInstance instanceof User.Class || modelInstance instanceof Session.Class)
+                    if(modelInstance instanceof UserClass || modelInstance instanceof SessionClass)
                         throw new Error(Error.Code.ForbiddenOperation, 'User and Session classes must be set using `auth` instead of `models`');
                     else // Otherwise, it is a regular class
                         this._models[model.className] = model.initialize(this._database, this._supportLegacy);
@@ -191,14 +192,26 @@ export default class WarpServer {
      */
     get auth(): AuthFunctionsType {
         return {
-            set: (user: typeof User.Class, session: typeof Session.Class) => {
+            exists: () => {
+                if(typeof this._auth === 'object' 
+                    && typeof this._auth.user !== 'undefined' 
+                    && typeof this._auth.session !== 'undefined')
+                        return true;
+                else
+                    return false;
+            },
+            set: (user: typeof UserClass, session: typeof SessionClass) => {
+                // Check if auth models are set
+                if(typeof user === 'undefined' || typeof session === 'undefined')
+                    throw new Error(Error.Code.MissingConfiguration, 'Both User and Session classes must be defined');
+
                 // Get sample instances
                 let userInstance = new user;
                 let sessionInstance = new session;
 
                 // Enforce data type
-                enforce`${{ [user.className]: userInstance }} as a ${{ 'User.Class': User.Class }}`;
-                enforce`${{ [session.className]: sessionInstance }} as a ${{ 'Session.Class': Session.Class }}`;
+                enforce`${{ [user.className]: userInstance }} as a ${{ 'User.Class': UserClass }}`;
+                enforce`${{ [session.className]: sessionInstance }} as a ${{ 'Session.Class': SessionClass }}`;
 
                 // Create and assign crypto to user
                 const crypto = Crypto.use('bcrypt', this._security.passwordSalt);
@@ -209,8 +222,8 @@ export default class WarpServer {
 
                 // Set auth classes
                 this._auth = { 
-                    user: user.initialize(this._database, this._supportLegacy), 
-                    session: session.initialize(this._database, this._supportLegacy) 
+                    user: user.initialize<typeof UserClass>(this._database, this._supportLegacy), 
+                    session: session.initialize<typeof SessionClass>(this._database, this._supportLegacy) 
                 };
             },
             user: (): typeof UserClass => {
@@ -510,9 +523,9 @@ export default class WarpServer {
                 if(typeof where[key][constraint] !== 'undefined') {                    
                     // Prepare subquery parameters
                     const subquery = where[key][constraint];
-                    const subqueryModelClass = userClass.className === subquery.className? userClass 
-                        : sessionClass.className === subquery.className? sessionClass
-                            : this.models.get(subquery.className);
+                    const subqueryModelClass = userClass.className === subquery[InternalKeys.Pointers.ClassName]? userClass 
+                        : sessionClass.className === subquery[InternalKeys.Pointers.ClassName]? sessionClass
+                            : this.models.get(subquery[InternalKeys.Pointers.ClassName]);
                     
                     // Set the new value for the constraint
                     where[key][constraint] = subqueryModelClass.getSubquery(subquery);

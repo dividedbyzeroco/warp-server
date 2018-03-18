@@ -1,4 +1,3 @@
-// @flow
 export type FindOptionsType = {
     select: Array<string>,
     include: Array<string>,

@@ -1,12 +1,4 @@
-// @flow
-/**
- * References
- */
 import bcrypt from 'bcryptjs';
-
-/**
- * Interfaces
- */
 import { ICryptoAdapter } from '../../../types/crypto';
 
 export default class BcryptCryptoAdapter implements ICryptoAdapter {

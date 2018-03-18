@@ -1,11 +1,7 @@
-//@flow
-/**
- * References
- */
 import mysql from 'mysql';
 import Error from '../../../utils/error';
 import { Increment, SetJson, AppendJson } from '../../../classes/specials';
-import { DatabaseConfigType } from '../../../types/database';
+import { DatabaseConfigType, DatabaseResult } from '../../../types/database';
 
 export default class DatabaseClient {
 
@@ -96,8 +92,14 @@ export default class DatabaseClient {
 
         // Test connection
         const result = await this.query('SELECT 1+1 AS result');
-        if(result['rows'][0]['result'] === 2) return;
-        else throw new Error(Error.Code.InternalServerError, 'Could not connect to the pool');
+        try {
+            const rows = result['rows'] || [{ result: undefined }];
+            if(rows[0]['result'] === 2) return;
+            else throw new Error(Error.Code.InternalServerError, 'Could not connect to the pool');
+        }
+        catch(err) {
+            throw new Error(Error.Code.InternalServerError, 'Could not connect to the pool');
+        }
     }
 
     async _connect(): Promise<mysql.PoolConnection> {
@@ -118,7 +120,7 @@ export default class DatabaseClient {
         }
     }
 
-    async query(queryString: string): Promise<Object> {
+    async query(queryString: string): Promise<DatabaseResult> {
         // Create promise query method
         const connection = await this._connect();
         const onQuery = new Promise((resolve, reject) => {

@@ -1,4 +1,3 @@
-// @flow
 export default class WarpError extends Error {
 
     /**
@@ -29,7 +28,7 @@ export default class WarpError extends Error {
         });
     }
 
-    static get Status(): Object {
+    static get Status() {
         return Object.freeze({
             ServerError: 400,
             Unauthorized: 401,
@@ -40,28 +39,32 @@ export default class WarpError extends Error {
         });
     }
 
-    get status(): string {
-        if(this.code === this.constructor.Code.InvalidCredentials
-            || this.code === this.constructor.Code.InvalidSessionToken
-            || this.code === this.constructor.Code.UsernameTaken
-            || this.code === this.constructor.Code.EmailTaken) {
-            return this.constructor.Status.Unauthorized;
+    statics<T extends typeof WarpError>(): T {
+        return this.constructor as T;
+    }
+
+    get status(): number {
+        if(this.code === this.statics().Code.InvalidCredentials
+            || this.code === this.statics().Code.InvalidSessionToken
+            || this.code === this.statics().Code.UsernameTaken
+            || this.code === this.statics().Code.EmailTaken) {
+            return this.statics().Status.Unauthorized;
         }
-        else if(this.code === this.constructor.Code.ForbiddenOperation) {
-            return this.constructor.Status.Forbidden;
+        else if(this.code === this.statics().Code.ForbiddenOperation) {
+            return this.statics().Status.Forbidden;
         }
-        else if(this.code === this.constructor.Code.ModelNotFound
-            || this.code === this.constructor.Code.FunctionNotFound) {
-                return this.constructor.Status.NotFound;
+        else if(this.code === this.statics().Code.ModelNotFound
+            || this.code === this.statics().Code.FunctionNotFound) {
+                return this.statics().Status.NotFound;
         }
-        else if(this.code === this.constructor.Code.RequestTimeout) {
-            return this.constructor.Status.RequestTimeout;
+        else if(this.code === this.statics().Code.RequestTimeout) {
+            return this.statics().Status.RequestTimeout;
         }
-        else if(this.code === this.constructor.Code.TooManyRequests) {
-            return this.constructor.Status.TooManyRequests;
+        else if(this.code === this.statics().Code.TooManyRequests) {
+            return this.statics().Status.TooManyRequests;
         }
         else {
-            return this.constructor.Status.ServerError;
+            return this.statics().Status.ServerError;
         }
     }
 

@@ -1,7 +1,6 @@
-// @flow
 import WarpServer from '../index';
-import User from '../classes/user';
-import Session from '../classes/session';
+import { UserClass } from '../classes/user';
+import { SessionClass } from '../classes/session';
 import ModelCollection from '../utils/model-collection';
 import { Defaults } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
@@ -25,7 +24,7 @@ export default class UserController {
         this._api = api;
     }
 
-    async find({ select, include, where, sort, skip, limit }: FindOptionsType): Promise<ModelCollection<User.Class>> {
+    async find({ select, include, where, sort, skip, limit }: FindOptionsType): Promise<ModelCollection<UserClass>> {
         // Parse subqueries
         where = this._api.parseSubqueries(where);
     
@@ -43,13 +42,13 @@ export default class UserController {
         const modelClass = this._api.auth.user();
     
         // Find matching objects
-        const modelCollection = await modelClass.find(query);
+        const modelCollection = await modelClass.find<UserClass>(query);
     
         // Return collection
         return modelCollection;
     }
     
-    async get({ id, select, include }: GetOptionsType): Promise<User.Class> {    
+    async get({ id, select, include }: GetOptionsType): Promise<UserClass> {    
         // Prepare query
         const query = {
             select: select || [],
@@ -61,20 +60,20 @@ export default class UserController {
         const modelClass = this._api.auth.user();
     
         // Find matching object
-        const model = await modelClass.getById(query);
+        const model = await modelClass.getById<UserClass>(query);
     
         // Check if model is found
         if(typeof model === 'undefined')
-            throw new Error(Error.Code.ForbdiddenOperation, `User with id \`${id}\` not found`);
+            throw new Error(Error.Code.ForbiddenOperation, `User with id \`${id}\` not found`);
     
         // Return the model
         return model;
     }
     
-    async create({ Warp, metadata, currentUser, keys }: CreateOptionsType): Promise<User.Class> {
+    async create({ Warp, metadata, currentUser, keys }: CreateOptionsType): Promise<UserClass> {
         // Check if session token is provided
         if(typeof currentUser !== 'undefined')
-            throw new Error(Error.Code.ForbdiddenOperation, 'Users cannot be created using an active session. Please log out.');
+            throw new Error(Error.Code.ForbiddenOperation, 'Users cannot be created using an active session. Please log out.');
     
         // Get model
         const modelClass = this._api.auth.user();
@@ -90,10 +89,10 @@ export default class UserController {
         return model;
     }
     
-    async update({ Warp, metadata, currentUser, keys, id }: UpdateOptionsType): Promise<User.Class> {
+    async update({ Warp, metadata, currentUser, keys, id }: UpdateOptionsType): Promise<UserClass> {
         // Check if the editor is the same user
         if(!metadata.isMaster && (typeof currentUser === 'undefined' || currentUser.id !== id))
-            throw new Error(Error.Code.ForbdiddenOperation, 'User details can only be edited by their owner or via master');
+            throw new Error(Error.Code.ForbiddenOperation, 'User details can only be edited by their owner or via master');
     
         // Get model
         const modelClass = this._api.auth.user();
@@ -109,10 +108,10 @@ export default class UserController {
         return model;
     }
     
-    async destroy({ Warp, metadata, currentUser, id }: DestroyOptionsType): Promise<User.Class> {
+    async destroy({ Warp, metadata, currentUser, id }: DestroyOptionsType): Promise<UserClass> {
         // Check if the destroyer is the same user
         if(!metadata.isMaster && (typeof currentUser === 'undefined' || currentUser.id !== id))
-            throw new Error(Error.Code.ForbdiddenOperation, 'User details can only be destroyed by their owner or via master');
+            throw new Error(Error.Code.ForbiddenOperation, 'User details can only be destroyed by their owner or via master');
     
         // Get model
         const modelClass = this._api.auth.user();
@@ -128,13 +127,13 @@ export default class UserController {
         return model;
     }
     
-    async logIn({ Warp, metadata, currentUser, username, email, password }: LoginOptionsType): Promise<User.Class> {
+    async logIn({ Warp, metadata, currentUser, username, email, password }: LoginOptionsType): Promise<SessionClass> {
         // Get session class
         const sessionClass = this._api.auth.session();
     
         // Check if session token is provided
         if(typeof currentUser !== 'undefined')
-            throw new Error(Error.Code.ForbdiddenOperation, 'Cannot log in using an active session. Please log out.');
+            throw new Error(Error.Code.ForbiddenOperation, 'Cannot log in using an active session. Please log out.');
     
         // Authenticate the user
         const user = await this._api.authenticate({ username, email, password });
@@ -166,7 +165,7 @@ export default class UserController {
         return session;
     }
     
-    async me({ currentUser }: MeOptionsType): Promise<User.Class> {
+    async me({ currentUser }: MeOptionsType): Promise<UserClass> {
         // Check if currentUser exists
         if(typeof currentUser === 'undefined')
             throw new Error(Error.Code.InvalidSessionToken, 'Session does not exist');
@@ -175,7 +174,7 @@ export default class UserController {
         return currentUser;
     }
     
-    async logOut({ Warp, sessionToken }: LogoutOptionsType): Promise<Session.Class> {
+    async logOut({ Warp, sessionToken }: LogoutOptionsType): Promise<SessionClass> {
         // Get session class
         const sessionClass = this._api.auth.session();
     

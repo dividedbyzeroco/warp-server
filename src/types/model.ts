@@ -1,9 +1,5 @@
-// @flow
-/**
- * References
- */
 import Model from '../classes/model';
-import User from '../classes/user';
+import { UserClass } from '../classes/user';
 import KeyMap from '../utils/key-map';
 import ConstraintMap from '../utils/constraint-map';
 
@@ -26,7 +22,7 @@ export type ModelOptionsType = {
 };
 
 export type QueryOptionsType = {
-    currentUser?: User.Class,
+    currentUser?: UserClass,
     select?: Array<string>,
     include?: Array<string>,
     where: ConstraintMap,
@@ -36,7 +32,7 @@ export type QueryOptionsType = {
 };
 
 export type QueryGetOptionsType = {
-    currentUser?: User.Class,
+    currentUser?: UserClass,
     select?: Array<string>,
     include?: Array<string>,
     id: number
@@ -47,7 +43,7 @@ export type MetadataType = {
     client?: string,
     sdkVersion?: string,
     appVersion?: string,
-    isMaster: boolean
+    isMaster?: boolean
 };
 
 export type PointerObjectType = {
