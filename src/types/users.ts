@@ -1,4 +1,4 @@
-import Warp from 'warp-sdk-js';
+import { Warp } from 'warp-sdk-js';
 import { UserClass } from '../classes/user';
 import { MetadataType } from './model';
 
@@ -53,6 +53,6 @@ export type MeOptionsType = {
 };
 
 export type LogoutOptionsType = {
-    Warp?: Warp,
+    Warp: Warp,
     sessionToken: string
 };

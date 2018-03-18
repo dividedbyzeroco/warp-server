@@ -29,6 +29,7 @@
     "@types/node": "^9.4.7",
     "bcryptjs": "^2.3.0",
     "body-parser": "^1.15.1",
+    "chalk": "^2.3.2",
     "cors": "^2.7.1",
     "enforce-js": "^1.2.6",
     "express": "^4.13.4",

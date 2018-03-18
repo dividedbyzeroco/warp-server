@@ -32,6 +32,7 @@ import UserController from './controllers/user';
 import SessionController from './controllers/session';
 import FunctionController from './controllers/function';
 import { InternalKeys } from './utils/constants';
+import chalk from 'chalk';
 
 enforce.extend(/^equivalent to an array$/i, val => {
     try {
@@ -433,7 +434,7 @@ export default class WarpServer {
 
 
             // Display startup screen
-            this._log.bare(`
+            this._log.bare(chalk.yellow(`
             -------------------------------------------
             -------------------------------------------
             ------------------------------------=/-----
@@ -456,7 +457,7 @@ export default class WarpServer {
             +-----------------------------------------+
             |     The server has been initialized     |
             +-----------------------------------------+
-            `);
+            `));
             this._log.info('Service started');
             if(!this.hasDatabase) this._log.info('NOTE: No database has been configured');
         }

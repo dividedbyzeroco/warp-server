@@ -17,7 +17,7 @@ export type FunctionMethodsType = {
 export type FunctionMapType = {[functionName: string]: typeof FunctionClass};
 
 export type RunOptionsType = {
-    Warp?: Warp,
+    Warp: Warp,
     metadata: MetadataType,
     currentUser: UserClass,
     functionName: string,
