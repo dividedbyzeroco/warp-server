@@ -31,9 +31,9 @@ export declare const IDatabaseAdapter: {
 
 export type DatabaseOptionsType = {
     databaseURI: string,
-    keepConnections: boolean,
-    charset: string,
-    timeout: number
+    keepConnections?: boolean,
+    charset?: string,
+    timeout?: number
 };
 
 export type DatabaseConfigType = {

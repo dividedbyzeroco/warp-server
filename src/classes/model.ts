@@ -8,10 +8,11 @@ import ModelCollection from '../utils/model-collection';
 import ConstraintMap from '../utils/constraint-map';
 import { IDatabaseAdapter } from '../types/database';
 import { FindOptionsType, SubqueryOptionsType } from '../types/database';
-import { ModelOptionsType, MetadataType, QueryOptionsType, QueryGetOptionsType, PointerObjectType } from '../types/model';
+import { ModelOptionsType, MetadataType, QueryOptionsType, QueryGetOptionsType, PointerObjectType, IPointer } from '../types/model';
 import { getPropertyDescriptor } from '../utils/props';
+import { IKeyManager } from '../types/key';
 
-export class Pointer {
+export class Pointer implements IPointer {
 
     _model: typeof ModelClass;
     _aliasKey: string;
@@ -425,7 +426,7 @@ export class ModelClass {
         return this.className;
     }
 
-    static get keys(): Array<string | Pointer | KeyManager> {
+    static get keys(): Array<string | IPointer | IKeyManager> {
         return [];
     }
 
@@ -693,7 +694,7 @@ export class ModelClass {
      * @param {string} key 
      * @returns {WarpServer.Pointer}
      */
-    static as(key: string) {
+    static as(key: string): Pointer {
         return new Pointer(this, key);
     }
     

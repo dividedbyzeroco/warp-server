@@ -1,4 +1,4 @@
-import Model from '../classes/model';
+import Model, { ModelClass } from '../classes/model';
 import { UserClass } from '../classes/user';
 import KeyMap from '../utils/key-map';
 import ConstraintMap from '../utils/constraint-map';
@@ -54,3 +54,18 @@ export type PointerObjectType = {
     created_at?: string,
     updated_at?: string
 };
+
+export interface IPointer {
+    readonly model: typeof ModelClass;
+    readonly aliasKey: string;
+    readonly viaKey: string;
+    readonly pointerIdKey: string;
+    readonly isSecondary: boolean;
+    readonly parentAliasKey: string;
+    readonly parentViaKey: string;
+    via(key: string): this;
+    to(key: string): this;
+    from(key: string): this;
+    isImplementedBy(value: object): boolean;
+    toObject(value?: number | object): PointerObjectType | null;
+}

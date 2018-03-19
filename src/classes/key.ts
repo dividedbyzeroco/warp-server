@@ -1,9 +1,9 @@
 import { Increment, SetJson, AppendJson } from './specials';
 import { toDatabaseDate, toISODate } from '../utils/format';
 import Error from '../utils/error';
-import { KeyDefinition } from '../types/key';
+import { KeyDefinition, IKeyManager } from '../types/key';
 
-export class KeyManager {
+export class KeyManager implements IKeyManager {
 
     _name: string;
     _isNew: boolean = false;
@@ -36,7 +36,7 @@ function Key(name: string) {
     const instance = { 
         type: 'Key', 
         name: name,
-        asString: (minLength?: number, maxLength?: number) => {
+        asString: (minLength?: number, maxLength?: number): KeyManager => {
             const key = new KeyManager(instance.name);
             key._setter = value => {
                 if(typeof value === 'undefined' || value === null) return null;
@@ -56,7 +56,7 @@ function Key(name: string) {
     
             return key;
         },
-        asDate: () => {
+        asDate: (): KeyManager => {
             const key = new KeyManager(instance.name);
             key._setter = value => {
                 // If null, set value to null
@@ -79,7 +79,7 @@ function Key(name: string) {
     
             return key;
         },
-        asNumber: (min?: number, max?: number) => {
+        asNumber: (min?: number, max?: number): KeyManager => {
             const key = new KeyManager(instance.name);
             key._setter = value => {
                 // If null, set value to null
@@ -114,7 +114,7 @@ function Key(name: string) {
 
             return key;
         },
-        asInteger: (min?: number, max?: number) => {
+        asInteger: (min?: number, max?: number): KeyManager => {
             const key = new KeyManager(instance.name);
             key._setter = value => {
                 // If null, set value to null
@@ -149,7 +149,7 @@ function Key(name: string) {
 
             return key;
         },
-        asFloat: (decimals: number = 2, min?: number, max?: number) => {
+        asFloat: (decimals: number = 2, min?: number, max?: number): KeyManager => {
             const key = new KeyManager(instance.name);
             key._setter = value => {
                 // If null, set value to null
@@ -184,7 +184,7 @@ function Key(name: string) {
 
             return key;
         },
-        asJSON: () => {
+        asJSON: (): KeyManager => {
             const key = new KeyManager(instance.name);
             key._setter = value => {
                 // If null, set value to null

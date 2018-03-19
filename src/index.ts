@@ -215,7 +215,7 @@ export default class WarpServer {
                 enforce`${{ [session.className]: sessionInstance }} as a ${{ 'Session.Class': SessionClass }}`;
 
                 // Create and assign crypto to user
-                const crypto = Crypto.use('bcrypt', this._security.passwordSalt);
+                const crypto = Crypto.use('bcrypt', this._security.passwordSalt || 8);
                 user.setCrypto(crypto);
 
                 // Assign user to session
@@ -501,11 +501,14 @@ export default class WarpServer {
     }
 
     getRevocationDate() {
-        const sessionDuration = this._security.sessionDuration.split(' ');
-        const duration: number = parseInt(sessionDuration[0]);
-        const unit: string = sessionDuration[1];
-        const date = new Date();
-        return addToDate(date.toISOString(), duration, unit).toISOString();
+        if(typeof this._security.sessionDuration === 'string') {
+            const sessionDuration = this._security.sessionDuration.split(' ');
+            const duration: number = parseInt(sessionDuration[0]);
+            const unit: string = sessionDuration[1];
+            const date = new Date();
+            return addToDate(date.toISOString(), duration, unit).toISOString();
+        }
+        return;
     }
 
     parseSubqueries(where: {[name: string]: {[name: string]: any}}): {[name: string]: {[name: string]: any}} {
