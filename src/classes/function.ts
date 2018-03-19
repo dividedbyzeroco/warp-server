@@ -73,7 +73,7 @@ export class FunctionClass {
         return false;
     }
 
-    async run() {
+    async run(): Promise<any> {
         return;
     }
 
