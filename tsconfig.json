@@ -3,8 +3,10 @@
         "outDir": "./dist",
         "declaration": true,
         "target": "es5",
+        "module": "commonjs",
         "strictNullChecks": true,
         "sourceMap": true,
+        "removeComments": false,
         "lib": [ "es2015", "es2017" ]
     },
     "include": [
