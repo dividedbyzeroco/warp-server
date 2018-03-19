@@ -524,12 +524,15 @@ export default class WarpServer {
                 let constraint = Subqueries[index];
 
                 // Check if the constraint exists
-                if(typeof where[key][constraint] !== 'undefined') {                    
+                if(typeof where[key][constraint] !== 'undefined') {     
+                    // Get className format          
+                    const className = this._supportLegacy? InternalKeys.Pointers.LegacyClassName : InternalKeys.Pointers.ClassName;   
+                      
                     // Prepare subquery parameters
                     const subquery = where[key][constraint];
-                    const subqueryModelClass = userClass.className === subquery[InternalKeys.Pointers.ClassName]? userClass 
-                        : sessionClass.className === subquery[InternalKeys.Pointers.ClassName]? sessionClass
-                            : this.models.get(subquery[InternalKeys.Pointers.ClassName]);
+                    const subqueryModelClass = userClass.className === subquery[className]? userClass 
+                        : sessionClass.className === subquery[className]? sessionClass
+                            : this.models.get(subquery[className]);
                     
                     // Set the new value for the constraint
                     where[key][constraint] = subqueryModelClass.getSubquery(subquery);
