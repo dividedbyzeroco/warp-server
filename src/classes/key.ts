@@ -1,9 +1,9 @@
 import { Increment, SetJson, AppendJson } from './specials';
 import { toDatabaseDate, toISODate } from '../utils/format';
 import Error from '../utils/error';
-import { KeyDefinition, IKeyManager } from '../types/key';
+import { KeyDefinition } from '../types/key';
 
-export class KeyManager implements IKeyManager {
+export class KeyManager {
 
     _name: string;
     _isNew: boolean = false;

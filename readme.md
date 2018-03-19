@@ -638,7 +638,7 @@ class User extends WarpUser.Class {
     }
 
     static get keys() {
-        return [...super.keys, 'first_name', 'last_name', 'display_photo'];
+        return [...super['keys'], 'first_name', 'last_name', 'display_photo'];
 
         // If you do not have support for spread operators, use the following:
 
@@ -712,7 +712,7 @@ class Session extends WarpSession.Class {
     }
 
     static get keys() {
-        return [...super.keys, 'ip_address', 'fcm_key'];
+        return [...super['keys'], 'ip_address', 'fcm_key'];
 
         // If you do not have support for spread operators, use the following:
 
