@@ -3,4 +3,3 @@ node_modules/
 test/
 dist/
 to-do.md
-tsconfig.json
