@@ -131,6 +131,13 @@ class Dog extends Model.Class {
     static get keys() {
         return ['name', 'age', 'weight'];
     }
+
+    // If using TypeScript, use Array<any> as the return type
+    /**
+    static get keys(): Array<any> {
+        return ['name', 'age', 'weight'];
+    }
+    */
 }
 ```
 
