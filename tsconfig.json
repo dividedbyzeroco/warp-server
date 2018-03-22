@@ -1,12 +1,14 @@
 {
     "compilerOptions": {
         "outDir": "./dist",
+        "declarationDir": "./typings",
         "declaration": true,
         "target": "es5",
         "module": "commonjs",
         "strictNullChecks": true,
         "sourceMap": true,
         "removeComments": false,
+        "esModuleInterop": true,
         "lib": [ "es2015", "es2017" ]
     },
     "include": [

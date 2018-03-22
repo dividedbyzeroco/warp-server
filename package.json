@@ -3,11 +3,11 @@
   "version": "5.1.9",
   "description": "Warp Server",
   "main": "./dist/index.js",
-  "typings": "./dist/index.d.ts",
+  "typings": "./typings/index.d.ts",
   "scripts": {
     "build": "tsc",
     "clean": "node ./node_modules/rimraf/bin dist",
-    "test": "mocha --require babel-core/register",
+    "test": "mocha",
     "lint": "eslint src/**",
     "prepublish": "npm run clean && npm run build"
   },

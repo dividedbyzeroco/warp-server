@@ -34,3 +34,8 @@ export const addToDate = (value: string, duration: number, unit: string) => {
     unitMap[unit]();
     return result;
 };
+
+export const toDateTime = (value?: string) => {
+    if(!value) return new Date();
+    else return new Date(value);
+};
