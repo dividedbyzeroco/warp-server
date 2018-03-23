@@ -43,8 +43,8 @@ export type LoginOptionsType = {
     Warp?: Warp,
     metadata: MetadataType,
     currentUser?: UserClass,
-    username: string,
-    email: string,
+    username?: string,
+    email?: string,
     password: string
 };
 
