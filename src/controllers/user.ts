@@ -25,7 +25,7 @@ export default class UserController {
         this._api = api;
     }
 
-    async find({ select, include, where, sort, skip, limit }: FindOptionsType): Promise<ModelCollection<UserClass>> {
+    async find({ select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<ModelCollection<UserClass>> {
         // Parse subqueries
         where = this._api.parseSubqueries(where);
     

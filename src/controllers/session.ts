@@ -17,7 +17,7 @@ export default class SessionController {
         this._api = api;
     }
 
-    async find({ select, include, where, sort, skip, limit }: FindOptionsType): Promise<ModelCollection<SessionClass>> {
+    async find({ select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<ModelCollection<SessionClass>> {
         // Parse subqueries
         where = this._api.parseSubqueries(where);
     
