@@ -39,7 +39,7 @@ export class UserClass extends ModelClass {
         this._crypto = crypto;
     }
 
-    static async verify<T extends UserClass>({ username, email, password }: CredentialsType): Promise<T | void> {
+    static async verify<T extends UserClass>({ username, email, password }: CredentialsType): Promise<T | undefined> {
         // Prepare where clause
         const where = new ConstraintMap();
         

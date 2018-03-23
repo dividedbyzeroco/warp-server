@@ -2,6 +2,7 @@ import * as express from 'express';
 import enforce from 'enforce-js';
 import WarpServer from '../index';
 import UserController from '../controllers/user';
+import { FindOptionsType } from '../types/users';
 
 /**
  * Define router    
@@ -34,13 +35,16 @@ const users = (api: WarpServer): express.Router => {
             enforce`${{ limit }} as an optional number`;
 
             // Parse parameters
-            select = typeof select !== 'undefined' ? JSON.parse(select) : undefined;
-            include = typeof include !== 'undefined' ? JSON.parse(include) : undefined;
-            where = typeof where !== 'undefined' ? JSON.parse(where) : undefined;
-            sort = typeof sort !== 'undefined' ? JSON.parse(sort) : undefined;
+            const params: FindOptionsType = {
+                select: typeof select !== 'undefined' ? JSON.parse(select) : undefined,
+                include: typeof include !== 'undefined' ? JSON.parse(include) : undefined,
+                where: typeof where !== 'undefined' ? JSON.parse(where) : undefined,
+                sort: typeof sort !== 'undefined' ? JSON.parse(sort) : undefined,
+                skip,
+                limit
+            };
 
-            // $FlowFixMe
-            const modelCollection = await controller.find({ select, include, where, sort, skip, limit });
+            const modelCollection = await controller.find(params);
 
             // Return response
             req.result = modelCollection;
@@ -77,11 +81,13 @@ const users = (api: WarpServer): express.Router => {
                 enforce`${{ include }} as an optional string, equivalent to an array`;
 
                 // Parse parameters
-                select = typeof select !== 'undefined' ? JSON.parse(select) : undefined;
-                include = typeof include !== 'undefined' ? JSON.parse(include) : undefined;
-
-                // $FlowFixMe
-                const model = await controller.get({ id, select, include });
+                const params = {
+                    id,
+                    select: typeof select !== 'undefined' ? JSON.parse(select) : undefined,
+                    include: typeof include !== 'undefined' ? JSON.parse(include) : undefined
+                };
+                
+                const model = await controller.get(params);
 
                 // Return response
                 req.result = model;

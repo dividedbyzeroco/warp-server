@@ -2,6 +2,7 @@ import * as express from 'express';
 import enforce from 'enforce-js';
 import WarpServer from '../index';
 import ClassController from '../controllers/class';
+import { FindOptionsType, GetOptionsType } from '../types/classes';
 
 /**
  * Define router
@@ -35,13 +36,17 @@ const classes = (api: WarpServer): express.Router => {
             enforce`${{ limit }} as an optional number`;
 
             // Parse parameters
-            select = typeof select !== 'undefined' ? JSON.parse(select) : undefined;
-            include = typeof include !== 'undefined' ? JSON.parse(include) : undefined;
-            where = typeof where !== 'undefined' ? JSON.parse(where) : undefined;
-            sort = typeof sort !== 'undefined' ? JSON.parse(sort) : undefined;
+            const params: FindOptionsType = {
+                className,
+                select: typeof select !== 'undefined' ? JSON.parse(select) : undefined,
+                include: typeof include !== 'undefined' ? JSON.parse(include) : undefined,
+                where: typeof where !== 'undefined' ? JSON.parse(where) : undefined,
+                sort: typeof sort !== 'undefined' ? JSON.parse(sort) : undefined,
+                skip,
+                limit
+            };
 
-            // $FlowFixMe
-            const modelCollection = await controller.find({ className, select, include, where, sort, skip, limit });
+            const modelCollection = await controller.find(params);
 
             // Return response
             req.result = modelCollection;
@@ -67,11 +72,15 @@ const classes = (api: WarpServer): express.Router => {
             enforce`${{ include }} as an optional string, equivalent to an array`;
 
             // Parse parameters
-            select = typeof select !== 'undefined' ? JSON.parse(select) : undefined;
-            include = typeof include !== 'undefined' ? JSON.parse(include) : undefined;
+            const params: GetOptionsType = {
+                className,
+                id,
+                select: typeof select !== 'undefined' ? JSON.parse(select) : undefined,
+                include: typeof include !== 'undefined' ? JSON.parse(include) : undefined
+            };
 
             // $FlowFixMe
-            const model = await controller.get({ className, id, select, include });
+            const model = await controller.get(params);
 
             // Return response
             req.result = model;

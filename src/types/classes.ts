@@ -4,19 +4,19 @@ import { MetadataType } from './model';
 
 export type FindOptionsType = {
     className: string,
-    select: Array<string>,
-    include: Array<string>,
-    where: {[name: string]: {[name: string]: any}},
-    sort: Array<string | {[name: string]: any}>,
-    skip: number,
-    limit: number
+    select?: Array<string>,
+    include?: Array<string>,
+    where?: {[name: string]: {[name: string]: any}},
+    sort?: Array<string | {[name: string]: any}>,
+    skip?: number,
+    limit?: number
 }
 
 export type GetOptionsType = {
     className: string,
     id: number,
-    select: Array<string>,
-    include: Array<string>
+    select?: Array<string>,
+    include?: Array<string>
 };
 
 export type CreateOptionsType = {

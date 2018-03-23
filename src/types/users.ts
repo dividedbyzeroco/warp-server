@@ -49,7 +49,7 @@ export type LoginOptionsType = {
 };
 
 export type MeOptionsType = {
-    currentUser: UserClass
+    currentUser?: UserClass
 };
 
 export type LogoutOptionsType = {

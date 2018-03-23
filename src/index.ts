@@ -470,7 +470,7 @@ export default class WarpServer {
      * Authenticate a sessionToken, username, email, or password
      * @param {AuthOptionsType} options
      */
-    async authenticate({ sessionToken, username, email, password }: AuthOptionsType): Promise<UserClass | void> {
+    async authenticate({ sessionToken, username, email, password }: AuthOptionsType): Promise<UserClass | undefined> {
         // If session token is provided, search for the matching session
         if(typeof sessionToken !== 'undefined') {
             // Get session model

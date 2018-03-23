@@ -20,7 +20,7 @@ export default class ClassController {
         this._api = api;
     }
 
-    async find({ className, select, include, where, sort, skip, limit }: FindOptionsType): Promise<ModelCollection<ModelClass>> {
+    async find({ className, select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<ModelCollection<ModelClass>> {
         // Parse subqueries
         where = this._api.parseSubqueries(where);
     

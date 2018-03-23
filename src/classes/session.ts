@@ -60,7 +60,7 @@ export class SessionClass extends Model.Class {
         return session;
     }
 
-    static async verify(sessionToken: string): Promise<UserClass | void> {
+    static async verify(sessionToken: string): Promise<UserClass | undefined> {
         // $FlowFixMe
         const session = await this.getFromToken(sessionToken);
 
