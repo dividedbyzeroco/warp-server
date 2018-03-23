@@ -19,7 +19,7 @@ export type FunctionMapType = {[functionName: string]: typeof FunctionClass};
 export type RunOptionsType = {
     Warp: Warp,
     metadata: MetadataType,
-    currentUser: UserClass,
+    currentUser?: UserClass,
     functionName: string,
     keys?: {[name: string]: any}
 };

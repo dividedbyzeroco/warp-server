@@ -22,7 +22,7 @@ export type GetOptionsType = {
 export type CreateOptionsType = {
     Warp?: Warp,
     metadata: MetadataType,
-    currentUser: UserClass,
+    currentUser?: UserClass,
     className: string,
     keys: {[name: string]: any}
 };
@@ -30,7 +30,7 @@ export type CreateOptionsType = {
 export type UpdateOptionsType = {
     Warp?: Warp,
     metadata: MetadataType,
-    currentUser: UserClass,
+    currentUser?: UserClass,
     className: string,
     id: number,
     keys: {[name: string]: any}
@@ -39,7 +39,7 @@ export type UpdateOptionsType = {
 export type DestroyOptionsType = {
     Warp?: Warp,
     metadata: MetadataType,
-    currentUser: UserClass,
+    currentUser?: UserClass,
     className: string,
     id: number
 };
