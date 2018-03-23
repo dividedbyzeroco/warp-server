@@ -1,4 +1,4 @@
-import * as express from 'express';
+import express from 'express';
 import WarpServer from '../index';
 import FunctionController from '../controllers/function';
 

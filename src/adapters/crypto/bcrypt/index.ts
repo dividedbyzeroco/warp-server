@@ -1,4 +1,4 @@
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import { ICryptoAdapter } from '../../../types/crypto';
 
 export default class BcryptCryptoAdapter implements ICryptoAdapter {

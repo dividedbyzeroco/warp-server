@@ -1,6 +1,6 @@
-import * as express from 'express';
-import * as uniqid from 'uniqid';
-import * as parseUrl from 'parse-url';
+import express from 'express';
+import uniqid from 'uniqid';
+import parseUrl from 'parse-url';
 import enforce from 'enforce-js';
 import Model from './classes/model'
 import User, { UserClass } from './classes/user';
