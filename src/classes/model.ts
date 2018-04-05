@@ -215,7 +215,7 @@ export class ModelClass {
     static _hidden: {[name: string]: string};
     static _protected: {[name: string]: string};
     static _timestamps: {[name: string]: boolean};
-    _warp: Warp;
+    _warp?: Warp;
     _metadata: MetadataType;
     _currentUser: any;
     _isNew: boolean = true;
@@ -701,7 +701,7 @@ export class ModelClass {
         return this.constructor as T;
     }
 
-    get Warp(): Warp {
+    get Warp(): Warp | undefined {
         return this._warp;
     }
 
@@ -885,7 +885,7 @@ export class ModelClass {
         };
     }
 
-    bindSDK(warp: Warp) {
+    bindSDK(warp?: Warp) {
         this._warp = warp;
     }
 

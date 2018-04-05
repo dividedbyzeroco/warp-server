@@ -1,4 +1,4 @@
-import Warp from 'warp-sdk-js';
+import { Warp } from 'warp-sdk-js';
 import { UserClass } from '../classes/user';
 import { FunctionClass } from '../classes/function';
 import { MetadataType } from './model';

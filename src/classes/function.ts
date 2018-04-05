@@ -1,4 +1,4 @@
-import Warp from 'warp-sdk-js';
+import { Warp } from 'warp-sdk-js';
 import { UserClass } from './user';
 import { toCamelCase } from '../utils/format';
 import KeyMap from '../utils/key-map';
@@ -21,20 +21,22 @@ export class FunctionClass {
         if(typeof currentUser !== 'undefined') this._currentUser = currentUser;
         
         // Iterate through each param
-        for(let key in keys) {
+        if(typeof keys !== 'undefined') {
+            for(let key in keys) {
 
-            // Get value
-            let value = keys[key];
+                // Get value
+                let value = keys[key];
 
-            // Check if setter exists
-            const keyDescriptor = Object.getOwnPropertyDescriptor(this.constructor.prototype, toCamelCase(key));
-            if(keyDescriptor && typeof keyDescriptor.set === 'function') {
-                const setter = keyDescriptor.set.bind(this);
-                setter(value);
+                // Check if setter exists
+                const keyDescriptor = Object.getOwnPropertyDescriptor(this.constructor.prototype, toCamelCase(key));
+                if(keyDescriptor && typeof keyDescriptor.set === 'function') {
+                    const setter = keyDescriptor.set.bind(this);
+                    setter(value);
+                }
+                // Otherwise, generically set the value
+                else this.set(key, value);
             }
-            // Otherwise, generically set the value
-            else this.set(key, value);
-        }
+        } 
 
         // After setting values, make the key map immutable
         this._keyMap.setImmutability(true);

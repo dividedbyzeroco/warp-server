@@ -3,10 +3,10 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import { RateLimiter } from 'limiter';
 import { Warp } from 'warp-sdk-js';
-import WarpServer from '../index';
 import Error from '../utils/error';
+import { IWarpServer } from '../types/api';
 
-const middleware = (api: WarpServer) => {
+const middleware = (api: IWarpServer) => {
     /**
      * Define router
      */
@@ -94,7 +94,7 @@ const middleware = (api: WarpServer) => {
     router.use((req, res, next) => {
         const sessionToken = req.metadata.sessionToken;
         const currentUser = req.currentUser;
-        req.Warp = new Warp({ platform: 'api', api, apiKey: req.metadata.apiKey, sessionToken, currentUser });
+        //req.Warp = new Warp({ platform: 'api', api, apiKey: req.metadata.apiKey, sessionToken, currentUser });
         next();
     });
 
