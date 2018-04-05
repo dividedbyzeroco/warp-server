@@ -33,7 +33,6 @@ import SessionController from './controllers/session';
 import FunctionController from './controllers/function';
 import { InternalKeys } from './utils/constants';
 import chalk from 'chalk';
-import { IWarpServer } from './types/api';
 
 enforce.extend(/^equivalent to an array$/i, val => {
     try {
@@ -65,7 +64,7 @@ enforce.extend(/^and a valid email address$/i, val => {
  * @class WarpServer
  * @description WarpServer definition
  */
-export default class WarpServer implements IWarpServer {
+export default class WarpServer {
     
     _log: ILogger = Logger.use('console', 'Warp Server', process.env.LOG_LEVEL || 'error');
     _security: SecurityConfigType;

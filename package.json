@@ -39,7 +39,7 @@
     "parse-url": "^3.0.2",
     "promise": "^7.1.1",
     "uniqid": "^4.1.1",
-    "warp-sdk-js": "^5.2.3"
+    "warp-sdk-js": "^5.2.6"
   },
   "devDependencies": {
     "chai": "^4.1.2",

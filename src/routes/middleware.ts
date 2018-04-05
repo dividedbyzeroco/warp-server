@@ -4,9 +4,9 @@ import bodyParser from 'body-parser';
 import { RateLimiter } from 'limiter';
 import { Warp } from 'warp-sdk-js';
 import Error from '../utils/error';
-import { IWarpServer } from '../types/api';
+import { WarpServer } from '../index';
 
-const middleware = (api: IWarpServer) => {
+const middleware = (api: WarpServer) => {
     /**
      * Define router
      */
@@ -94,7 +94,7 @@ const middleware = (api: IWarpServer) => {
     router.use((req, res, next) => {
         const sessionToken = req.metadata.sessionToken;
         const currentUser = req.currentUser;
-        //req.Warp = new Warp({ platform: 'api', api, apiKey: req.metadata.apiKey, sessionToken, currentUser });
+        req.Warp = new Warp({ platform: 'api', api, apiKey: req.metadata.apiKey, sessionToken, currentUser });
         next();
     });
 
