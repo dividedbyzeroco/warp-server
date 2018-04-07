@@ -264,7 +264,7 @@ export default class WarpServer {
                     let funcInstance = new func;
 
                     // Enforce data type
-                    enforce`${{ [func.functionName]: funcInstance }} as a ${{ 'Function.Class': Function.Class }}`;
+                    enforce`${{ [func.functionName]: funcInstance }} as a ${{ 'Function.Class': Function }}`;
 
                     // Set function
                     this._functions[func.functionName] = func;
@@ -280,7 +280,7 @@ export default class WarpServer {
                     const functionClass = this._functions[functionName];
 
                     // Enforce
-                    enforce`${{ [functionName]: new functionClass }} as a ${{ 'Function.Class': Function.Class }}`;
+                    enforce`${{ [functionName]: new functionClass }} as a ${{ 'Function.Class': Function }}`;
 
                     // Return function
                     return functionClass;

@@ -6,7 +6,7 @@ import Error from '../utils/error';
 import { MetadataType } from '../types/class';
 import { FunctionOptionsType } from '../types/functions';
 
-export class FunctionClass {
+export default class FunctionClass {
 
     _warp: Warp;
     _metadata: MetadataType;
@@ -87,13 +87,4 @@ export class FunctionClass {
         return await this.run();
     }
 
-}
-
-export default class Function {
-
-    // Static getter for function class
-    static get Class(): typeof FunctionClass {
-        return FunctionClass;
-    }
-    
 }

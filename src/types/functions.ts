@@ -1,6 +1,6 @@
 import { Warp } from 'warp-sdk-js';
 import User from '../classes/user';
-import { FunctionClass } from '../classes/function';
+import Function from '../classes/function';
 import { MetadataType } from './class';
 
 export type FunctionOptionsType = {
@@ -11,10 +11,10 @@ export type FunctionOptionsType = {
 
 export type FunctionMethodsType = {
     add: (functions: FunctionMapType) => void,
-    get: (functionName: string) =>  typeof FunctionClass
+    get: (functionName: string) =>  typeof Function
 };
 
-export type FunctionMapType = {[functionName: string]: typeof FunctionClass};
+export type FunctionMapType = {[functionName: string]: typeof Function};
 
 export type RunOptionsType = {
     Warp: Warp,

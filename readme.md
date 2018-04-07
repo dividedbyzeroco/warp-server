@@ -578,7 +578,7 @@ User authentication is a common concern for applications. Luckily, for Warp Serv
 
 ## Creating a User class
 
-A `User` represents individual people who log in and make requests to the server. To enable this feature, you would need to declare a new class which extends from `User.Class`.
+A `User` represents individual people who log in and make requests to the server. To enable this feature, you would need to declare a new class which extends from `User`.
 
 ```javascript
 // Import User from WarpServer
@@ -652,7 +652,7 @@ class User extends WarpUser {
 
 A `Session` represents a successful authentication of a user. They are created every time a user logs in, and destroyed every time they are logged out. For Warp Server, a Session's `sessionToken` is often used to make requests to the server. This sessionToken is validated and returned as the `currentUser` of the request. You can find more about this in the [Sessions](#sessions) section.
 
-To enable this feature, you would need to declare a new class which extends from `Session.Class`.
+To enable this feature, you would need to declare a new class which extends from `Session`.
 
 ```javascript
 // Import Session from WarpServer
@@ -742,14 +742,14 @@ A `Function` is a piece of code that can be executed via a named endpoint. It re
 
 ## Create a Function
 
-To create a Function, create a new class that extends the `Function.Class`.
+To create a Function, create a new class that extends the `Function`.
 
 ```javascript
 // Import Function from Warp Server
 import { Function } from 'warp-server';
 import getDogsPromise from './get-dogs';
 
-class GetFavoriteDogs extends Function.Class {
+class GetFavoriteDogs extends Function {
 
     static get functionName() {
         return 'get-favorite-dogs';
