@@ -64,7 +64,7 @@ var app = express();
 app.use('/api/1', api.router);
 ```
 
-> NOTE: Warp Server uses modern node features. If you are transpiling via Babel, be sure to target at least Node 6.
+> NOTE: Warp Server uses modern node features. We recommend using TypeScript as your transpiler. If you are transpiling via Babel, be sure to target at least Node 6.
 
 Sample `.babelrc`
 
@@ -131,13 +131,6 @@ class Dog extends Class {
     static get keys() {
         return ['name', 'age', 'weight'];
     }
-
-    // If using TypeScript, use Array<any> as the return type
-    /**
-    static get keys(): Array<any> {
-        return ['name', 'age', 'weight'];
-    }
-    */
 }
 ```
 

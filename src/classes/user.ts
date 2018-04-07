@@ -27,7 +27,7 @@ export default class User extends Class {
         return InternalKeys.Auth.Password;
     }
 
-    static get keys(): Array<string | Pointer | KeyManager> {
+    static get keys(): Array<any> {
         return [User.usernameKey, User.emailKey, User.passwordKey];
     }
 

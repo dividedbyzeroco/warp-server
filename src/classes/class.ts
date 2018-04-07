@@ -429,7 +429,7 @@ export default class Class {
         return Class.className;
     }
 
-    static get keys(): Array<string | Pointer | KeyManager> {
+    static get keys(): Array<any> {
         return [];
     }
 

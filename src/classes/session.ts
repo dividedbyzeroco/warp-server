@@ -32,7 +32,7 @@ export default class Session extends Class {
         return InternalKeys.Auth.RevokedAt;
     }
 
-    static get keys(): Array<string | Pointer | KeyManager> {
+    static get keys(): Array<any> {
         return [Session.user.as(Session.userKey), Session.originKey, Session.sessionTokenKey, Key(Session.revokedAtKey).asDate()];
     }
 
