@@ -1,6 +1,6 @@
 import WarpServer from '../index';
-import { SessionClass } from '../classes/session';
-import ModelCollection from '../utils/model-collection';
+import Session from '../classes/session';
+import ClassCollection from '../utils/class-collection';
 import { Defaults } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
 import Error from '../utils/error';
@@ -17,7 +17,11 @@ export default class SessionController {
         this._api = api;
     }
 
-    async find({ select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<ModelCollection<SessionClass>> {
+    async find({ metadata, select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<ClassCollection<Session>> {
+        // Validate master access
+        if(!metadata.isMaster)
+            throw new Error(Error.Code.ForbiddenOperation, 'Only masters can access sessions');
+        
         // Parse subqueries
         where = this._api.parseSubqueries(where);
     
@@ -31,17 +35,21 @@ export default class SessionController {
             limit: limit || Defaults.Query.Limit
         };
     
-        // Get model
-        const modelClass = this._api.auth.session();
+        // Get class
+        const classType = this._api.auth.session();
     
         // Find matching objects
-        const modelCollection = await modelClass.find<SessionClass>(query);
+        const classCollection = await classType.find<Session>(query);
     
         // Return collection
-        return modelCollection;
+        return classCollection;
     }
     
-    async get({ id, select, include }: GetOptionsType): Promise<SessionClass> {
+    async get({ metadata, id, select, include }: GetOptionsType): Promise<Session> {
+        // Validate master access
+        if(!metadata.isMaster)
+            throw new Error(Error.Code.ForbiddenOperation, 'Only masters can access sessions');
+
         // Prepare query
         const query = {
             select: select || [],
@@ -49,17 +57,17 @@ export default class SessionController {
             id
         };
     
-        // Get model
-        const modelClass = this._api.auth.session();
+        // Get class
+        const classType = this._api.auth.session();
     
         // Find matching objects
-        const model = await modelClass.getById<SessionClass>(query);
+        const classInstance = await classType.getById<Session>(query);
     
-        // Check if model is found
-        if(typeof model === 'undefined')
+        // Check if class is found
+        if(typeof classInstance === 'undefined')
             throw new Error(Error.Code.ForbiddenOperation, `Session with id \`${id}\` not found`);
     
-        // Return the model
-        return model;
+        // Return the class
+        return classInstance;
     }
 }

@@ -1,7 +1,7 @@
 import WarpServer from '../index';
-import { UserClass } from '../classes/user';
-import { SessionClass } from '../classes/session';
-import ModelCollection from '../utils/model-collection';
+import User from '../classes/user';
+import Session from '../classes/session';
+import ClassCollection from '../utils/class-collection';
 import { Defaults } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
 import Error from '../utils/error';
@@ -25,7 +25,7 @@ export default class UserController {
         this._api = api;
     }
 
-    async find({ select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<ModelCollection<UserClass>> {
+    async find({ select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<ClassCollection<User>> {
         // Parse subqueries
         where = this._api.parseSubqueries(where);
     
@@ -39,17 +39,17 @@ export default class UserController {
             limit: limit || Defaults.Query.Limit
         };
     
-        // Get model
-        const modelClass = this._api.auth.user();
+        // Get class
+        const classType = this._api.auth.user();
     
         // Find matching objects
-        const modelCollection = await modelClass.find<UserClass>(query);
+        const classCollection = await classType.find<User>(query);
     
         // Return collection
-        return modelCollection;
+        return classCollection;
     }
     
-    async get({ id, select, include }: GetOptionsType): Promise<UserClass> {    
+    async get({ id, select, include }: GetOptionsType): Promise<User> {    
         // Prepare query
         const query = {
             select: select || [],
@@ -57,80 +57,80 @@ export default class UserController {
             id
         };
     
-        // Get model
-        const modelClass = this._api.auth.user();
+        // Get class
+        const classType = this._api.auth.user();
     
         // Find matching object
-        const model = await modelClass.getById<UserClass>(query);
+        const classInstance = await classType.getById<User>(query);
     
-        // Check if model is found
-        if(typeof model === 'undefined')
+        // Check if class is found
+        if(typeof classInstance === 'undefined')
             throw new Error(Error.Code.ForbiddenOperation, `User with id \`${id}\` not found`);
     
-        // Return the model
-        return model;
+        // Return the class
+        return classInstance;
     }
     
-    async create({ Warp, metadata, currentUser, keys }: CreateOptionsType): Promise<UserClass> {
+    async create({ Warp, metadata, currentUser, keys }: CreateOptionsType): Promise<User> {
         // Check if session token is provided
         if(typeof currentUser !== 'undefined')
             throw new Error(Error.Code.ForbiddenOperation, 'Users cannot be created using an active session. Please log out.');
     
-        // Get model
-        const modelClass = this._api.auth.user();
-        const model = new modelClass({ metadata, currentUser, keys });
+        // Get class
+        const classType = this._api.auth.user();
+        const classInstance = new classType({ metadata, currentUser, keys });
 
         // Bind Warp
-        model.bindSDK(Warp);
+        classInstance.bindSDK(Warp);
     
         // Save the object
-        await model.save();
+        await classInstance.save();
     
-        // Return the model
-        return model;
+        // Return the class
+        return classInstance;
     }
     
-    async update({ Warp, metadata, currentUser, keys, id }: UpdateOptionsType): Promise<UserClass> {
+    async update({ Warp, metadata, currentUser, keys, id }: UpdateOptionsType): Promise<User> {
         // Check if the editor is the same user
         if(!metadata.isMaster && (typeof currentUser === 'undefined' || currentUser.id !== id))
             throw new Error(Error.Code.ForbiddenOperation, 'User details can only be edited by their owner or via master');
     
-        // Get model
-        const modelClass = this._api.auth.user();
-        const model = new modelClass({ metadata, currentUser, keys, id });
+        // Get class
+        const classType = this._api.auth.user();
+        const classInstance = new classType({ metadata, currentUser, keys, id });
     
         // Bind Warp
-        model.bindSDK(Warp);
+        classInstance.bindSDK(Warp);
 
         // Save the object
-        await model.save();
+        await classInstance.save();
     
-        // Return the model
-        return model;
+        // Return the class
+        return classInstance;
     }
     
-    async destroy({ Warp, metadata, currentUser, id }: DestroyOptionsType): Promise<UserClass> {
+    async destroy({ Warp, metadata, currentUser, id }: DestroyOptionsType): Promise<User> {
         // Check if the destroyer is the same user
         if(!metadata.isMaster && (typeof currentUser === 'undefined' || currentUser.id !== id))
             throw new Error(Error.Code.ForbiddenOperation, 'User details can only be destroyed by their owner or via master');
     
-        // Get model
-        const modelClass = this._api.auth.user();
-        const model = new modelClass({ metadata, currentUser, id });
+        // Get class
+        const classType = this._api.auth.user();
+        const classInstance = new classType({ metadata, currentUser, id });
     
         // Bind Warp
-        model.bindSDK(Warp);
+        classInstance.bindSDK(Warp);
 
         // Destroy the object
-        await model.destroy();
+        await classInstance.destroy();
     
-        // Return the model
-        return model;
+        // Return the class
+        return classInstance;
     }
     
-    async logIn({ Warp, metadata, currentUser, username, email, password }: LoginOptionsType): Promise<SessionClass> {
+    async logIn({ Warp, metadata, currentUser, username, email, password }: LoginOptionsType): Promise<Session> {
         // Get session class
-        const sessionClass = this._api.auth.session();
+        const Session = this._api.auth.session();
     
         // Check if session token is provided
         if(typeof currentUser !== 'undefined')
@@ -148,13 +148,13 @@ export default class UserController {
     
         // If the user is found, create a new session
         const keys = {
-            [sessionClass.userKey]: user.toJSON(),
-            [sessionClass.originKey]: metadata.client,
-            [sessionClass.sessionTokenKey]: this._api.createSessionToken(user),
-            [sessionClass.revokedAtKey]: this._api.getRevocationDate()
+            [Session.userKey]: user.toJSON(),
+            [Session.originKey]: metadata.client,
+            [Session.sessionTokenKey]: this._api.createSessionToken(user),
+            [Session.revokedAtKey]: this._api.getRevocationDate()
         };
     
-        const session = new sessionClass({ metadata, keys });
+        const session = new Session({ metadata, keys });
 
         // Bind Warp
         session.bindSDK(Warp);
@@ -166,7 +166,7 @@ export default class UserController {
         return session;
     }
     
-    async me({ currentUser }: MeOptionsType): Promise<UserClass> {
+    async me({ currentUser }: MeOptionsType): Promise<User> {
         // Check if currentUser exists
         if(typeof currentUser === 'undefined')
             throw new Error(Error.Code.InvalidSessionToken, 'Session does not exist');
@@ -175,12 +175,12 @@ export default class UserController {
         return currentUser;
     }
     
-    async logOut({ Warp, sessionToken }: LogoutOptionsType): Promise<SessionClass> {
+    async logOut({ Warp, sessionToken }: LogoutOptionsType): Promise<Session> {
         // Get session class
-        const sessionClass = this._api.auth.session();
+        const Session = this._api.auth.session();
     
         // Find provided session
-        const session = await sessionClass.getFromToken(sessionToken);
+        const session = await Session.getFromToken(sessionToken);
     
         if(typeof session === 'undefined')
             throw new Error(Error.Code.InvalidSessionToken, 'Session does not exist');

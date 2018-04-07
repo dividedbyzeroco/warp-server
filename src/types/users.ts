@@ -1,6 +1,6 @@
 import { Warp } from 'warp-sdk-js';
-import { UserClass } from '../classes/user';
-import { MetadataType } from './model';
+import User from '../classes/user';
+import { MetadataType } from './class';
 
 export type FindOptionsType = {
     select?: Array<string>,
@@ -20,14 +20,14 @@ export type GetOptionsType = {
 export type CreateOptionsType = {
     Warp?: Warp,
     metadata: MetadataType,
-    currentUser?: UserClass,
+    currentUser?: User,
     keys: {[name: string]: any}
 };
 
 export type UpdateOptionsType = {
     Warp?: Warp,
     metadata: MetadataType,
-    currentUser?: UserClass,
+    currentUser?: User,
     id: number,
     keys: {[name: string]: any}
 };
@@ -35,21 +35,21 @@ export type UpdateOptionsType = {
 export type DestroyOptionsType = {
     Warp?: Warp,
     metadata: MetadataType,
-    currentUser?: UserClass,
+    currentUser?: User,
     id: number
 };
 
 export type LoginOptionsType = {
     Warp?: Warp,
     metadata: MetadataType,
-    currentUser?: UserClass,
+    currentUser?: User,
     username?: string,
     email?: string,
     password: string
 };
 
 export type MeOptionsType = {
-    currentUser?: UserClass
+    currentUser?: User
 };
 
 export type LogoutOptionsType = {

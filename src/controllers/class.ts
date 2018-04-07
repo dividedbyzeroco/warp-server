@@ -1,6 +1,6 @@
 import WarpServer from '../index';
-import { ModelClass } from '../classes/model';
-import ModelCollection from '../utils/model-collection';
+import Class from '../classes/class';
+import ClassCollection from '../utils/class-collection';
 import Error from '../utils/error';
 import { Defaults } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
@@ -20,7 +20,7 @@ export default class ClassController {
         this._api = api;
     }
 
-    async find({ className, select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<ModelCollection<ModelClass>> {
+    async find({ className, select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<ClassCollection<Class>> {
         // Parse subqueries
         where = this._api.parseSubqueries(where);
     
@@ -34,17 +34,17 @@ export default class ClassController {
             limit: limit || Defaults.Query.Limit
         };
     
-        // Get model
-        const modelClass = this._api.models.get(className);
+        // Get class
+        const classType = this._api.classes.get(className);
     
         // Find matching objects
-        const modelCollection = await modelClass.find(query);
+        const classCollection = await classType.find(query);
     
         // Return collection
-        return modelCollection;
+        return classCollection;
     }
     
-    async get({ className, id, select, include }: GetOptionsType): Promise<ModelClass> {
+    async get({ className, id, select, include }: GetOptionsType): Promise<Class> {
         // Prepare query
         const query = {
             select: select || [],
@@ -52,62 +52,62 @@ export default class ClassController {
             id
         };
     
-        // Get model
-        const modelClass = this._api.models.get(className);
+        // Get class
+        const classType = this._api.classes.get(className);
     
         // Find matching objects
-        const model = await modelClass.getById(query);
+        const classInstance = await classType.getById(query);
     
-        // Check if model is found
-        if(typeof model === 'undefined')
-            throw new Error(Error.Code.ForbiddenOperation, `Object \`${modelClass.className}\` with id \`${id}\` not found`);
+        // Check if class is found
+        if(typeof classInstance === 'undefined')
+            throw new Error(Error.Code.ForbiddenOperation, `Object \`${classType.className}\` with id \`${id}\` not found`);
     
-        // Return the model
-        return model;
+        // Return the class
+        return classInstance;
     }
     
-    async create({ Warp, metadata, currentUser, className, keys }: CreateOptionsType): Promise<ModelClass> {
-        // Get model
-        const modelClass = this._api.models.get(className);
-        const model = new modelClass({ metadata, currentUser, keys });
+    async create({ Warp, metadata, currentUser, className, keys }: CreateOptionsType): Promise<Class> {
+        // Get class
+        const classType = this._api.classes.get(className);
+        const classInstance = new classType({ metadata, currentUser, keys });
 
         // Bind Warp
-        model.bindSDK(Warp);
+        classInstance.bindSDK(Warp);
     
         // Save the object
-        await model.save();
+        await classInstance.save();
     
-        // Return the model
-        return model;
+        // Return the class
+        return classInstance;
     }
     
-    async update({ Warp, metadata, currentUser, className, keys, id }: UpdateOptionsType): Promise<ModelClass> {
-        // Get model
-        const modelClass = this._api.models.get(className);
-        const model = new modelClass({ metadata, currentUser, keys, id });
+    async update({ Warp, metadata, currentUser, className, keys, id }: UpdateOptionsType): Promise<Class> {
+        // Get class
+        const classType = this._api.classes.get(className);
+        const classInstance = new classType({ metadata, currentUser, keys, id });
 
         // Bind Warp
-        model.bindSDK(Warp);
+        classInstance.bindSDK(Warp);
     
         // Save the object
-        await model.save();
+        await classInstance.save();
     
-        // Return the model
-        return model;
+        // Return the class
+        return classInstance;
     }
     
-   async destroy({ Warp, metadata, currentUser, className, id }: DestroyOptionsType): Promise<ModelClass> {
-        // Get model
-        const modelClass = this._api.models.get(className);
-        const model = new modelClass({ metadata, currentUser, id });
+   async destroy({ Warp, metadata, currentUser, className, id }: DestroyOptionsType): Promise<Class> {
+        // Get class
+        const classType = this._api.classes.get(className);
+        const classInstance = new classType({ metadata, currentUser, id });
 
         // Bind Warp
-        model.bindSDK(Warp);
+        classInstance.bindSDK(Warp);
     
         // Destroy the object
-        await model.destroy();
+        await classInstance.destroy();
     
-        // Return the model
-        return model;
+        // Return the class
+        return classInstance;
     }
 }

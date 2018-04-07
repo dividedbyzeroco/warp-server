@@ -1,16 +1,16 @@
 import { Warp } from 'warp-sdk-js';
-import { UserClass } from './user';
+import User from './user';
 import { toCamelCase } from '../utils/format';
 import KeyMap from '../utils/key-map';
 import Error from '../utils/error';
-import { MetadataType } from '../types/model';
+import { MetadataType } from '../types/class';
 import { FunctionOptionsType } from '../types/functions';
 
 export class FunctionClass {
 
     _warp: Warp;
     _metadata: MetadataType;
-    _currentUser: UserClass;
+    _currentUser: User;
     _keyMap: KeyMap = new KeyMap();
 
     constructor({ metadata, currentUser, keys }: FunctionOptionsType = {}) {

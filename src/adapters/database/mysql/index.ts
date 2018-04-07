@@ -1,5 +1,5 @@
 import Client from './client';
-import Model from '../../../classes/model';
+import Class, { Pointer } from '../../../classes/class';
 import Error from '../../../utils/error';
 import KeyMap from '../../../utils/key-map';
 import { InternalKeys } from '../../../utils/constants';
@@ -111,7 +111,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         .map(alias => {
             const item = joins[alias];
             const joinKey = item.join.isSecondary? item.join.viaKey : `${classAlias}.${item.join.viaKey}`;
-            return `LEFT OUTER JOIN ${escapeKey(item.join.model.source)} AS ${escapeKey(item.join.aliasKey)}
+            return `LEFT OUTER JOIN ${escapeKey(item.join.class.source)} AS ${escapeKey(item.join.aliasKey)}
                 ON ${escapeKey(item.join.pointerIdKey)} = ${escapeKey(joinKey)}`;
         });
 
@@ -122,13 +122,13 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
             let aliasKey = escapeKey(key, true);
 
             // Check if key is a pointer id
-            if(Model.Pointer.isUsedAsIdBy(key)) {
-                sourceKey = `${classAlias}${Model.Pointer.Delimiter}${Model.Pointer.getViaKeyFrom(key)}`;
-                aliasKey = escapeKey(Model.Pointer.getPointerIdKeyFrom(key), true);
+            if(Pointer.isUsedAsIdBy(key)) {
+                sourceKey = `${classAlias}${Pointer.Delimiter}${Pointer.getViaKeyFrom(key)}`;
+                aliasKey = escapeKey(Pointer.getPointerIdKeyFrom(key), true);
             }
-            else if(!Model.Pointer.isUsedBy(key)) {
+            else if(!Pointer.isUsedBy(key)) {
                 // Add the classAlias to the key in order to avoid ambiguity
-                sourceKey = `${classAlias}${Model.Pointer.Delimiter}${key}`;
+                sourceKey = `${classAlias}${Pointer.Delimiter}${key}`;
             }
 
             // Return the key
@@ -136,7 +136,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         });
         
         // Remove deleted rows
-        where.doesNotExist(`${classAlias}${Model.Pointer.Delimiter}${InternalKeys.Timestamps.DeletedAt}`);
+        where.doesNotExist(`${classAlias}${Pointer.Delimiter}${InternalKeys.Timestamps.DeletedAt}`);
 
         // Get constraints
         const constraints = where.toList()
@@ -161,7 +161,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         // Return sorting string
         return sort.map(keySort => {
             // Add the className to the key in order to avoid ambiguity
-            const sortAlias = keySort => Model.Pointer.isUsedBy(keySort)? keySort : `${className}${Model.Pointer.Delimiter}${keySort}`;
+            const sortAlias = keySort => Pointer.isUsedBy(keySort)? keySort : `${className}${Pointer.Delimiter}${keySort}`;
 
             // If it starts with a hyphen, sort by descending order
             // Otherwise, sort by ascending order
@@ -187,11 +187,11 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         // Iterate through the row's keys
         for(let key in row) {
             // If key is for a pointer
-            if(Model.Pointer.isUsedBy(key)) {
+            if(Pointer.isUsedBy(key)) {
                 // Prepare pointer parameters
                 const value = row[key];
-                const alias = Model.Pointer.getAliasFrom(key);
-                const pointerKey = Model.Pointer.getKeyFrom(key);
+                const alias = Pointer.getAliasFrom(key);
+                const pointerKey = Pointer.getKeyFrom(key);
                 const pointer = joins[alias].join;
 
                 // Get join keys

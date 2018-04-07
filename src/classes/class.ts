@@ -4,16 +4,16 @@ import Error from '../utils/error';
 import KeyMap from '../utils/key-map';
 import { toCamelCase, toISODate } from '../utils/format';
 import { InternalKeys } from '../utils/constants';
-import ModelCollection from '../utils/model-collection';
+import ClassCollection from '../utils/class-collection';
 import ConstraintMap from '../utils/constraint-map';
 import { IDatabaseAdapter } from '../types/database';
 import { FindOptionsType, SubqueryOptionsType } from '../types/database';
-import { ModelOptionsType, MetadataType, QueryOptionsType, QueryGetOptionsType, PointerObjectType } from '../types/model';
+import { ClassOptionsType, MetadataType, QueryOptionsType, QueryGetOptionsType, PointerObjectType } from '../types/class';
 import { getPropertyDescriptor } from '../utils/props';
 
 export class Pointer {
 
-    _model: typeof ModelClass;
+    _class: typeof Class;
     _aliasKey: string;
     _viaKey: string;
     _pointerIdKey: string = InternalKeys.Id;
@@ -23,11 +23,11 @@ export class Pointer {
 
     /**
      * Constructor
-     * @param {ModelClass} model 
+     * @param {Class} classType 
      * @param {String} key 
      */
-    constructor(model: typeof ModelClass, key: string) {
-        this._model = model;
+    constructor(classType: typeof Class, key: string) {
+        this._class = classType;
         this._aliasKey = key;
         this._viaKey = `${this._aliasKey}_${InternalKeys.Id}`;
     }
@@ -48,7 +48,7 @@ export class Pointer {
         return key.indexOf(this.IdDelimiter) > 0;
     }
 
-    static validateKey(key: string, model: typeof ModelClass) {
+    static validateKey(key: string, classType: typeof Class) {
         // Get key parts
         const keyParts = key.split(this.Delimiter);
 
@@ -61,18 +61,18 @@ export class Pointer {
         const alias = keyParts[0];
         const pointerKey = keyParts[1];
 
-        // Get model pointer
-        const pointer = model._keys[alias];
+        // Get class pointer
+        const pointer = classType._keys[alias];
 
         // Validate className and key
         if(!(pointer instanceof this)) {
             throw new Error(Error.Code.MissingConfiguration, `The pointer for \`${key}\` does not exist`);
         }
         else if(
-            (typeof pointer.model._keys[pointerKey] !== 'string' 
-                && !pointer.model._timestamps[pointerKey]
+            (typeof pointer.class._keys[pointerKey] !== 'string' 
+                && !pointer.class._timestamps[pointerKey]
                 && InternalKeys.Id !== pointerKey)
-            || typeof pointer.model._hidden[pointerKey] === 'string') {
+            || typeof pointer.class._hidden[pointerKey] === 'string') {
             throw new Error(Error.Code.ForbiddenOperation, `The pointer key for \`${key}\` does not exist or is hidden`);
         }
     }
@@ -109,12 +109,16 @@ export class Pointer {
         return keyParts[1];
     }
 
+    static get Pointer(): typeof Pointer {
+        return Pointer;
+    }
+
     get statics() {
         return this.constructor as typeof Pointer;
     }
 
-    get model(): typeof ModelClass {
-        return this._model;
+    get class(): typeof Class {
+        return this._class;
     }
 
     get aliasKey(): string {
@@ -169,8 +173,8 @@ export class Pointer {
         if(value === null) return true;
         if(typeof value !== 'object') return false;
         if(value['type'] !== 'Pointer') return false;
-        if((this.model.supportLegacy && value[InternalKeys.Pointers.LegacyClassName] !== this.model.className) 
-            || (!this.model.supportLegacy && value[InternalKeys.Pointers.ClassName] !== this.model.className)) return false;
+        if((this.class.supportLegacy && value[InternalKeys.Pointers.LegacyClassName] !== this.class.className) 
+            || (!this.class.supportLegacy && value[InternalKeys.Pointers.ClassName] !== this.class.className)) return false;
         if(value['id'] <= 0) return false;
         return true;
     }
@@ -184,9 +188,9 @@ export class Pointer {
             // Otherwise, return a pointer object
             return {
                 type: 'Pointer',
-                [this.model.supportLegacy? 
+                [this.class.supportLegacy? 
                     InternalKeys.Pointers.LegacyClassName 
-                    : InternalKeys.Pointers.ClassName]: this.model.className,
+                    : InternalKeys.Pointers.ClassName]: this.class.className,
                 id: value
             };
         }
@@ -196,17 +200,17 @@ export class Pointer {
             const createdAt = value[InternalKeys.Timestamps.CreatedAt];
             const updatedAt = value[InternalKeys.Timestamps.UpdatedAt];
             const attributes = value[InternalKeys.Pointers.Attributes];
-            const modelClass = this.model;
-            const model = new modelClass({ id, keyMap: new KeyMap(attributes), createdAt, updatedAt, isPointer: true });
+            const classType = this.class;
+            const classInstance = new classType({ id, keyMap: new KeyMap(attributes), createdAt, updatedAt, isPointer: true });
 
             // Return a pointer object
-            return model.toJSON() as PointerObjectType;
+            return classInstance.toJSON() as PointerObjectType;
         }
         else return null;
     }
 }
 
-export class ModelClass {
+export default class Class {
 
     static _database: IDatabaseAdapter;
     static _supportLegacy: boolean = false;
@@ -228,7 +232,7 @@ export class ModelClass {
      * @param {Object} params 
      * @param {Number} id 
      */
-    constructor({ metadata, currentUser, keys = {}, keyMap, id, createdAt, updatedAt, isPointer = false }: ModelOptionsType = {}) {
+    constructor({ metadata, currentUser, keys = {}, keyMap, id, createdAt, updatedAt, isPointer = false }: ClassOptionsType = {}) {
         // If metadata exists, save it
         if(typeof metadata !== 'undefined') this._metadata = metadata;
 
@@ -268,33 +272,33 @@ export class ModelClass {
         if(typeof createdAt !== 'undefined') this._keyMap.set(InternalKeys.Timestamps.CreatedAt, createdAt);
         if(typeof updatedAt !== 'undefined') this._keyMap.set(InternalKeys.Timestamps.UpdatedAt, updatedAt);
 
-        // Check if model is a pointer
+        // Check if class is a pointer
         this._isPointer = isPointer;
     }
 
     /**
      * Initialize
      * @description Function that must be invoked once
-     * in order to initialize the model
+     * in order to initialize the class
      * @param {IDatabaseAdapter} database
      * @returns {WarpServer}
      */
-    static initialize<T extends typeof ModelClass>(database: IDatabaseAdapter, supportLegacy: boolean = false): T {
+    static initialize<T extends typeof Class>(database: IDatabaseAdapter, supportLegacy: boolean = false): T {
         // Set database
-        this._database = database;
-        this._supportLegacy = supportLegacy;
+        Class._database = database;
+        Class._supportLegacy = supportLegacy;
 
         // Prepare joins
-        this._joins = {};
+        Class._joins = {};
 
         // Prepare key definitions
-        this._keys = this.keys.reduce((map, key) => {
+        Class._keys = Class.keys.reduce((map, key) => {
             // Check if key is a string
             if(typeof key === 'string') {
                 // Check if key is in valid snake_case format
                 if(!(/^[a-z]+(_[a-z]+)*$/).test(key)) {
                     throw new Error(Error.Code.ForbiddenOperation, 
-                        `Keys defined in models must be in snake_case format: ${this.className}.${key}`);
+                        `Keys defined in classes must be in snake_case format: ${this.className}.${key}`);
                 }
 
                 // Set the key
@@ -312,7 +316,7 @@ export class ModelClass {
                         throw new Error(Error.Code.MissingConfiguration, 
                             `Parent pointer \`${key.parentAliasKey}\` of \`${key.aliasKey}\` does not exist`);
 
-                    if(!parentJoin.model._keyExists(key.parentViaKey))
+                    if(!parentJoin.class._keyExists(key.parentViaKey))
                         throw new Error(Error.Code.MissingConfiguration, 
                             `Parent pointer key \`${key.parentAliasKey}${Pointer.Delimiter}${key.parentViaKey}\` of \`${key.aliasKey}\` does not exist`);
                 }
@@ -331,7 +335,7 @@ export class ModelClass {
                                 throw new Error(Error.Code.ForbiddenOperation, `Cannot manually set secondary pointers`);
                             if(!key.isImplementedBy(value))
                                 throw new Error(Error.Code.ForbiddenOperation, 
-                                    `Key \`${key.aliasKey}\` must be a pointer to \`${key.model.className}\``);
+                                    `Key \`${key.aliasKey}\` must be a pointer to \`${key.class.className}\``);
 
                             // Set the via key value and alias
                             this._keyMap.set(key.viaKey, value? value.id : null);
@@ -381,7 +385,7 @@ export class ModelClass {
         }, {});
 
         // Prepare hidden keys
-        this._hidden = this.hidden.reduce((map, key) => {
+        Class._hidden = Class.hidden.reduce((map, key) => {
             // Check if the key exists
             if(typeof this._keys[key] === 'undefined')
                 throw new Error(Error.Code.MissingConfiguration, `Hidden key \`${this.className}.${key}\` does not exist in keys`);
@@ -392,7 +396,7 @@ export class ModelClass {
         }, {});
 
         // Prepare protected keys
-        this._protected = this.protected.reduce((map, key) => {
+        Class._protected = Class.protected.reduce((map, key) => {
             // Check if the key exists
             if(typeof this._keys[key] === 'undefined')
                 throw new Error(Error.Code.MissingConfiguration, `Protected key \`${this.className}.${key}\` does not exist in keys`);
@@ -403,26 +407,26 @@ export class ModelClass {
         }, {});
 
         // Prepare timestamp keys
-        this._timestamps = {
+        Class._timestamps = {
             [InternalKeys.Timestamps.CreatedAt]: true,
             [InternalKeys.Timestamps.UpdatedAt]: true,
             [InternalKeys.Timestamps.DeletedAt]: true
         };
 
-        return this as T;
+        return Class as T;
     }
 
-    static get isModel(): boolean {
+    static get isClass(): boolean {
         return true;
     }
 
     static get className(): string {
         throw new Error(Error.Code.MissingConfiguration, 
-            'Models extended from `Model.Class` must define a static getter for className');
+            'Classes extended from `Class` must define a static getter for className');
     }
 
     static get source(): string {
-        return this.className;
+        return Class.className;
     }
 
     static get keys(): Array<string | Pointer | KeyManager> {
@@ -438,19 +442,19 @@ export class ModelClass {
     }
 
     static get supportLegacy(): boolean {
-        return this._supportLegacy;
+        return Class._supportLegacy;
     }
 
     static _keyExists(key: string) {
         // Check if the constraint is for a pointer
         if(Pointer.isUsedBy(key)) {
             // Validate pointer key
-            Pointer.validateKey(key, this);
+            Pointer.validateKey(key, Class);
             return true;
         }
         else if(key === InternalKeys.Id) return true;
-        else if(this._timestamps[key]) return true;
-        else if(typeof this._keys[key] === 'undefined') return false;
+        else if(Class._timestamps[key]) return true;
+        else if(typeof Class._keys[key] === 'undefined') return false;
         else return true;
     }
 
@@ -462,14 +466,14 @@ export class ModelClass {
         // Check if select parameter is provided
         if(select.length === 0) {
             select = [InternalKeys.Id]
-                .concat(Object.keys(this._keys))
+                .concat(Object.keys(Class._keys))
                 .concat([InternalKeys.Timestamps.CreatedAt, InternalKeys.Timestamps.UpdatedAt]);
         }
 
         // Iterate through the selected keys
         for(let key of select) {
             // If the key is an internal key
-            if(key === InternalKeys.Id || this._timestamps[key]) {
+            if(key === InternalKeys.Id || Class._timestamps[key]) {
                 // Push the key
                 keys.push(key);
             }
@@ -479,9 +483,9 @@ export class ModelClass {
                 include.push(key);
             }
             // If the key exists
-            else if(typeof this._keys[key] !== 'undefined') {
+            else if(typeof Class._keys[key] !== 'undefined') {
                 // Get key name
-                const keyName = this._keys[key];
+                const keyName = Class._keys[key];
                 
                 // If they key provided is a pointer
                 if(keyName instanceof Pointer) {
@@ -498,27 +502,27 @@ export class ModelClass {
                 else keys.push(key);
             }
             else
-                throw new Error(Error.Code.ForbiddenOperation, `Select key \`${key}\` does not exist in \`${this.className}\``);
+                throw new Error(Error.Code.ForbiddenOperation, `Select key \`${key}\` does not exist in \`${Class.className}\``);
         }
         
         // Check include keys
         for(let key of include) {
             // Validate key
-            Pointer.validateKey(key, this);
+            Pointer.validateKey(key, Class);
 
             // Add it to the select keys and included joins
             keys.push(key);
             includedJoins[Pointer.getAliasFrom(key)] = true;
 
             // If the key is from a secondary join, add the parent join
-            const join = this._joins[Pointer.getAliasFrom(key)];
+            const join = Class._joins[Pointer.getAliasFrom(key)];
             if(join.isSecondary) {
                 includedJoins[join.parentAliasKey] = true;
             }
         }
 
         // Create joins
-        const joins = Object.keys(this._joins).reduce((map, key) => {
+        const joins = Object.keys(Class._joins).reduce((map, key) => {
             // Get join 
             const join = this._joins[key];
             map[key] = { join, included: includedJoins[key] };
@@ -532,17 +536,17 @@ export class ModelClass {
         // Check where constraints
         for(let key of where.getKeys()) {
             // Check if key exists
-            if(!this._keyExists(key))
+            if(!Class._keyExists(key))
                 throw new Error(Error.Code.ForbiddenOperation, `The constraint key \`${key}\` does not exist`);
 
             // Check if the key is an id for a pointer
-            if(Model.Pointer.isUsedBy(key)) {
+            if(Pointer.isUsedBy(key)) {
                 // Get alias and join
-                const alias = Model.Pointer.getAliasFrom(key);
-                const join = this._joins[alias];
+                const alias = Pointer.getAliasFrom(key);
+                const join = Class._joins[alias];
 
                 // Check if join exists
-                if(alias !== this.className && key === join.pointerIdKey) {
+                if(alias !== Class.className && key === join.pointerIdKey) {
                     // If alias is not the main class and key is a pointer id, use the via key
                     where.changeKey(key, `${classAlias}${Pointer.Delimiter}${join.viaKey}`);
                 }
@@ -572,12 +576,12 @@ export class ModelClass {
             }
 
             // Check if key exists
-            if(!this._keyExists(key.replace('-', '')))
+            if(!Class._keyExists(key.replace('-', '')))
                 throw new Error(Error.Code.ForbiddenOperation, `The sort key \`${key}\` does not exist`);
 
             // Add className to sort key if it is not a pointer
             if(!Pointer.isUsedBy(key))
-                key = `${key.indexOf('-') >= 0? '-' : ''}${this.className}.${key.replace('-', '')}`;
+                key = `${key.indexOf('-') >= 0? '-' : ''}${Class.className}.${key.replace('-', '')}`;
             
             // Push the key
             sorting.push(key);
@@ -586,7 +590,7 @@ export class ModelClass {
         return sorting;
     }
 
-    static _getQueryModel<T extends ModelClass>(keys: KeyMap): T {
+    static _getQueryClass<T extends Class>(keys: KeyMap): T {
         // Get internal keys
         const id = keys.get(InternalKeys.Id);
         const createdAt = keys.get(InternalKeys.Timestamps.CreatedAt);
@@ -595,8 +599,8 @@ export class ModelClass {
         // Remove id from the key map
         keys.remove(InternalKeys.Id);
 
-        // Return the new model
-        return <T>(new this({ metadata: { isMaster: true }, keyMap: keys, id, createdAt, updatedAt }));
+        // Return the new class
+        return <T>(new Class({ metadata: { isMaster: true }, keyMap: keys, id, createdAt, updatedAt }));
     }
 
     /**
@@ -604,21 +608,21 @@ export class ModelClass {
      */
     static getSubquery({ where, select }: SubqueryOptionsType): FindOptionsType {
         // Get class alias
-        const classAlias = `subquery_${this.className}`;
+        const classAlias = `subquery_${Class.className}`;
 
         // Get subquery constraints
         const constraints = new ConstraintMap(where);
         
         // Get query keys
-        const { keys, joins } = this._getQueryKeys([select], []);
+        const { keys, joins } = Class._getQueryKeys([select], []);
 
         // Check constraints
-        this._checkQueryConstraints(constraints, classAlias);
+        Class._checkQueryConstraints(constraints, classAlias);
 
         // Return subquery
         return {
             classAlias,
-            source: this.source,
+            source: Class.source,
             select: keys,
             joins,
             where: constraints
@@ -628,27 +632,27 @@ export class ModelClass {
     /**
      * Find matching objects
      */
-    static async find<T extends ModelClass>({ 
+    static async find<T extends Class>({ 
         select = [], 
         include = [], 
         where, 
         sort = [InternalKeys.Id], 
         skip,
         limit 
-    }: QueryOptionsType): Promise<ModelCollection<T>> {
+    }: QueryOptionsType): Promise<ClassCollection<T>> {
         // Get keys
-        const { keys, joins } = this._getQueryKeys(select, include);
+        const { keys, joins } = Class._getQueryKeys(select, include);
     
         // Check where constraints
-        this._checkQueryConstraints(where, this.className);
+        Class._checkQueryConstraints(where, Class.className);
 
         // Get sorting
-        const sorting = this._getQuerySorting(sort);
+        const sorting = Class._getQuerySorting(sort);
 
         // Execute find
-        const result = await this._database.find(
-            this.source, 
-            this.className, 
+        const result = await Class._database.find(
+            Class.source, 
+            Class.className, 
             keys, 
             joins,
             where,
@@ -661,22 +665,22 @@ export class ModelClass {
         const rows: T[] = [];
         for(let row of result) {
             // Push the row
-            rows.push(this._getQueryModel<T>(row));
+            rows.push(Class._getQueryClass<T>(row));
         }
-        return new ModelCollection(rows);
+        return new ClassCollection(rows);
     }
 
     /**
      * Find a single object
      */
-    static async getById<T extends ModelClass>({ select = [], include = [], id }: QueryGetOptionsType): Promise<T | void> {
+    static async getById<T extends Class>({ select = [], include = [], id }: QueryGetOptionsType): Promise<T | void> {
         // Get parameters
-        const { keys, joins } = this._getQueryKeys(select, include);
+        const { keys, joins } = Class._getQueryKeys(select, include);
 
         // Execute first
-        const result = await this._database.get(
-            this.source, 
-            this.className, 
+        const result = await Class._database.get(
+            Class.source, 
+            Class.className, 
             keys, 
             joins,
             id
@@ -685,7 +689,7 @@ export class ModelClass {
         // Return result
         if(!result) return;
 
-        return this._getQueryModel<T>(result);
+        return Class._getQueryClass<T>(result);
     }
     
     /**
@@ -694,10 +698,10 @@ export class ModelClass {
      * @returns {WarpServer.Pointer}
      */
     static as(key: string): Pointer {
-        return new Pointer(this, key);
+        return new Pointer(Class, key);
     }
     
-    statics<T extends typeof ModelClass>(): T {
+    statics<T extends typeof Class>(): T {
         return this.constructor as T;
     }
 
@@ -826,10 +830,10 @@ export class ModelClass {
 
     /**
      * toPointer
-     * @description Convert the model object into a pointer
+     * @description Convert the class object into a pointer
      */
     toPointer() {
-        // Convert the model object into a pointer
+        // Convert the class object into a pointer
         this._isPointer = true;
     }
 
@@ -866,7 +870,7 @@ export class ModelClass {
                 keys[key] = this.get(key);
         }
 
-        // If model is a pointer, use attributes
+        // If class is a pointer, use attributes
         if(this._isPointer) 
             keys = { 
                 type: 'Pointer',
@@ -968,16 +972,5 @@ export class ModelClass {
 
     async afterDestroy() {
         return;
-    }
-}
-
-export default class Model {
-
-    static get Class(): typeof ModelClass {
-        return ModelClass;
-    }
-
-    static get Pointer(): typeof Pointer {
-        return Pointer;
     }
 }

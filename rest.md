@@ -56,7 +56,7 @@ Optionally, Warp also allows you set extra headers in order to better describe y
 - `X-Warp-Version` describes the SDK version of the client request (note: only used with SDK's, e.g. `Android`, `iOS`)
 - `X-App-Version` describes the version of the app that made the request
 
-For more information about additional headers, please see the section regarding [Models](readme.md#models) and [Functions](readme.md#functions).
+For more information about additional headers, please see the section regarding [Classes](readme.md#classes) and [Functions](readme.md#functions).
 
 ## Object API
 
@@ -64,7 +64,7 @@ The Object API makes it easy to handle operations being made to Objects. After i
 
 ### Objects
 
-Objects represent individual instances of models. In terms of the database, an Object can be thought of as being a `row` in a table. Throughout the Warp Framework, Objects are the basic vehicles for data to be transmitted to and fro the server.
+Objects represent individual instances of classes. In terms of the database, an Object can be thought of as being a `row` in a table. Throughout the Warp Framework, Objects are the basic vehicles for data to be transmitted to and fro the server.
 
 Each Object contains different keys which can be set or retrieved as needed. Among these keys are three special ones:
 
@@ -76,7 +76,7 @@ These keys are specifically set by the server and cannot be modified by the user
 
 ### Creating Objects
 
-To create an Object for a specific model, execute a POST request to:
+To create an Object for a specific class, execute a POST request to:
 
 `/classes/{CLASS_NAME}`
 
@@ -111,7 +111,7 @@ The expected response would be similar to the following:
 
 ### Updating Objects
 
-To update an Object for a specific model, execute a PUT request to:
+To update an Object for a specific class, execute a PUT request to:
 
 `/classes/{CLASS_NAME}/{ID}`
 
@@ -144,7 +144,7 @@ The expected response would be similar to the following:
 
 ### Deleting Objects
 
-To delete an Object for a specific model, execute a DELETE request to:
+To delete an Object for a specific class, execute a DELETE request to:
 
 `/classes/{CLASS_NAME}/{ID}`
 
@@ -171,7 +171,7 @@ The expected response would be similar to the following:
 
 ### Fetching Objects
 
-To fetch a single Object for a specific model, execute a GET request to:
+To fetch a single Object for a specific class, execute a GET request to:
 
 `/classes/{CLASS_NAME}/{ID}`
 
@@ -231,13 +231,13 @@ curl -X PUT \
 http://localhost:3000/api/1/classes/alien/1
 ```
 
-> NOTE: In order for this to work, the model must specify the key `asNumber`, `asInteger`, or `asFloat`. For more information, visit the [Data Types](readme.md#data-types) section.
+> NOTE: In order for this to work, the class must specify the key `asNumber`, `asInteger`, or `asFloat`. For more information, visit the [Data Types](readme.md#data-types) section.
 
 ## Queries
 
-There are certain scenarios when you may need to find more than one Object from a model. In these instances, it would be convenient to use Queries. Queries allow you to find specific Objects based on a set of criteria.
+There are certain scenarios when you may need to find more than one Object from a class. In these instances, it would be convenient to use Queries. Queries allow you to find specific Objects based on a set of criteria.
 
-To query Objects from a specific model, execute a GET request to:
+To query Objects from a specific class, execute a GET request to:
 
 `/classes/{CLASS_NAME}`
 

@@ -2,10 +2,10 @@ import express from 'express';
 import uniqid from 'uniqid';
 import parseUrl from 'parse-url';
 import enforce from 'enforce-js';
-import Model from './classes/model'
-import User, { UserClass } from './classes/user';
+import Class from './classes/class'
+import User from './classes/user';
 import Function from './classes/function';
-import Session, { SessionClass } from './classes/session';
+import Session from './classes/session';
 import Key from './classes/key';
 import Database from './adapters/database';
 import Logger from './adapters/logger';
@@ -17,7 +17,7 @@ import { ServerConfigType } from './types/server';
 import { SecurityConfigType } from './types/security';
 import { DatabaseOptionsType, IDatabaseAdapter } from './types/database';
 import { ThrottlingConfigType } from './types/throttling';
-import { ModelMapType, ModelFunctionsType } from './types/model';
+import { ClassMapType, ClassFunctionsType } from './types/class';
 import { AuthMapType, AuthFunctionsType, AuthOptionsType } from './types/auth';
 import { FunctionMethodsType, FunctionMapType } from './types/functions';
 import { ResponseFunctionsType } from './types/response';
@@ -70,7 +70,7 @@ export default class WarpServer {
     _security: SecurityConfigType;
     _database: IDatabaseAdapter;
     _throttling: ThrottlingConfigType = { limit: 30, unit: 'second' };
-    _models: ModelMapType = {};
+    _classes: ClassMapType = {};
     _auth: AuthMapType;
     _functions: FunctionMapType = {};
     _router: express.Router;
@@ -140,49 +140,49 @@ export default class WarpServer {
     }
 
     /**
-     * Model operations
+     * Class operations
      */
-    get models(): ModelFunctionsType {
+    get classes(): ClassFunctionsType {
         return {
-            add: (map: ModelMapType) => {
+            add: (map: ClassMapType) => {
                 // Enforce
-                enforce`${{ 'models.add(map)': map }} as an object`;
+                enforce`${{ 'classes.add(map)': map }} as an object`;
 
                 // Loop through each map item
                 for(let key in map) {
-                    // Get the model
-                    let model = map[key];
+                    // Get the class
+                    let classType = map[key];
 
                     // Get a sample instance
-                    let modelInstance = new model;
+                    let classInstance = new classType;
 
                     // Enforce data type
-                    enforce`${{ [model.className]: modelInstance }} as a ${{ 'Model.Class': Model.Class }}`;
+                    enforce`${{ [classType.className]: classInstance }} as a ${{ 'Class': Class }}`;
 
-                    // If model is an auth class
-                    if(modelInstance instanceof UserClass || modelInstance instanceof SessionClass)
-                        throw new Error(Error.Code.ForbiddenOperation, 'User and Session classes must be set using `auth` instead of `models`');
+                    // If class is an auth class
+                    if(classInstance instanceof User || classInstance instanceof Session)
+                        throw new Error(Error.Code.ForbiddenOperation, 'User and Session classes must be set using `auth` instead of `classes`');
                     else // Otherwise, it is a regular class
-                        this._models[model.className] = model.initialize(this._database, this._supportLegacy);
+                        this._classes[classType.className] = classType.initialize(this._database, this._supportLegacy);
                 }
             },
-            get: (className: string): typeof Model.Class => {
+            get: (className: string): typeof Class => {
                 try {
                     // Enforce
                     enforce`${{ className }} as a string`;
 
-                    // Get the model
-                    const modelClass = this._models[className];
+                    // Get the class
+                    const classType = this._classes[className];
 
                     // Enforce
-                    enforce`${{ [className]: new modelClass }} as a ${{ 'Model.Class': Model.Class }}`;
+                    enforce`${{ [className]: new classType }} as a ${{ 'Class': Class }}`;
 
-                    // Return model
-                    return modelClass;
+                    // Return class
+                    return classType;
                 }
                 catch(err) {
                     this._log.error(err, err.message);
-                    throw new Error(Error.Code.ModelNotFound, `Model \`${className}\` does not exist`);
+                    throw new Error(Error.Code.ClassNotFound, `Class \`${className}\` does not exist`);
                 }
             }
         };
@@ -201,8 +201,8 @@ export default class WarpServer {
                 else
                     return false;
             },
-            set: (user: typeof UserClass, session: typeof SessionClass) => {
-                // Check if auth models are set
+            set: (user: typeof User, session: typeof Session) => {
+                // Check if auth classes are set
                 if(typeof user === 'undefined' || typeof session === 'undefined')
                     throw new Error(Error.Code.MissingConfiguration, 'Both User and Session classes must be defined');
 
@@ -211,8 +211,8 @@ export default class WarpServer {
                 let sessionInstance = new session;
 
                 // Enforce data type
-                enforce`${{ [user.className]: userInstance }} as a ${{ 'User.Class': UserClass }}`;
-                enforce`${{ [session.className]: sessionInstance }} as a ${{ 'Session.Class': SessionClass }}`;
+                enforce`${{ [user.className]: userInstance }} as a ${{ 'User': User }}`;
+                enforce`${{ [session.className]: sessionInstance }} as a ${{ 'Session': Session }}`;
 
                 // Create and assign crypto to user
                 const crypto = Crypto.use('bcrypt', this._security.passwordSalt || 8);
@@ -223,24 +223,24 @@ export default class WarpServer {
 
                 // Set auth classes
                 this._auth = { 
-                    user: user.initialize<typeof UserClass>(this._database, this._supportLegacy), 
-                    session: session.initialize<typeof SessionClass>(this._database, this._supportLegacy) 
+                    user: user.initialize<typeof User>(this._database, this._supportLegacy), 
+                    session: session.initialize<typeof Session>(this._database, this._supportLegacy) 
                 };
             },
-            user: (): typeof UserClass => {
+            user: (): typeof User => {
                 // Check if auth exists
                 if(typeof this._auth === 'undefined')
                     throw new Error(Error.Code.MissingConfiguration, 'Authentication has not been defined');
 
-                // Return model
+                // Return class
                 return this._auth.user;
             },
-            session: (): typeof SessionClass => {
+            session: (): typeof Session => {
                 // Check if auth exists
                 if(typeof this._auth === 'undefined')
                     throw new Error(Error.Code.MissingConfiguration, 'Authentication has not been defined');
 
-                // Return model
+                // Return class
                 return this._auth.session;
             }
         };
@@ -470,24 +470,24 @@ export default class WarpServer {
      * Authenticate a sessionToken, username, email, or password
      * @param {AuthOptionsType} options
      */
-    async authenticate({ sessionToken, username, email, password }: AuthOptionsType): Promise<UserClass | undefined> {
+    async authenticate({ sessionToken, username, email, password }: AuthOptionsType): Promise<User | undefined> {
         // If session token is provided, search for the matching session
         if(typeof sessionToken !== 'undefined') {
-            // Get session model
-            const SessionModel = this.auth.session();
+            // Get session class
+            const SessionClass = this.auth.session();
             
             // Verify session token
-            const user = await SessionModel.verify(sessionToken);
+            const user = await SessionClass.verify(sessionToken);
 
             // Return user
             return user;
         }
         else if(typeof password !== 'undefined') {
-            // Get user model
-            const UserModel = this.auth.user();
+            // Get user class
+            const UserClass = this.auth.user();
 
             // Validate user credentials
-            const user = await UserModel.verify({ username, email, password });
+            const user = await UserClass.verify({ username, email, password });
 
             // Return user
             return user;
@@ -496,7 +496,7 @@ export default class WarpServer {
         return;
     }
 
-    createSessionToken(user: UserClass) {
+    createSessionToken(user: User) {
         return uniqid(`${(user.id * 1024 * 1024).toString(36)}-`) + (Math.random()*1e32).toString(36).slice(0, 8);
     }
 
@@ -513,8 +513,8 @@ export default class WarpServer {
 
     parseSubqueries(where: {[name: string]: {[name: string]: any}}): {[name: string]: {[name: string]: any}} {
         // Get auth classes
-        const userClass = this.auth.user();
-        const sessionClass = this.auth.session();
+        const User = this.auth.user();
+        const Session = this.auth.session();
 
         // Iterate through the keys
         for(let key in where) {
@@ -530,12 +530,12 @@ export default class WarpServer {
                       
                     // Prepare subquery parameters
                     const subquery = where[key][constraint];
-                    const subqueryModelClass = userClass.className === subquery[className]? userClass 
-                        : sessionClass.className === subquery[className]? sessionClass
-                            : this.models.get(subquery[className]);
+                    const subqueryClass = User.className === subquery[className]? User 
+                        : Session.className === subquery[className]? Session
+                            : this.classes.get(subquery[className]);
                     
                     // Set the new value for the constraint
-                    where[key][constraint] = subqueryModelClass.getSubquery(subquery);
+                    where[key][constraint] = subqueryClass.getSubquery(subquery);
                 }
             }
         }
@@ -568,7 +568,7 @@ export default class WarpServer {
 }
 
 export {
-    Model,
+    Class,
     User,
     Session,
     Function,

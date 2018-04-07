@@ -1,16 +1,16 @@
-import Model, { ModelClass } from '../classes/model';
-import { UserClass } from '../classes/user';
+import Class from '../classes/class';
+import User from '../classes/user';
 import KeyMap from '../utils/key-map';
 import ConstraintMap from '../utils/constraint-map';
 
-export type ModelMapType = { [className: string]: typeof Model.Class };
+export type ClassMapType = { [className: string]: typeof Class };
 
-export type ModelFunctionsType = {
-    add: (map: ModelMapType) => void;
-    get: (className: string) => typeof Model.Class;
+export type ClassFunctionsType = {
+    add: (map: ClassMapType) => void;
+    get: (className: string) => typeof Class;
 };
 
-export type ModelOptionsType = {
+export type ClassOptionsType = {
     metadata?: MetadataType,
     currentUser?: any,
     keys?: {[name: string]: any},
@@ -22,7 +22,7 @@ export type ModelOptionsType = {
 };
 
 export type QueryOptionsType = {
-    currentUser?: UserClass,
+    currentUser?: User,
     select?: Array<string>,
     include?: Array<string>,
     where: ConstraintMap,
@@ -32,7 +32,7 @@ export type QueryOptionsType = {
 };
 
 export type QueryGetOptionsType = {
-    currentUser?: UserClass,
+    currentUser?: User,
     select?: Array<string>,
     include?: Array<string>,
     id: number

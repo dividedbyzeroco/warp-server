@@ -10,8 +10,8 @@ Currently, `Warp Server` uses `mysql@5.7` as its database of choice, but can be 
 - **[Installation](#installation)**  
 - **[Configuration](#configuration)**
     - **[Configuration Options](#configuration-options)**
-- **[Models](#models)**
-    - **[Creating a Model](#creating-a-model)**
+- **[Classes](#classes)**
+    - **[Creating a Class](#creating-a-class)**
     - **[Using an Alias](#using-an-alias)**
     - **[Using Pointers](#using-pointers)**
     - **[Defining Key Types](#defining-key-types)**
@@ -20,11 +20,11 @@ Currently, `Warp Server` uses `mysql@5.7` as its database of choice, but can be 
     - **[After Save](#after-save)**
     - **[Before Destroy](#before-save)**
     - **[After Destroy](#after-save)**
-    - **[Adding the Model](#adding-the-model)**
+    - **[Adding the Class](#adding-the-class)**
 - **[Authentication](#authentication)**
-    - **[Creating a User model](#creating-a-user-model)**
-    - **[Creating a Session model](#creating-a-session-model)**
-    - **[Setting the Auth models](#setting-the-auth-models)**
+    - **[Creating a User class](#creating-a-user-class)**
+    - **[Creating a Session class](#creating-a-session-class)**
+    - **[Setting the Auth classes](#setting-the-auth-classes)**
 - **[Functions](#functions)**
     - **[Create a Function](#creating-a-function)**
     - **[Adding a Function](#adding-a-function)**
@@ -100,11 +100,11 @@ Warp Server accepts several configuration options that you can fully customize.
 | customResponse    | Determine whether the response is going to be handled manually or automatically      |
 | supportLegacy     | Support legacy features such as `className` instead of `class_name`                  |
 
-# Models
+# Classes
 
-A `Model` is a representation of a `table` inside a database. By defining a model, you can determine how fields, known as `Keys` in Warp, are parsed and formatted.
+A `Class` is a representation of a `table` inside a database. By defining a class, you can determine how fields, known as `Keys` in Warp, are parsed and formatted.
 
-For example, a `dog` table will have a corresponding model called `Dog` that has different `Keys` such as __name__, __age__, and __weight__.
+For example, a `dog` table will have a corresponding class called `Dog` that has different `Keys` such as __name__, __age__, and __weight__.
 
 Among these `Keys` are three special ones that are automatically set by the server and cannot be manually edited.
 
@@ -114,15 +114,15 @@ Among these `Keys` are three special ones that are automatically set by the serv
 
 > NOTE: Be sure to have `id`, `created_at`, `updated_at`, and `deleted_at` fields on your table in order for Warp Server to work with them.
 
-## Creating a Model
+## Creating a Class
 
-To create a Model, create a new class which extends from `Model.Class`.
+To create a Class, simply extend from `WarpServer.Class`.
 
 ```javascript
-// Import Model from WarpServer
-import { Model } from 'warp-server';
+// Import Class from WarpServer
+import { Class } from 'warp-server';
 
-class Dog extends Model.Class {
+class Dog extends Class {
 
     static get className() {
         return 'dog';
@@ -141,9 +141,9 @@ class Dog extends Model.Class {
 }
 ```
 
-From the example above you can see a couple of properties that you need to declare in order for your Model to work. 
+From the example above you can see a couple of properties that you need to declare in order for your Class to work. 
 
-First, you need to declare the table that the Model is representing. For this, you create a static getter called `className` that returns the name of the table. 
+First, you need to declare the table that the Class is representing. For this, you create a static getter called `className` that returns the name of the table. 
 
 Then, you need to decalre the Keys that the table is composed of. For that, you create a static getter called `keys`, which returns an array of their names. Note that you do not include __id__, __created_at__, and __updated_at__ keys in this area.
 
@@ -161,10 +161,10 @@ Table: __Dog__
 If you need to make an alias for your table in situations where the table name is not suitable, you can define the alias as the `className` and then declare a static getter `source` returning the real name of the table.
 
 ```javascript
-// Import Model from Warp Server
-import { Model } from 'warp-server';
+// Import Class from Warp Server
+import { Class } from 'warp-server';
 
-class Bird extends Model.Class {
+class Bird extends Class {
 
     static get className() {
         return 'bird';
@@ -184,13 +184,13 @@ class Bird extends Model.Class {
 
 For relational databases like MySQL, a foreign key is a fairly common concept. It represents a link to another table that acts as its parent.
 
-For example, a `dog` table can have a `location_id` foreign key that points to the `location` table. In terms of Warp, this would mean that the `dog` model would have a pointer to the `location` model.
+For example, a `dog` table can have a `location_id` foreign key that points to the `location` table. In terms of Warp, this would mean that the `dog` class would have a pointer to the `location` class.
 
 ```javascript
-// Import Model from WarpServer
-import { Model } from 'warp-server';
+// Import Class from WarpServer
+import { Class } from 'warp-server';
 
-class Location extends Model.Class {
+class Location extends Class {
 
     static get className() {
         return 'location';
@@ -201,7 +201,7 @@ class Location extends Model.Class {
     }
 }
 
-class Dog extends Model.Class {
+class Dog extends Class {
 
     static get className() {
         return 'dog';
@@ -215,26 +215,26 @@ class Dog extends Model.Class {
 
 In the above example, you can see that a new `key` has been added to `dog`, called `location`. 
 
-We use the extended model `Location` in order to create a new key via the `.as()` method. This means that for our endpoints, we can now interact with the `dog`'s location using the alias `location`.
+We use the extended class `Location` in order to create a new key via the `.as()` method. This means that for our endpoints, we can now interact with the `dog`'s location using the alias `location`.
 
 For more information about endpoints, visit the [Using the API](#using-the-api) section.
 
 ### Secondary Pointers
 
-If you also want to include a pointer from another pointer, you can do so via the `.from()` method. For example, if `location` had a pointer to a `country` model, and you want to include that to your `dog` model, you would do the following.
+If you also want to include a pointer from another pointer, you can do so via the `.from()` method. For example, if `location` had a pointer to a `country` class, and you want to include that to your `dog` class, you would do the following.
 
 ```javascript
-// Import Model from WarpServer
-import { Model } from 'warp-server';
+// Import Class from WarpServer
+import { Class } from 'warp-server';
 
-class Country extends Model.Class {
+class Country extends Class {
 
     static get className() {
         return 'country';
     }
 }
 
-class Location extends Model.Class {
+class Location extends Class {
 
     static get className() {
         return 'location';
@@ -245,7 +245,7 @@ class Location extends Model.Class {
     }
 }
 
-class Dog extends Model.Class {
+class Dog extends Class {
 
     static get className() {
         return 'dog';
@@ -274,10 +274,10 @@ By default, Warp tries to save the values that you passed to the keys as-is. Tha
 To define key types, use the `Key()` function from Warp Server.
 
 ```javascript
-// Import Model and Key from WarpServer
-import { Model, Key } from 'warp-server';
+// Import Class and Key from WarpServer
+import { Class, Key } from 'warp-server';
 
-class Dog extends Model.Class {
+class Dog extends Class {
 
     static get className() {
         return 'dog';
@@ -317,10 +317,10 @@ If the provided Key types are not suitable for your needs, you can manually defi
 To define a setter, simply use the `camelCase` version of the key as its name.
 
 ```javascript
-// Import Model from WarpServer
-import { Model } from 'warp-server';
+// Import Class from WarpServer
+import { Class } from 'warp-server';
 
-class Dog extends Model.Class {
+class Dog extends Class {
 
     static get className() {
         return 'dog';
@@ -344,10 +344,10 @@ From the above example, you can see that you can throw an error when a value is 
 Similar to the setter, you can define a getter by simply using the `camelCase` version of the key as its name.
 
 ```javascript
-// Import Model from WarpServer
-import { Model } from 'warp-server';
+// Import Class from WarpServer
+import { Class } from 'warp-server';
 
-class Dog extends Model.Class {
+class Dog extends Class {
 
     static get className() {
         return 'dog';
@@ -377,11 +377,11 @@ By using the `.get()` method, you can retrieve the data that was stored and pres
 Additionally, if you need to manipulate the data before it is saved to the database, you can declare a `beforeSave()` method.
 
 ```javascript
-// Import Model from WarpServer
-import { Model } from 'warp-server';
+// Import Class from WarpServer
+import { Class } from 'warp-server';
 import somePromise from './some-promise';
 
-class Dog extends Model.Class {
+class Dog extends Class {
 
     static get className() {
         return 'dog';
@@ -427,11 +427,11 @@ class Dog extends Model.Class {
 If you need to manipulate the data after it is saved to the database, you can declare an `afterSave()` method. Note that works in the background after the response has been sent. Thus, anything returned or thrown in this area does not affect the response.
 
 ```javascript
-// Import Model from WarpServer
-import { Model } from 'warp-server';
+// Import Class from WarpServer
+import { Class } from 'warp-server';
 import somePromise from './some-promise';
 
-class Dog extends Model.Class {
+class Dog extends Class {
 
     static get className() {
         return 'dog';
@@ -464,10 +464,10 @@ class Dog extends Model.Class {
 If you need to manipulate the data before it is destroyed in the database, you can declare a `beforeDestroy()` method.
 
 ```javascript
-// Import Model from WarpServer
-import { Model } from 'warp-server';
+// Import Class from WarpServer
+import { Class } from 'warp-server';
 
-class Dog extends Model.Class {
+class Dog extends Class {
 
     static get className() {
         return 'dog';
@@ -503,10 +503,10 @@ class Dog extends Model.Class {
 If you need to manipulate the data after it has been destroyed from the database, you can declare an `afterDestroy()` method. Note that works in the background after the response has been sent. Thus, anything returned or thrown in this area does not affect the response.
 
 ```javascript
-// Import Model from WarpServer
-import { Model } from 'warp-server';
+// Import Class from WarpServer
+import { Class } from 'warp-server';
 
-class Dog extends Model.Class {
+class Dog extends Class {
 
     static get className() {
         return 'dog';
@@ -528,29 +528,29 @@ class Dog extends Model.Class {
 }
 ```
 
-## Adding the Model
+## Adding the Class
 
-Right now, the Model you created is still not recognized by your Warp Server. To register its definition, use `.models.add()`.
+Right now, the Class you created is still not recognized by your Warp Server. To register its definition, use `.classes.add()`.
 
 ```javascript
-// Add the Dog model
-api.models.add({ Dog });
+// Add the Dog class
+api.classes.add({ Dog });
 
 // Apply the router after
 app.use('/api/1', api.router);
 ```
 
-`.models.add()` accepts a mapping of Models, so you can do the following.
+`.classes.add()` accepts a mapping of Classes, so you can do the following.
 
 ```javascript
-// Add multiple models
-api.models.add({ Dog, Bird });
+// Add multiple classes
+api.classes.add({ Dog, Bird });
 
 // Apply the router after
 app.use('/api/1', api.router);
 ```
 
-Now that you've added the Models, once you start the server, you can begin accessing them via the `/classes` endpoint.
+Now that you've added the Classes, once you start the server, you can begin accessing them via the `/classes` endpoint.
 
 ```bash
 > curl -H 'X-Warp-API-Key=1234abcd' http://localhost:3000/api/1/classes/dog
@@ -581,9 +581,9 @@ For more information about endpoints, visit the [Using the API](#using-the-api) 
 
 # Authentication
 
-User authentication is a common concern for applications. Luckily, for Warp Server, this comes built-in. Aside from regular models, there are two other special models that make up the authentication layer of Warp.
+User authentication is a common concern for applications. Luckily, for Warp Server, this comes built-in. Aside from regular classes, there are two other special classes that make up the authentication layer of Warp.
 
-## Creating a User model
+## Creating a User class
 
 A `User` represents individual people who log in and make requests to the server. To enable this feature, you would need to declare a new class which extends from `User.Class`.
 
@@ -600,7 +600,7 @@ class User extends WarpUser.Class {
 }
 ```
 
-By default, the User model already has pre-defined keys that are important for it to function properly.
+By default, the User class already has pre-defined keys that are important for it to function properly.
 
 - `username`: A unique identifier created by the user
 - `email`: A unique email identified for the user
@@ -655,7 +655,7 @@ class User extends WarpUser.Class {
 }
 ```
 
-## Creating a Session model
+## Creating a Session class
 
 A `Session` represents a successful authentication of a user. They are created every time a user logs in, and destroyed every time they are logged out. For Warp Server, a Session's `sessionToken` is often used to make requests to the server. This sessionToken is validated and returned as the `currentUser` of the request. You can find more about this in the [Sessions](#sessions) section.
 
@@ -674,7 +674,7 @@ class Session extends WarpSession.Class {
 }
 ```
 
-By default, like the User model, the Session model already has pre-defined keys that are important for it to function properly.
+By default, like the User class, the Session class already has pre-defined keys that are important for it to function properly.
 
 - `session_token`: A unique token every time a successful login occurs
 - `origin`: The origin of the request (`js-sdk`, `android`, `ios`)
@@ -729,12 +729,12 @@ class Session extends WarpSession.Class {
 }
 ```
 
-## Setting the Auth Models
+## Setting the Auth Classes
 
-To set the newly defined auth models, use the `.auth.set()` methods
+To set the newly defined auth classes, use the `.auth.set()` methods
 
 ```javascript
-// Set auth models
+// Set auth classes
 api.auth.set(User, Session);
 
 // Apply the router after
@@ -743,7 +743,7 @@ app.use('/api/1', api.router);
 
 # Functions
 
-Ideally, you can perform a multitude of tasks using model classes. However, for special operations that you need to perform inside the server, you can use `Functions`.
+Ideally, you can perform a multitude of tasks using classes. However, for special operations that you need to perform inside the server, you can use `Functions`.
 
 A `Function` is a piece of code that can be executed via a named endpoint. It receives input `keys` that it processes in order to produce a result.
 

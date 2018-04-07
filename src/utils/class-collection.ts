@@ -1,6 +1,6 @@
-import { ModelClass } from '../classes/model';
+import Class from '../classes/class';
 
-export default class ModelCollection<T extends ModelClass> {
+export default class ClassCollection<T extends Class> {
 
     _collection: Array<T>;
 
@@ -13,6 +13,6 @@ export default class ModelCollection<T extends ModelClass> {
     }
 
     toJSON() {
-        return this._collection.map(model => model.toJSON());
+        return this._collection.map(item => item.toJSON());
     }
 }

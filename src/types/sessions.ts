@@ -1,4 +1,7 @@
+import { MetadataType } from './class';
+
 export type FindOptionsType = {
+    metadata: MetadataType,
     select?: Array<string>,
     include?: Array<string>,
     where?: {[name: string]: {[name: string]: any}},
@@ -8,6 +11,7 @@ export type FindOptionsType = {
 }
 
 export type GetOptionsType = {
+    metadata: MetadataType,
     id: number,
     select?: Array<string>,
     include?: Array<string>

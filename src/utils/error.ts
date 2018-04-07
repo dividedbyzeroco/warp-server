@@ -19,7 +19,7 @@ export default class WarpError extends Error {
             UsernameTaken: 107, // Username registered already exists
             EmailTaken: 108, // Email registered already exists
             InvalidAPIKey: 109, // Invalid API Key
-            ModelNotFound: 110,
+            ClassNotFound: 110,
             FunctionNotFound: 111,
             RequestTimeout: 112,
             FunctionError: 113,
@@ -53,7 +53,7 @@ export default class WarpError extends Error {
         else if(this.code === this.statics().Code.ForbiddenOperation) {
             return this.statics().Status.Forbidden;
         }
-        else if(this.code === this.statics().Code.ModelNotFound
+        else if(this.code === this.statics().Code.ClassNotFound
             || this.code === this.statics().Code.FunctionNotFound) {
                 return this.statics().Status.NotFound;
         }

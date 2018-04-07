@@ -2,6 +2,7 @@ import express from 'express';
 import enforce from 'enforce-js';
 import WarpServer from '../index';
 import SessionController from '../controllers/session';
+import Error from '../utils/error';
 
 /**
  * Define router    
@@ -22,9 +23,14 @@ const sessions = (api: WarpServer): express.Router => {
      */
     router.get('/sessions', async (req, res, next) => {
         // Get parameters
+        const metadata = req.metadata;
         let { select, include, where, sort, skip, limit } = req.query;
 
         try {
+            // Only allow master access
+            if(!req.metadata.isMaster)
+                throw new Error(Error.Code.ForbiddenOperation, 'Only masters are allowed to access sessions');
+
             // Enforce
             enforce`${{ select }} as an optional string, equivalent to an array`;
             enforce`${{ include }} as an optional string, equivalent to an array`;
@@ -39,11 +45,11 @@ const sessions = (api: WarpServer): express.Router => {
             where = typeof where !== 'undefined' ? JSON.parse(where) : undefined;
             sort = typeof sort !== 'undefined' ? JSON.parse(sort) : undefined;
 
-            // $FlowFixMe
-            const modelCollection = await controller.find({ select, include, where, sort, skip, limit });
+            // Find collection
+            const classCollection = await controller.find({ metadata, select, include, where, sort, skip, limit });
 
             // Return response
-            req.result = modelCollection;
+            req.result = classCollection;
             api.response.success(req, res, next);
         }
         catch(err) {
@@ -57,6 +63,7 @@ const sessions = (api: WarpServer): express.Router => {
     */
    router.get('/sessions/:id', async (req, res, next) => {
        // Get parameters
+       const metadata = req.metadata;
        const { id } = req.params;
        let { select, include } = req.query;
 
@@ -69,11 +76,11 @@ const sessions = (api: WarpServer): express.Router => {
             select = typeof select !== 'undefined' ? JSON.parse(select) : undefined;
             include = typeof include !== 'undefined' ? JSON.parse(include) : undefined;
 
-           // $FlowFixMe
-            const model = await controller.get({ id, select, include });
+           // Get class
+            const classInstance = await controller.get({ metadata, id, select, include });
 
             // Return response
-            req.result = model;
+            req.result = classInstance;
             api.response.success(req, res, next);
         }
         catch(err) {

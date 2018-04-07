@@ -1,11 +1,11 @@
 import { Warp } from 'warp-sdk-js';
-import { UserClass } from '../classes/user';
+import User from '../classes/user';
 import { FunctionClass } from '../classes/function';
-import { MetadataType } from './model';
+import { MetadataType } from './class';
 
 export type FunctionOptionsType = {
     metadata?: MetadataType,
-    currentUser?: UserClass,
+    currentUser?: User,
     keys?: {[name: string]: any}
 };
 
@@ -19,7 +19,7 @@ export type FunctionMapType = {[functionName: string]: typeof FunctionClass};
 export type RunOptionsType = {
     Warp: Warp,
     metadata: MetadataType,
-    currentUser?: UserClass,
+    currentUser?: User,
     functionName: string,
     keys?: {[name: string]: any}
 };
