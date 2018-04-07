@@ -584,7 +584,7 @@ A `User` represents individual people who log in and make requests to the server
 // Import User from WarpServer
 import { User as WarpUser } from 'warp-server';
 
-class User extends WarpUser.Class {
+class User extends WarpUser {
 
     static get className() {
         return 'user';
@@ -605,7 +605,7 @@ These keys are required and your table must have columns defined for each. If, h
 // Import User from WarpServer
 import { User as WarpUser } from 'warp-server';
 
-class User extends WarpUser.Class {
+class User extends WarpUser {
 
     static get className() {
         return 'user';
@@ -631,7 +631,7 @@ If you also want to place additional keys from your user table, you can do so by
 // Import User from WarpServer
 import { User as WarpUser } from 'warp-server';
 
-class User extends WarpUser.Class {
+class User extends WarpUser {
 
     static get className() {
         return 'user';
@@ -658,7 +658,7 @@ To enable this feature, you would need to declare a new class which extends from
 // Import Session from WarpServer
 import { Session as WarpSession } from 'warp-server';
 
-class Session extends WarpSession.Class {
+class Session extends WarpSession {
 
     static get className() {
         return 'session';
@@ -679,7 +679,7 @@ These keys are required and your table must have columns defined for each. If, h
 // Import Session from WarpServer
 import { Session as WarpSession } from 'warp-server';
 
-class Session extends WarpSession.Class {
+class Session extends WarpSession {
 
     static get className() {
         return 'user';
@@ -705,7 +705,7 @@ If you also want to place additional keys from your user table, you can do so by
 // Import Session from WarpServer
 import { Session as WarpSession } from 'warp-server';
 
-class Session extends WarpSession.Class {
+class Session extends WarpSession {
 
     static get className() {
         return 'session';
