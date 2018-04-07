@@ -46,10 +46,10 @@ const classes = (api: WarpServer): express.Router => {
                 limit
             };
 
-            const modelCollection = await controller.find(params);
+            const classCollection = await controller.find(params);
 
             // Return response
-            req.result = modelCollection;
+            req.result = classCollection;
             api.response.success(req, res, next);
         }
         catch(err) {
@@ -79,11 +79,10 @@ const classes = (api: WarpServer): express.Router => {
                 include: typeof include !== 'undefined' ? JSON.parse(include) : undefined
             };
 
-            // $FlowFixMe
-            const model = await controller.get(params);
+            const classInstance = await controller.get(params);
 
             // Return response
-            req.result = model;
+            req.result = classInstance;
             api.response.success(req, res, next);
         }
         catch(err) {
@@ -104,11 +103,11 @@ const classes = (api: WarpServer): express.Router => {
         const keys = req.body;
 
         try {
-            // Create model
-            const model = await controller.create({ Warp, metadata, currentUser, className, keys });
+            // Create class
+            const classInstance = await controller.create({ Warp, metadata, currentUser, className, keys });
 
             // Return response
-            req.result = model;
+            req.result = classInstance;
             api.response.success(req, res, next);
         }
         catch(err) {
@@ -129,11 +128,11 @@ const classes = (api: WarpServer): express.Router => {
         const keys = req.body;
 
         try {
-            // Update model
-            const model = await controller.update({ Warp, metadata, currentUser, className, keys, id });
+            // Update class
+            const classInstance = await controller.update({ Warp, metadata, currentUser, className, keys, id });
 
             // Return response
-            req.result = model;
+            req.result = classInstance;
             api.response.success(req, res, next);
         }
         catch(err) {
@@ -153,11 +152,11 @@ const classes = (api: WarpServer): express.Router => {
         const { className, id } = req.params;
 
         try {
-            // Destroy model
-            const model = await controller.destroy({ Warp, metadata, currentUser, className, id });
+            // Destroy class
+            const classInstance = await controller.destroy({ Warp, metadata, currentUser, className, id });
 
             // Return response
-            req.result = model;
+            req.result = classInstance;
             api.response.success(req, res, next);
         }
         catch(err) {
