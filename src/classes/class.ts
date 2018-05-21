@@ -445,9 +445,25 @@ export default class Class {
         return Class._supportLegacy;
     }
 
-    static _keyExists(key: string) {
+    static get _compoundDelimiter(): string {
+        return '|';
+    }
+
+    static _isCompoundKey(key: string): boolean {
+        return key.indexOf(Class._compoundDelimiter) >= 0;
+    }
+
+    static _getCompoundKeys(key: string): string[] {
+        return key.split(Class._compoundDelimiter);
+    }
+
+    static _keyExists(key: string): boolean {
+        // Check if the constraint is compound
+        if(Class._isCompoundKey(key)) {
+            return this._getCompoundKeys(key).every(k => Class._keyExists(k));
+        }
         // Check if the constraint is for a pointer
-        if(Pointer.isUsedBy(key)) {
+        else if(Pointer.isUsedBy(key)) {
             // Validate pointer key
             Pointer.validateKey(key, Class);
             return true;
