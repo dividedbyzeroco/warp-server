@@ -460,7 +460,7 @@ export default class Class {
     static _keyExists(key: string): boolean {
         // Check if the constraint is compound
         if(Class._isCompoundKey(key)) {
-            return this._getCompoundKeys(key).every(k => Class._keyExists(k));
+            return Class._getCompoundKeys(key).every(k => Class._keyExists(k));
         }
         // Check if the constraint is for a pointer
         else if(Pointer.isUsedBy(key)) {
