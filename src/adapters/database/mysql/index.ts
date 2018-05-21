@@ -40,7 +40,11 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
 
     mapConstraint(key: string, constraint: string, value: any): string {
         // Escape key
-        const escapedKey = this._client.escapeKey(key);
+        const escapedKey = key.indexOf('|') >= 0 ? 
+            // If key is a compound key, use concat
+            `CONCAT(${key.split('|').map(k => this._client.escapeKey(k))})`
+            // Else, do a simple escape
+            : this._client.escapeKey(key);
 
         // Escape definitions
         const regularEscape = value => this._client.escape(value);
