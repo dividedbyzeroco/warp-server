@@ -426,7 +426,7 @@ export default class Class {
     }
 
     static get source(): string {
-        return Class.className;
+        return this.className;
     }
 
     static get keys(): Array<any> {
@@ -518,7 +518,7 @@ export default class Class {
                 else keys.push(key);
             }
             else
-                throw new Error(Error.Code.ForbiddenOperation, `Select key \`${key}\` does not exist in \`${Class.className}\``);
+                throw new Error(Error.Code.ForbiddenOperation, `Select key \`${key}\` does not exist in \`${this.className}\``);
         }
         
         // Check include keys
@@ -564,7 +564,7 @@ export default class Class {
                     const join = Class._joins[alias];
 
                     // Check if join exists
-                    if(alias !== Class.className && k === join.pointerIdKey) {
+                    if(alias !== this.className && k === join.pointerIdKey) {
                         // If alias is not the main class and key is a pointer id, use the via key
                         return `${classAlias}${Pointer.Delimiter}${join.viaKey}`;
                     }
@@ -608,7 +608,7 @@ export default class Class {
 
             // Add className to sort key if it is not a pointer
             if(!Pointer.isUsedBy(key))
-                key = `${key.indexOf('-') >= 0? '-' : ''}${Class.className}.${key.replace('-', '')}`;
+                key = `${key.indexOf('-') >= 0? '-' : ''}${this.className}.${key.replace('-', '')}`;
             
             // Push the key
             sorting.push(key);
@@ -635,7 +635,7 @@ export default class Class {
      */
     static getSubquery({ where, select }: SubqueryOptionsType): FindOptionsType {
         // Get class alias
-        const classAlias = `subquery_${Class.className}`;
+        const classAlias = `subquery_${this.className}`;
 
         // Get subquery constraints
         const constraints = new ConstraintMap(where);
@@ -649,7 +649,7 @@ export default class Class {
         // Return subquery
         return {
             classAlias,
-            source: Class.source,
+            source: this.source,
             select: keys,
             joins,
             where: constraints
@@ -671,15 +671,15 @@ export default class Class {
         const { keys, joins } = Class._getQueryKeys(select, include);
     
         // Check where constraints
-        Class._checkQueryConstraints(where, Class.className);
+        Class._checkQueryConstraints(where, this.className);
 
         // Get sorting
         const sorting = Class._getQuerySorting(sort);
 
         // Execute find
         const result = await Class._database.find(
-            Class.source, 
-            Class.className, 
+            this.source, 
+            this.className, 
             keys, 
             joins,
             where,
@@ -706,8 +706,8 @@ export default class Class {
 
         // Execute first
         const result = await Class._database.get(
-            Class.source, 
-            Class.className, 
+            this.source, 
+            this.className, 
             keys, 
             joins,
             id
