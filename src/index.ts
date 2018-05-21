@@ -162,8 +162,11 @@ export default class WarpServer {
                     // If class is an auth class
                     if(classInstance instanceof User || classInstance instanceof Session)
                         throw new Error(Error.Code.ForbiddenOperation, 'User and Session classes must be set using `auth` instead of `classes`');
-                    else // Otherwise, it is a regular class
-                        this._classes[classType.className] = classType.initialize(this._database, this._supportLegacy);
+                    else {
+                        // Otherwise, it is a regular class
+                        classType.initialize(this._database, this._supportLegacy);                  
+                        this._classes[classType.className] = classType;
+                    }
                 }
             },
             get: (className: string): typeof Class => {
@@ -222,10 +225,9 @@ export default class WarpServer {
                 session.setUser(user);
 
                 // Set auth classes
-                this._auth = { 
-                    user: user.initialize<typeof User>(this._database, this._supportLegacy), 
-                    session: session.initialize<typeof Session>(this._database, this._supportLegacy) 
-                };
+                user.initialize<typeof User>(this._database, this._supportLegacy);
+                session.initialize<typeof Session>(this._database, this._supportLegacy);
+                this._auth = { user, session };
             },
             user: (): typeof User => {
                 // Check if auth exists
