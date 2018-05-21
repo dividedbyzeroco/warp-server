@@ -1,6 +1,6 @@
 {
   "name": "warp-server",
-  "version": "5.5.1",
+  "version": "5.5.2",
   "description": "Warp Server",
   "main": "./dist/index.js",
   "typings": "./typings/index.d.ts",
