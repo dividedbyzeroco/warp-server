@@ -413,7 +413,7 @@ export default class Class {
             [InternalKeys.Timestamps.DeletedAt]: true
         };
 
-        return Class as T;
+        return this as T;
     }
 
     static get isClass(): boolean {
