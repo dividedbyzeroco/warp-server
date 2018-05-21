@@ -555,19 +555,30 @@ export default class Class {
             if(!Class._keyExists(key))
                 throw new Error(Error.Code.ForbiddenOperation, `The constraint key \`${key}\` does not exist`);
 
-            // Check if the key is an id for a pointer
-            if(Pointer.isUsedBy(key)) {
-                // Get alias and join
-                const alias = Pointer.getAliasFrom(key);
-                const join = Class._joins[alias];
+            // Prepare pointer checker
+            const pointerChecker = k => {
+                // Check if the key is an id for a pointer
+                if(Pointer.isUsedBy(k)) {
+                    // Get alias and join
+                    const alias = Pointer.getAliasFrom(k);
+                    const join = Class._joins[alias];
 
-                // Check if join exists
-                if(alias !== Class.className && key === join.pointerIdKey) {
-                    // If alias is not the main class and key is a pointer id, use the via key
-                    where.changeKey(key, `${classAlias}${Pointer.Delimiter}${join.viaKey}`);
+                    // Check if join exists
+                    if(alias !== Class.className && k === join.pointerIdKey) {
+                        // If alias is not the main class and key is a pointer id, use the via key
+                        return `${classAlias}${Pointer.Delimiter}${join.viaKey}`;
+                    }
+                    else return k;
                 }
+                else return `${classAlias}${Pointer.Delimiter}${k}`;
+            };
+
+            // Check if key is compound
+            if(Class._isCompoundKey(key)) {
+                const keys = Class._getCompoundKeys(key).map(k => pointerChecker(k));
+                where.changeKey(key, keys.join(this._compoundDelimiter));
             }
-            else where.changeKey(key, `${classAlias}${Pointer.Delimiter}${key}`);
+            else where.changeKey(key, pointerChecker(key));
         }
     }
 
