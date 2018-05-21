@@ -51,7 +51,7 @@ export default class FunctionClass {
     }
 
     get(key: string) {
-        this._keyMap.get(key);
+        return this._keyMap.get(key);
     }
 
     bindSDK(warp: Warp) {
