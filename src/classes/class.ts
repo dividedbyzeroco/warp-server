@@ -285,14 +285,14 @@ export default class Class {
      */
     static initialize<T extends typeof Class>(database: IDatabaseAdapter, supportLegacy: boolean = false): T {
         // Set database
-        Class._database = database;
-        Class._supportLegacy = supportLegacy;
+        this._database = database;
+        this._supportLegacy = supportLegacy;
 
         // Prepare joins
-        Class._joins = {};
+        this._joins = {};
 
         // Prepare key definitions
-        Class._keys = Class.keys.reduce((map, key) => {
+        this._keys = this.keys.reduce((map, key) => {
             // Check if key is a string
             if(typeof key === 'string') {
                 // Check if key is in valid snake_case format
@@ -385,7 +385,7 @@ export default class Class {
         }, {});
 
         // Prepare hidden keys
-        Class._hidden = Class.hidden.reduce((map, key) => {
+        this._hidden = this.hidden.reduce((map, key) => {
             // Check if the key exists
             if(typeof this._keys[key] === 'undefined')
                 throw new Error(Error.Code.MissingConfiguration, `Hidden key \`${this.className}.${key}\` does not exist in keys`);
@@ -396,7 +396,7 @@ export default class Class {
         }, {});
 
         // Prepare protected keys
-        Class._protected = Class.protected.reduce((map, key) => {
+        this._protected = this.protected.reduce((map, key) => {
             // Check if the key exists
             if(typeof this._keys[key] === 'undefined')
                 throw new Error(Error.Code.MissingConfiguration, `Protected key \`${this.className}.${key}\` does not exist in keys`);
@@ -407,7 +407,7 @@ export default class Class {
         }, {});
 
         // Prepare timestamp keys
-        Class._timestamps = {
+        this._timestamps = {
             [InternalKeys.Timestamps.CreatedAt]: true,
             [InternalKeys.Timestamps.UpdatedAt]: true,
             [InternalKeys.Timestamps.DeletedAt]: true
@@ -442,7 +442,7 @@ export default class Class {
     }
 
     static get supportLegacy(): boolean {
-        return Class._supportLegacy;
+        return this._supportLegacy;
     }
 
     static get _compoundDelimiter(): string {
@@ -450,17 +450,17 @@ export default class Class {
     }
 
     static _isCompoundKey(key: string): boolean {
-        return key.indexOf(Class._compoundDelimiter) >= 0;
+        return key.indexOf(this._compoundDelimiter) >= 0;
     }
 
     static _getCompoundKeys(key: string): string[] {
-        return key.split(Class._compoundDelimiter);
+        return key.split(this._compoundDelimiter);
     }
 
     static _keyExists(key: string): boolean {
         // Check if the constraint is compound
-        if(Class._isCompoundKey(key)) {
-            return Class._getCompoundKeys(key).every(k => Class._keyExists(k));
+        if(this._isCompoundKey(key)) {
+            return this._getCompoundKeys(key).every(k => this._keyExists(k));
         }
         // Check if the constraint is for a pointer
         else if(Pointer.isUsedBy(key)) {
@@ -469,8 +469,8 @@ export default class Class {
             return true;
         }
         else if(key === InternalKeys.Id) return true;
-        else if(Class._timestamps[key]) return true;
-        else if(typeof Class._keys[key] === 'undefined') return false;
+        else if(this._timestamps[key]) return true;
+        else if(typeof this._keys[key] === 'undefined') return false;
         else return true;
     }
 
@@ -482,14 +482,14 @@ export default class Class {
         // Check if select parameter is provided
         if(select.length === 0) {
             select = [InternalKeys.Id]
-                .concat(Object.keys(Class._keys))
+                .concat(Object.keys(this._keys))
                 .concat([InternalKeys.Timestamps.CreatedAt, InternalKeys.Timestamps.UpdatedAt]);
         }
 
         // Iterate through the selected keys
         for(let key of select) {
             // If the key is an internal key
-            if(key === InternalKeys.Id || Class._timestamps[key]) {
+            if(key === InternalKeys.Id || this._timestamps[key]) {
                 // Push the key
                 keys.push(key);
             }
@@ -499,9 +499,9 @@ export default class Class {
                 include.push(key);
             }
             // If the key exists
-            else if(typeof Class._keys[key] !== 'undefined') {
+            else if(typeof this._keys[key] !== 'undefined') {
                 // Get key name
-                const keyName = Class._keys[key];
+                const keyName = this._keys[key];
                 
                 // If they key provided is a pointer
                 if(keyName instanceof Pointer) {
@@ -531,14 +531,14 @@ export default class Class {
             includedJoins[Pointer.getAliasFrom(key)] = true;
 
             // If the key is from a secondary join, add the parent join
-            const join = Class._joins[Pointer.getAliasFrom(key)];
+            const join = this._joins[Pointer.getAliasFrom(key)];
             if(join.isSecondary) {
                 includedJoins[join.parentAliasKey] = true;
             }
         }
 
         // Create joins
-        const joins = Object.keys(Class._joins).reduce((map, key) => {
+        const joins = Object.keys(this._joins).reduce((map, key) => {
             // Get join 
             const join = this._joins[key];
             map[key] = { join, included: includedJoins[key] };
@@ -552,7 +552,7 @@ export default class Class {
         // Check where constraints
         for(let key of where.getKeys()) {
             // Check if key exists
-            if(!Class._keyExists(key))
+            if(!this._keyExists(key))
                 throw new Error(Error.Code.ForbiddenOperation, `The constraint key \`${key}\` does not exist`);
 
             // Prepare pointer checker
@@ -561,7 +561,7 @@ export default class Class {
                 if(Pointer.isUsedBy(k)) {
                     // Get alias and join
                     const alias = Pointer.getAliasFrom(k);
-                    const join = Class._joins[alias];
+                    const join = this._joins[alias];
 
                     // Check if join exists
                     if(alias !== this.className && k === join.pointerIdKey) {
@@ -574,8 +574,8 @@ export default class Class {
             };
 
             // Check if key is compound
-            if(Class._isCompoundKey(key)) {
-                const keys = Class._getCompoundKeys(key).map(k => pointerChecker(k));
+            if(this._isCompoundKey(key)) {
+                const keys = this._getCompoundKeys(key).map(k => pointerChecker(k));
                 where.changeKey(key, keys.join(this._compoundDelimiter));
             }
             else where.changeKey(key, pointerChecker(key));
@@ -603,7 +603,7 @@ export default class Class {
             }
 
             // Check if key exists
-            if(!Class._keyExists(key.replace('-', '')))
+            if(!this._keyExists(key.replace('-', '')))
                 throw new Error(Error.Code.ForbiddenOperation, `The sort key \`${key}\` does not exist`);
 
             // Add className to sort key if it is not a pointer
@@ -641,10 +641,10 @@ export default class Class {
         const constraints = new ConstraintMap(where);
         
         // Get query keys
-        const { keys, joins } = Class._getQueryKeys([select], []);
+        const { keys, joins } = this._getQueryKeys([select], []);
 
         // Check constraints
-        Class._checkQueryConstraints(constraints, classAlias);
+        this._checkQueryConstraints(constraints, classAlias);
 
         // Return subquery
         return {
@@ -668,16 +668,16 @@ export default class Class {
         limit 
     }: QueryOptionsType): Promise<ClassCollection<T>> {
         // Get keys
-        const { keys, joins } = Class._getQueryKeys(select, include);
+        const { keys, joins } = this._getQueryKeys(select, include);
     
         // Check where constraints
-        Class._checkQueryConstraints(where, this.className);
+        this._checkQueryConstraints(where, this.className);
 
         // Get sorting
-        const sorting = Class._getQuerySorting(sort);
+        const sorting = this._getQuerySorting(sort);
 
         // Execute find
-        const result = await Class._database.find(
+        const result = await this._database.find(
             this.source, 
             this.className, 
             keys, 
@@ -692,7 +692,7 @@ export default class Class {
         const rows: T[] = [];
         for(let row of result) {
             // Push the row
-            rows.push(Class._getQueryClass<T>(row));
+            rows.push(this._getQueryClass<T>(row));
         }
         return new ClassCollection(rows);
     }
@@ -702,10 +702,10 @@ export default class Class {
      */
     static async getById<T extends Class>({ select = [], include = [], id }: QueryGetOptionsType): Promise<T | void> {
         // Get parameters
-        const { keys, joins } = Class._getQueryKeys(select, include);
+        const { keys, joins } = this._getQueryKeys(select, include);
 
         // Execute first
-        const result = await Class._database.get(
+        const result = await this._database.get(
             this.source, 
             this.className, 
             keys, 
@@ -716,7 +716,7 @@ export default class Class {
         // Return result
         if(!result) return;
 
-        return Class._getQueryClass<T>(result);
+        return this._getQueryClass<T>(result);
     }
     
     /**
