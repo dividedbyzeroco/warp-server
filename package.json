@@ -1,5 +1,5 @@
 {
-  "name": "warp-server",
+  "name": "warpserver",
   "version": "5.9.0",
   "description": "Warp Server",
   "main": "./dist/index.js",
