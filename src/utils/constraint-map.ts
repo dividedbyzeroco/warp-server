@@ -44,7 +44,7 @@ export class KeyConstraints {
     }
 
     toJSON(): Object {
-        return Object.freeze({ ...this._map });
+        return { ...this._map };
     }
 }
 
