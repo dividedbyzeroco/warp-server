@@ -627,7 +627,7 @@ export default class Class {
         keys.remove(InternalKeys.Id);
 
         // Return the new class
-        return <T>(new Class({ metadata: { isMaster: true }, keyMap: keys, id, createdAt, updatedAt }));
+        return <T>(new this({ metadata: { isMaster: true }, keyMap: keys, id, createdAt, updatedAt }));
     }
 
     /**
