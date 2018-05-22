@@ -465,7 +465,7 @@ export default class Class {
         // Check if the constraint is for a pointer
         else if(Pointer.isUsedBy(key)) {
             // Validate pointer key
-            Pointer.validateKey(key, Class);
+            Pointer.validateKey(key, this);
             return true;
         }
         else if(key === InternalKeys.Id) return true;
@@ -524,7 +524,7 @@ export default class Class {
         // Check include keys
         for(let key of include) {
             // Validate key
-            Pointer.validateKey(key, Class);
+            Pointer.validateKey(key, this);
 
             // Add it to the select keys and included joins
             keys.push(key);
@@ -725,7 +725,7 @@ export default class Class {
      * @returns {WarpServer.Pointer}
      */
     static as(key: string): Pointer {
-        return new Pointer(Class, key);
+        return new Pointer(this, key);
     }
     
     statics<T extends typeof Class>(): T {
