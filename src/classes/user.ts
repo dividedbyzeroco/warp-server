@@ -28,15 +28,15 @@ export default class User extends Class {
     }
 
     static get keys(): Array<any> {
-        return [User.usernameKey, User.emailKey, User.passwordKey];
+        return [this.usernameKey, this.emailKey, this.passwordKey];
     }
 
     static get hidden(): Array<string> {
-        return [User.passwordKey];
+        return [this.passwordKey];
     }
 
     static setCrypto(crypto: ICryptoAdapter) {
-        User._crypto = crypto;
+        this._crypto = crypto;
     }
 
     static async verify<T extends User>({ username, email, password }: CredentialsType): Promise<T | undefined> {
@@ -44,18 +44,18 @@ export default class User extends Class {
         const where = new ConstraintMap();
         
         // Determine whether to search by username or by email
-        if(typeof username !== 'undefined') where.equalTo(User.usernameKey, username);
-        else where.equalTo(User.emailKey, email);
+        if(typeof username !== 'undefined') where.equalTo(this.usernameKey, username);
+        else where.equalTo(this.emailKey, email);
 
         // Get matching user
-        const result = await User.find<T>({ where, skip: 0, limit: 1 });
+        const result = await this.find<T>({ where, skip: 0, limit: 1 });
         const user = result.first();
 
         // If user is not found, return undefined
         if(typeof user === 'undefined') return;
 
         // Return user if the password is valid, else return undefined
-        if(User._crypto.validate(password, user.password)) return user;
+        if(this._crypto.validate(password, user.password)) return user;
         else return;
     }
 

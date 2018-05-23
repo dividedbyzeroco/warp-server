@@ -13,7 +13,7 @@ export default class Session extends Class {
     }
 
     static get user(): typeof User {
-        return Session._user;
+        return this._user;
     }
 
     static get userKey(): string {
@@ -33,27 +33,27 @@ export default class Session extends Class {
     }
 
     static get keys(): Array<any> {
-        return [Session.user.as(Session.userKey), Session.originKey, Session.sessionTokenKey, Key(Session.revokedAtKey).asDate()];
+        return [this.user.as(this.userKey), this.originKey, this.sessionTokenKey, Key(this.revokedAtKey).asDate()];
     }
 
     static setUser(user: typeof User) {
-        Session._user = user;
+        this._user = user;
     }
 
     static async getFromToken(sessionToken: string): Promise<Session | void> { 
         // Prepare current date time
-        const now = Session._database.currentTimestamp;
+        const now = this._database.currentTimestamp;
 
         // Prepare where clause
         const where = new ConstraintMap();
-        where.equalTo(Session.sessionTokenKey, sessionToken);
-        where.greaterThanOrEqualTo(Session.revokedAtKey, now);
+        where.equalTo(this.sessionTokenKey, sessionToken);
+        where.greaterThanOrEqualTo(this.revokedAtKey, now);
 
         // Prepare sorting
         const sort = [`-${InternalKeys.Timestamps.CreatedAt}`];
 
         // Get matching session
-        const matches = await Session.find<Session>({ where, sort, skip: 0, limit: 1 });
+        const matches = await this.find<Session>({ where, sort, skip: 0, limit: 1 });
         const session = matches.first();
 
         // Return session
@@ -62,13 +62,13 @@ export default class Session extends Class {
 
     static async verify(sessionToken: string): Promise<User | undefined> {
         // $FlowFixMe
-        const session = await Session.getFromToken(sessionToken);
+        const session = await this.getFromToken(sessionToken);
 
         // Check if session exists
         if(!session) return;
 
         // Get user details
-        const user = await Session.user.getById({ id: session['user'].id }) as User;
+        const user = await this.user.getById({ id: session['user'].id }) as User;
 
         return user;
     }

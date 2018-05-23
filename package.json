@@ -1,6 +1,6 @@
 {
-  "name": "warp-api",
-  "version": "5.9.0",
+  "name": "warp-server",
+  "version": "5.9.1",
   "description": "Warp Server",
   "main": "./dist/index.js",
   "typings": "./typings/index.d.ts",
@@ -38,8 +38,7 @@
     "mysql": "^2.14.1",
     "parse-url": "^3.0.2",
     "promise": "^7.1.1",
-    "uniqid": "^4.1.1",
-    "warp-sdk-js": "^5.7.0"
+    "uniqid": "^4.1.1"
   },
   "devDependencies": {
     "chai": "^4.1.2",
