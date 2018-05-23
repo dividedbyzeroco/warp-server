@@ -91,7 +91,7 @@ function Key(name: string) {
                     else
                         return new Increment(instance.name, value);
                 }
-                else if(!isNaN(value)) {
+                else if(isNaN(value)) {
                     // If the number is not valid, throw an error
                     throw new Error(Error.Code.InvalidObjectKey, `Key \`${instance.name}\` is not a valid number`);
                 }
@@ -126,7 +126,7 @@ function Key(name: string) {
                     else
                         return new Increment(instance.name, value);
                 }
-                else if(!isNaN(value)) {
+                else if(isNaN(value)) {
                     // If the number is not valid, throw an error
                     throw new Error(Error.Code.InvalidObjectKey, `Key \`${instance.name}\` is not a valid number`);
                 }
@@ -161,7 +161,7 @@ function Key(name: string) {
                     else
                         return new Increment(instance.name, value);
                 }
-                else if(!isNaN(value)) {
+                else if(isNaN(value)) {
                     // If the number is not valid, throw an error
                     throw new Error(Error.Code.InvalidObjectKey, `Key \`${instance.name}\` is not a valid number`);
                 }
