@@ -619,6 +619,12 @@ enforce-js@^1.2.6:
   dependencies:
     moment-timezone "^0.5.4"
 
+enforce-js@^1.2.7:
+  version "1.2.7"
+  resolved "https://registry.yarnpkg.com/enforce-js/-/enforce-js-1.2.7.tgz#31029d93268d952bed228b49824cb9dd403f4bdb"
+  dependencies:
+    moment-timezone "^0.5.4"
+
 es6-promise@*:
   version "4.2.4"
   resolved "https://registry.yarnpkg.com/es6-promise/-/es6-promise-4.2.4.tgz#dc4221c2b16518760bd8c39a52d8f356fc00ed29"
