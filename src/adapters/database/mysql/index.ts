@@ -71,7 +71,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
             [Constraints.FoundIn]: (k, v) => `${k} IN (${subqueryEscape(v)})`,
             [Constraints.FoundInEither]: (k, v) => `(${v.map(i => `${k} IN (${subqueryEscape(i)})`).join(' OR ')})`,
             [Constraints.FoundInAll]: (k, v) => `(${v.map(i => `${k} IN (${subqueryEscape(i)})`).join(' AND ')})`,
-            [Constraints.NotFoundIn]: (k, v) => `${k} NOT IN ${subqueryEscape(v)}`,
+            [Constraints.NotFoundIn]: (k, v) => `${k} NOT IN (${subqueryEscape(v)})`,
             [Constraints.NotFoundInEither]: (k, v) => `(${v.map(i => `${k} NOT IN (${subqueryEscape(i)})`).join(' AND ')})`
         };
 
