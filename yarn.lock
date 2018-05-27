@@ -613,12 +613,6 @@ encodeurl@~1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/encodeurl/-/encodeurl-1.0.2.tgz#ad3ff4c86ec2d029322f5a02c3a9a606c95b3f59"
 
-enforce-js@^1.2.6:
-  version "1.2.6"
-  resolved "https://registry.yarnpkg.com/enforce-js/-/enforce-js-1.2.6.tgz#96506f42d81096927149bac726beb1db81b25ca9"
-  dependencies:
-    moment-timezone "^0.5.4"
-
 enforce-js@^1.2.7:
   version "1.2.7"
   resolved "https://registry.yarnpkg.com/enforce-js/-/enforce-js-1.2.7.tgz#31029d93268d952bed228b49824cb9dd403f4bdb"
@@ -2530,18 +2524,18 @@ vary@^1, vary@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/vary/-/vary-1.1.2.tgz#2299f02c6ded30d4a5961b0b9f74524a18f634fc"
 
-warp-sdk-js@^5.8.0:
-  version "5.8.0"
-  resolved "https://registry.yarnpkg.com/warp-sdk-js/-/warp-sdk-js-5.8.0.tgz#2b4837078530dd4af90ef54fd7117604e0120b54"
+warp-sdk-js@^5.8.0, warp-sdk-js@^5.9.0:
+  version "5.9.0"
+  resolved "https://registry.yarnpkg.com/warp-sdk-js/-/warp-sdk-js-5.9.0.tgz#5b78089fe2e39535bac8105a631690328eee030b"
   dependencies:
-    enforce-js "^1.2.6"
+    enforce-js "^1.2.7"
     node-fetch "^2.1.1"
     rimraf "^2.6.2"
     warp-server "^5.9.0"
 
 warp-server@^5.9.0:
-  version "5.9.2"
-  resolved "https://registry.yarnpkg.com/warp-server/-/warp-server-5.9.2.tgz#a727c7ac8ac230bd928330231b9c361946709c10"
+  version "5.9.7"
+  resolved "https://registry.yarnpkg.com/warp-server/-/warp-server-5.9.7.tgz#a1a3f2ec46efe824c601160204520a9731959dc4"
   dependencies:
     "@types/es6-promise" "^3.3.0"
     "@types/node" "^9.4.7"
@@ -2549,13 +2543,14 @@ warp-server@^5.9.0:
     body-parser "^1.15.1"
     chalk "^2.3.2"
     cors "^2.7.1"
-    enforce-js "^1.2.6"
+    enforce-js "^1.2.7"
     express "^4.13.4"
     limiter "^1.1.2"
     mysql "^2.14.1"
     parse-url "^3.0.2"
     promise "^7.1.1"
     uniqid "^4.1.1"
+    warp-sdk-js "^5.8.0"
 
 which@^1.2.9:
   version "1.3.0"
