@@ -565,8 +565,12 @@ export default class Class {
 
                     // Check if join exists
                     if(alias !== this.className && k === join.pointerIdKey) {
-                        // If alias is not the main class and key is a pointer id, use the via key
-                        return `${classAlias}${Pointer.Delimiter}${join.viaKey}`;
+                        // If pointer is secondary, use the via key
+                        if(join.isSecondary)
+                            return join.viaKey;
+                        else 
+                            // If alias is not the main class and key is a pointer id, add the via key
+                            return `${classAlias}${Pointer.Delimiter}${join.viaKey}`;
                     }
                     else return k;
                 }
