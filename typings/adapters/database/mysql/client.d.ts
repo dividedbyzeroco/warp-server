@@ -10,7 +10,7 @@ export default class DatabaseClient {
      * Constructor
      * @param {Object} config
      */
-    constructor({host, port, user, password, schema, timeout, charset, keepConnections}: DatabaseConfigType);
+    constructor({ host, port, user, password, schema, timeout, charset, keepConnections }: DatabaseConfigType);
     readonly pool: mysql.Pool;
     escape(value: any): any;
     escapeKey(value: string, useRaw?: boolean): any;

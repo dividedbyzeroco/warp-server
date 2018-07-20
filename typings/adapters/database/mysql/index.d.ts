@@ -30,7 +30,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
      * @param {KeyMap} where
      * @param {boolean} isSubquery
      */
-    _generateFindClause({source, classAlias, select, joins, where}: FindOptionsType): string;
+    _generateFindClause({ source, classAlias, select, joins, where }: FindOptionsType): string;
     /**
      * Generate Sorting
      * @param {String} className

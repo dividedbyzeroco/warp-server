@@ -8,7 +8,7 @@ export default class FunctionClass {
     _metadata: MetadataType;
     _currentUser: User;
     _keyMap: KeyMap;
-    constructor({metadata, currentUser, keys}?: FunctionOptionsType);
+    constructor({ metadata, currentUser, keys }?: FunctionOptionsType);
     statics<T extends typeof FunctionClass>(): T;
     set(key: string, value: any): void;
     get(key: string): any;

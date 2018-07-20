@@ -73,7 +73,7 @@ export default class Class {
      * @param {Object} params
      * @param {Number} id
      */
-    constructor({metadata, currentUser, keys, keyMap, id, createdAt, updatedAt, isPointer}?: ClassOptionsType);
+    constructor({ metadata, currentUser, keys, keyMap, id, createdAt, updatedAt, isPointer }?: ClassOptionsType);
     /**
      * Initialize
      * @description Function that must be invoked once
@@ -103,15 +103,15 @@ export default class Class {
     /**
      * Get subquery
      */
-    static getSubquery({where, select}: SubqueryOptionsType): FindOptionsType;
+    static getSubquery({ where, select }: SubqueryOptionsType): FindOptionsType;
     /**
      * Find matching objects
      */
-    static find<T extends Class>({select, include, where, sort, skip, limit}: QueryOptionsType): Promise<ClassCollection<T>>;
+    static find<T extends Class>({ select, include, where, sort, skip, limit }: QueryOptionsType): Promise<ClassCollection<T>>;
     /**
      * Find a single object
      */
-    static getById<T extends Class>({select, include, id}: QueryGetOptionsType): Promise<T | void>;
+    static getById<T extends Class>({ select, include, id }: QueryGetOptionsType): Promise<T | void>;
     /**
      * @description Create a pointer
      * @param {string} key

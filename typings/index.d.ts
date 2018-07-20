@@ -40,7 +40,7 @@ export default class WarpServer {
      * Constructor
      * @param {Object} config
      */
-    constructor({apiKey, masterKey, passwordSalt, sessionDuration, databaseURI, keepConnections, charset, timeout, requestLimit, customResponse, supportLegacy}: ServerConfigType);
+    constructor({ apiKey, masterKey, passwordSalt, sessionDuration, databaseURI, keepConnections, charset, timeout, requestLimit, customResponse, supportLegacy }: ServerConfigType);
     /**
      * API Key
      */
@@ -71,22 +71,22 @@ export default class WarpServer {
      * Set security configuration
      * @param {Object} config
      */
-    private _setSecurity({apiKey, masterKey, passwordSalt, sessionDuration});
+    private _setSecurity;
     /**
      * Extract database configuration from URI
      * @param {Object} config
      */
-    private _extractDatabaseConfig(databaseURI);
+    private _extractDatabaseConfig;
     /**
      * Set database configuration
      * @param {Object} config
      */
-    private _setDatabase({databaseURI, keepConnections, charset, timeout});
+    private _setDatabase;
     /**
      * Set throttling configuration
      * @param {Object} config
      */
-    private _setThrottling({limit, unit});
+    private _setThrottling;
     /**
      * Initialize the server and connect to the database
      */
@@ -95,7 +95,7 @@ export default class WarpServer {
      * Authenticate a sessionToken, username, email, or password
      * @param {AuthOptionsType} options
      */
-    authenticate({sessionToken, username, email, password}: AuthOptionsType): Promise<User | undefined>;
+    authenticate({ sessionToken, username, email, password }: AuthOptionsType): Promise<User | undefined>;
     createSessionToken(user: User): string;
     getRevocationDate(): string | undefined;
     parseSubqueries(where: {

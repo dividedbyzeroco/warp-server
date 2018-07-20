@@ -13,10 +13,10 @@ export default class BcryptCryptoAdapter implements ICryptoAdapter {
      *
      * @param {String} password
      */
-    hash(password: string): any;
+    hash(password: string): string;
     /**
      * @param {String} password
      * @param {String} hashed
      */
-    validate(password: string, hashed: string): any;
+    validate(password: string, hashed: string): boolean;
 }

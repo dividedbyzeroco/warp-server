@@ -9,6 +9,7 @@ export default class Session extends Class {
     static readonly sessionTokenKey: string;
     static readonly revokedAtKey: string;
     static readonly keys: Array<any>;
+    static readonly currentTimestamp: string;
     static setUser(user: typeof User): void;
     static getFromToken(sessionToken: string): Promise<Session | void>;
     static verify(sessionToken: string): Promise<User | undefined>;

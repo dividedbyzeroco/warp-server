@@ -1,6 +1,6 @@
 export interface ICryptoAdapter {
     hash(password: string): string;
-    validate(password: string, hashed: string): string;
+    validate(password: string, hashed: string): boolean;
 } 
 
 export declare const ICryptoAdapter: {

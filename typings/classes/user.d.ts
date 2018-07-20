@@ -10,7 +10,7 @@ export default class User extends Class {
     static readonly keys: Array<any>;
     static readonly hidden: Array<string>;
     static setCrypto(crypto: ICryptoAdapter): void;
-    static verify<T extends User>({username, email, password}: CredentialsType): Promise<T | undefined>;
+    static verify<T extends User>({ username, email, password }: CredentialsType): Promise<T | undefined>;
     username: string;
     email: string;
     password: string;
