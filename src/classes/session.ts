@@ -36,6 +36,10 @@ export default class Session extends Class {
         return [this.user.as(this.userKey), this.originKey, this.sessionTokenKey, Key(this.revokedAtKey).asDate()];
     }
 
+    static get currentTimestamp(): string {
+        return this._database.currentTimestamp;
+    }
+
     static setUser(user: typeof User) {
         this._user = user;
     }

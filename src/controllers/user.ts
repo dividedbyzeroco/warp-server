@@ -73,7 +73,7 @@ export default class UserController {
     
     async create({ Warp, metadata, currentUser, keys }: CreateOptionsType): Promise<User> {
         // Check if session token is provided
-        if(typeof currentUser !== 'undefined')
+        if(!metadata.isMaster && typeof currentUser !== 'undefined')
             throw new Error(Error.Code.ForbiddenOperation, 'Users cannot be created using an active session. Please log out.');
     
         // Get class

@@ -12,7 +12,7 @@ import Logger from './adapters/logger';
 import Crypto from './adapters/crypto';
 import Error from './utils/error';
 import { Subqueries } from './utils/constraint-map';
-import { addToDate, toDatabaseDate } from './utils/format';
+import { addToDate } from './utils/format';
 import { ServerConfigType } from './types/server';
 import { SecurityConfigType } from './types/security';
 import { DatabaseOptionsType, IDatabaseAdapter } from './types/database';
