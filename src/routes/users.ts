@@ -65,34 +65,24 @@ const users = (api: WarpServer): express.Router => {
        const currentUser = req.currentUser;
 
        try {
-            if(id === 'me') {
-                // Get user
-                const user = await controller.me({ currentUser });
+            let { select, include } = req.query;
 
-                // Return response
-                req.result = user;
-                api.response.success(req, res, next);
-            }
-            else {
-                let { select, include } = req.query;
+            // Enforce
+            enforce`${{ select }} as an optional string, equivalent to an array`;
+            enforce`${{ include }} as an optional string, equivalent to an array`;
 
-                // Enforce
-                enforce`${{ select }} as an optional string, equivalent to an array`;
-                enforce`${{ include }} as an optional string, equivalent to an array`;
+            // Parse parameters
+            const params = {
+                id,
+                select: typeof select !== 'undefined' ? JSON.parse(select) : undefined,
+                include: typeof include !== 'undefined' ? JSON.parse(include) : undefined
+            };
+            
+            const classInstance = await controller.get(params);
 
-                // Parse parameters
-                const params = {
-                    id,
-                    select: typeof select !== 'undefined' ? JSON.parse(select) : undefined,
-                    include: typeof include !== 'undefined' ? JSON.parse(include) : undefined
-                };
-                
-                const classInstance = await controller.get(params);
-
-                // Return response
-                req.result = classInstance;
-                api.response.success(req, res, next);
-            }
+            // Return response
+            req.result = classInstance;
+            api.response.success(req, res, next);
         }
         catch(err) {
             api._log.error(err, `Could not find the user: ${err.message}`);
@@ -169,52 +159,6 @@ const users = (api: WarpServer): express.Router => {
         }
         catch(err) {
             api._log.error(err, `Could not destroy the user: ${err.message}`);
-            api.response.error(err, req, res, next);
-        }
-    });
-
-    /**
-     * Logging in
-     */
-    router.post('/login', async (req, res, next) => {
-        // Get parameters
-        const Warp = req.Warp;
-        const metadata = req.metadata;
-        const currentUser = req.currentUser;
-        const { username, email, password } = req.body;
-
-        try {
-            // Get session
-            const session = await controller.logIn({ Warp, metadata, currentUser, username, email, password });
-
-            // Return response
-            req.result = session;
-            api.response.success(req, res, next);
-        }
-        catch(err) {
-            api._log.error(err, `Could not log in: ${err.message}`);
-            api.response.error(err, req, res, next);
-        }
-    });
-
-    /**
-     * Logging out
-     */
-    router.post('/logout', async (req, res, next) => {
-        // Get parameters
-        const Warp = req.Warp;
-        const { sessionToken } = req.metadata;
-
-        try {
-            // Log out of session
-            const session = await controller.logOut({ Warp, sessionToken });
-
-            // Return response
-            req.result = session;
-            api.response.success(req, res, next);
-        }
-        catch(err) {
-            api._log.error(err, `Could not log out: ${err.message}`);
             api.response.error(err, req, res, next);
         }
     });

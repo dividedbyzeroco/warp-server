@@ -1,15 +1,10 @@
 import enforce from 'enforce-js';
-import Class, { Pointer } from './class';
-import { KeyManager } from './key';
+import Class from './class';
 import Error from '../utils/error';
 import ConstraintMap from '../utils/constraint-map';
 import { InternalKeys } from '../utils/constants';
-import { ICryptoAdapter } from '../types/crypto';
-import { CredentialsType } from '../types/auth';
 
 export default class User extends Class {
-
-    static _crypto: ICryptoAdapter;
 
     static get className(): string {
         return InternalKeys.Auth.User;
@@ -27,36 +22,16 @@ export default class User extends Class {
         return InternalKeys.Auth.Password;
     }
 
+    static get roleKey(): string {
+        return InternalKeys.Auth.Role;
+    }
+
     static get keys(): Array<any> {
         return [this.usernameKey, this.emailKey, this.passwordKey];
     }
 
     static get hidden(): Array<string> {
         return [this.passwordKey];
-    }
-
-    static setCrypto(crypto: ICryptoAdapter) {
-        this._crypto = crypto;
-    }
-
-    static async verify<T extends User>({ username, email, password }: CredentialsType): Promise<T | undefined> {
-        // Prepare where clause
-        const where = new ConstraintMap();
-        
-        // Determine whether to search by username or by email
-        if(typeof username !== 'undefined') where.equalTo(this.usernameKey, username);
-        else where.equalTo(this.emailKey, email);
-
-        // Get matching user
-        const result = await this.find<T>({ where, skip: 0, limit: 1 });
-        const user = result.first();
-
-        // If user is not found, return undefined
-        if(typeof user === 'undefined') return;
-
-        // Return user if the password is valid, else return undefined
-        if(this._crypto.validate(password, user.password)) return user;
-        else return;
     }
 
     set username(value: string) {
@@ -69,7 +44,11 @@ export default class User extends Class {
     }
 
     set password(value: string) {
-        this.set(this.statics<typeof User>().passwordKey, this.statics<typeof User>()._crypto.hash(value));
+        this.set(this.statics<typeof User>().passwordKey, value);
+    }
+
+    set role(value: string) {
+        this.set(this.statics<typeof User>().roleKey, value);
     }
 
     get username(): string {
@@ -84,6 +63,10 @@ export default class User extends Class {
         return this._keyMap.get(this.statics<typeof User>().passwordKey);
     }
 
+    get role(): string {
+        return this._keyMap.get(this.statics<typeof User>().roleKey);
+    }
+
     async beforeSave() {
         // Check if username, email and password is provided
         if(this.isNew) {
@@ -91,10 +74,12 @@ export default class User extends Class {
             const username = this.username;
             const email = this.email;
             const password = this.password;
+            const role = this.role;
             
             enforce`${{username}} as a string`;
             enforce`${{email}} as a string, and a valid email address`;
             enforce`${{password}} as a string`;
+            enforce`${{role}} as an optional string`;
             
             // Prepare filters
             const usernameWhere = new ConstraintMap();

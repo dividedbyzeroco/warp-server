@@ -1,8 +1,9 @@
 export type ServerConfigType = {
     apiKey: string,
     masterKey: string,
+    accessExpiry?: string,
+    sessionRevocation?: string,
     passwordSalt?: number,
-    sessionDuration?: string,
     databaseURI?: string,
     keepConnections?: boolean,
     charset?: string,

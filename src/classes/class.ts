@@ -1,5 +1,5 @@
 import { Warp } from 'warp-sdk-js';
-import Key, { KeyManager, keyIsImplementedBy } from './key';
+import { KeyManager } from './key';
 import Error from '../utils/error';
 import KeyMap from '../utils/key-map';
 import { toCamelCase, toISODate } from '../utils/format';
@@ -784,10 +784,6 @@ export default class Class {
 
     set deletedAt(value: string) {
         throw new Error(Error.Code.ForbiddenOperation, 'Cannot manually set the `deletedAt` key');
-    }
-
-    get sessionToken(): string | void {
-        return this._metadata.sessionToken;
     }
 
     get appClient(): string | void {

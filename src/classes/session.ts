@@ -1,12 +1,13 @@
-import Class, { Pointer } from './class';
+import Class from './class';
 import User from './user';
-import Key, { KeyManager } from './key';
+import Client from './client';
+import Key from './key';
 import { InternalKeys } from '../utils/constants';
-import ConstraintMap from '../utils/constraint-map';
 
 export default class Session extends Class {
 
     static _user: typeof User;
+    static _client: typeof Client;
 
     static get className(): string {
         return InternalKeys.Auth.Session;
@@ -16,24 +17,48 @@ export default class Session extends Class {
         return this._user;
     }
 
+    static get client(): typeof Client {
+        return this._client;
+    }
+
     static get userKey(): string {
         return InternalKeys.Auth.User;
     }
 
-    static get originKey(): string {
-        return InternalKeys.Auth.Origin;
+    static get clientKey(): string {
+        return InternalKeys.Auth.Client;
     }
 
-    static get sessionTokenKey(): string {
-        return InternalKeys.Auth.SessionToken;
+    static get accessTokenKey(): string {
+        return InternalKeys.Auth.AccessToken;
+    }
+
+    static get refreshTokenKey(): string {
+        return InternalKeys.Auth.RefreshToken;
+    }
+
+    static get expiresAtKey(): string {
+        return InternalKeys.Auth.ExpiresAt;
     }
 
     static get revokedAtKey(): string {
         return InternalKeys.Auth.RevokedAt;
     }
 
+    static get scopeKey(): string {
+        return InternalKeys.Auth.Scope;
+    }
+
     static get keys(): Array<any> {
-        return [this.user.as(this.userKey), this.originKey, this.sessionTokenKey, Key(this.revokedAtKey).asDate()];
+        return [
+            this.user.as(this.userKey),
+            this.client.as(this.clientKey),
+            this.accessTokenKey,
+            this.refreshTokenKey,
+            Key(this.expiresAtKey).asDate(),
+            Key(this.revokedAtKey).asDate(),
+            Key(this.scopeKey).asJSON()
+        ];
     }
 
     static get currentTimestamp(): string {
@@ -44,57 +69,32 @@ export default class Session extends Class {
         this._user = user;
     }
 
-    static async getFromToken(sessionToken: string): Promise<Session | void> { 
-        // Prepare current date time
-        const now = this._database.currentTimestamp;
-
-        // Prepare where clause
-        const where = new ConstraintMap();
-        where.equalTo(this.sessionTokenKey, sessionToken);
-        where.greaterThanOrEqualTo(this.revokedAtKey, now);
-
-        // Prepare sorting
-        const sort = [`-${InternalKeys.Timestamps.CreatedAt}`];
-
-        // Get matching session
-        const matches = await this.find<Session>({ where, sort, skip: 0, limit: 1 });
-        const session = matches.first();
-
-        // Return session
-        return session;
+    static setClient(client: typeof Client) {
+        this._client = client;
     }
 
-    static async verify(sessionToken: string): Promise<User | undefined> {
-        // $FlowFixMe
-        const session = await this.getFromToken(sessionToken);
-
-        // Check if session exists
-        if(!session) return;
-
-        // Get user details
-        const user = await this.user.getById({ id: session['user'].id }) as User;
-
-        return user;
+    set accessToken(value: string) {
+        this.set(this.statics<typeof Session>().accessTokenKey, value);
     }
 
-    set origin(value: string) {
-        this.set(this.statics<typeof Session>().originKey, value);
+    set refreshToken(value: string) {
+        this.set(this.statics<typeof Session>().refreshTokenKey, value);
+    }
+    
+    get client(): number {
+        return this.get(this.statics<typeof Session>().clientKey);
     }
 
-    set sessionToken(value: string) {
-        this.set(this.statics<typeof Session>().sessionTokenKey, value);
+    get accessToken(): string {
+        return this.get(this.statics<typeof Session>().accessTokenKey);
     }
 
-    set revokedAt(value: string) {
-        this.set(this.statics<typeof Session>().revokedAtKey, value);
+    get refreshToken(): string {
+        return this.get(this.statics<typeof Session>().refreshTokenKey);
     }
 
-    get origin(): string {
-        return this.get(this.statics<typeof Session>().originKey);
-    }
-
-    get sessionToken(): string {
-        return this.get(this.statics<typeof Session>().sessionTokenKey);
+    get expiresAt(): string {
+        return this.get(this.statics<typeof Session>().expiresAtKey);
     }
 
     get revokedAt(): string {

@@ -1,5 +1,4 @@
-import express from 'express';
-import uniqid from 'uniqid';
+ import express from 'express';
 import parseUrl from 'parse-url';
 import enforce from 'enforce-js';
 import Class from './classes/class'
@@ -9,23 +8,20 @@ import Session from './classes/session';
 import Key from './classes/key';
 import Database from './adapters/database';
 import Logger from './adapters/logger';
-import Crypto from './adapters/crypto';
 import Error from './utils/error';
 import { Subqueries } from './utils/constraint-map';
-import { addToDate } from './utils/format';
 import { ServerConfigType } from './types/server';
 import { SecurityConfigType } from './types/security';
 import { DatabaseOptionsType, IDatabaseAdapter } from './types/database';
 import { ThrottlingConfigType } from './types/throttling';
 import { ClassMapType, ClassFunctionsType } from './types/class';
-import { AuthMapType, AuthFunctionsType, AuthOptionsType } from './types/auth';
+import { AuthFunctionsType } from './types/auth';
 import { FunctionMethodsType, FunctionMapType } from './types/functions';
 import { ResponseFunctionsType } from './types/response';
 import { ILogger } from './types/logger';
 import middleware from './routes/middleware';
 import classesRouter from './routes/classes';
 import usersRouter from './routes/users';
-import sessionsRouter from './routes/sessions';
 import functionsRouter from './routes/functions';
 import ClassController from './controllers/class';
 import UserController from './controllers/user';
@@ -33,6 +29,8 @@ import SessionController from './controllers/session';
 import FunctionController from './controllers/function';
 import { InternalKeys } from './utils/constants';
 import chalk from 'chalk';
+import Auth from './classes/auth';
+import Client from './classes/client';
 
 enforce.extend(/^equivalent to an array$/i, val => {
     try {
@@ -71,8 +69,8 @@ export default class WarpServer {
     _database: IDatabaseAdapter;
     _throttling: ThrottlingConfigType = { limit: 30, unit: 'second' };
     _classes: ClassMapType = {};
-    _auth: AuthMapType;
     _functions: FunctionMapType = {};
+    _auth: Auth;
     _router: express.Router;
     _customResponse: boolean = false;
     _supportLegacy: boolean = false;
@@ -88,18 +86,18 @@ export default class WarpServer {
     constructor({ 
         apiKey,
         masterKey,
-        passwordSalt,
-        sessionDuration,
         databaseURI,
         keepConnections,
         charset,
         timeout,
         requestLimit,
+        accessExpiry,
+        sessionRevocation,
         customResponse,
         supportLegacy
     }: ServerConfigType) {
         // Set security
-        this._setSecurity({ apiKey, masterKey, passwordSalt, sessionDuration });
+        this._setSecurity({ apiKey, masterKey, accessExpiry, sessionRevocation });
 
         // Set database
         if(typeof databaseURI !== 'undefined')
@@ -160,8 +158,8 @@ export default class WarpServer {
                     enforce`${{ [classType.className]: classInstance }} as a ${{ 'Class': Class }}`;
 
                     // If class is an auth class
-                    if(classInstance instanceof User || classInstance instanceof Session)
-                        throw new Error(Error.Code.ForbiddenOperation, 'User and Session classes must be set using `auth` instead of `classes`');
+                    if(classInstance instanceof User || classInstance instanceof Session || classInstance instanceof Client)
+                        throw new Error(Error.Code.ForbiddenOperation, 'User, Session, and Client classes must be set using `auth` instead of `classes`');
                     else {
                         // Otherwise, it is a regular class
                         classType.initialize(this._database, this._supportLegacy);                  
@@ -187,63 +185,6 @@ export default class WarpServer {
                     this._log.error(err, err.message);
                     throw new Error(Error.Code.ClassNotFound, `Class \`${className}\` does not exist`);
                 }
-            }
-        };
-    }
-
-    /**
-     * Authentication operations
-     */
-    get auth(): AuthFunctionsType {
-        return {
-            exists: () => {
-                if(typeof this._auth === 'object' 
-                    && typeof this._auth.user !== 'undefined' 
-                    && typeof this._auth.session !== 'undefined')
-                        return true;
-                else
-                    return false;
-            },
-            set: (user: typeof User, session: typeof Session) => {
-                // Check if auth classes are set
-                if(typeof user === 'undefined' || typeof session === 'undefined')
-                    throw new Error(Error.Code.MissingConfiguration, 'Both User and Session classes must be defined');
-
-                // Get sample instances
-                let userInstance = new user;
-                let sessionInstance = new session;
-
-                // Enforce data type
-                enforce`${{ [user.className]: userInstance }} as a ${{ 'User': User }}`;
-                enforce`${{ [session.className]: sessionInstance }} as a ${{ 'Session': Session }}`;
-
-                // Create and assign crypto to user
-                const crypto = Crypto.use('bcrypt', this._security.passwordSalt || 8);
-                user.setCrypto(crypto);
-
-                // Assign user to session
-                session.setUser(user);
-
-                // Set auth classes
-                user.initialize<typeof User>(this._database, this._supportLegacy);
-                session.initialize<typeof Session>(this._database, this._supportLegacy);
-                this._auth = { user, session };
-            },
-            user: (): typeof User => {
-                // Check if auth exists
-                if(typeof this._auth === 'undefined')
-                    throw new Error(Error.Code.MissingConfiguration, 'Authentication has not been defined');
-
-                // Return class
-                return this._auth.user;
-            },
-            session: (): typeof Session => {
-                // Check if auth exists
-                if(typeof this._auth === 'undefined')
-                    throw new Error(Error.Code.MissingConfiguration, 'Authentication has not been defined');
-
-                // Return class
-                return this._auth.session;
             }
         };
     }
@@ -296,6 +237,65 @@ export default class WarpServer {
     }
 
     /**
+     * Authentication operations
+     */
+    get auth(): AuthFunctionsType {
+        return {
+            use: (user: typeof User, session: typeof Session, client: typeof Client) => {
+                // Check if auth classes are set
+                if(typeof user === 'undefined' || typeof session === 'undefined' || typeof client === 'undefined')
+                    throw new Error(Error.Code.MissingConfiguration, 'User, Session and Client classes must be defined');
+
+                // Get sample instances
+                let userInstance = new user;
+                let sessionInstance = new session;
+                let clientInstance = new client;
+
+                // Enforce data type
+                enforce`${{ [user.className]: userInstance }} as a ${{ 'User': User }}`;
+                enforce`${{ [session.className]: sessionInstance }} as a ${{ 'Session': Session }}`;
+                enforce`${{ [client.className]: clientInstance }} as a ${{ 'Client': Client }}`;
+
+                // Assign user and client to session
+                session.setUser(user);
+                session.setClient(client);
+
+                // Set auth classes
+                user.initialize<typeof User>(this._database, this._supportLegacy);
+                session.initialize<typeof Session>(this._database, this._supportLegacy);
+                client.initialize<typeof Client>(this._database, this._supportLegacy);
+
+                // Set auth instance
+                this._auth = new Auth(user, session, client);
+            },
+            user: (): typeof User => {
+                // Check if auth exists
+                if(typeof this._auth === 'undefined')
+                    throw new Error(Error.Code.MissingConfiguration, 'Authentication has not been defined');
+
+                // Return class
+                return this._auth.user;
+            },
+            session: (): typeof Session => {
+                // Check if auth exists
+                if(typeof this._auth === 'undefined')
+                    throw new Error(Error.Code.MissingConfiguration, 'Authentication has not been defined');
+
+                // Return class
+                return this._auth.session;
+            },
+            client: (): typeof Client => {
+                // Check if auth exists
+                if(typeof this._auth === 'undefined')
+                    throw new Error(Error.Code.MissingConfiguration, 'Authentication has not been defined');
+                
+                // Return class
+                return this._auth.client;
+            }
+        };
+    }
+
+    /**
      * Response format
      */
     get response(): ResponseFunctionsType {
@@ -343,19 +343,29 @@ export default class WarpServer {
      * Set security configuration
      * @param {Object} config
      */
-    private _setSecurity({ apiKey, masterKey, passwordSalt = 8, sessionDuration = '2 years' }: SecurityConfigType): void {
+    private _setSecurity({ apiKey, masterKey, accessExpiry, sessionRevocation, passwordSalt }: SecurityConfigType): void {
         // Enforce
         enforce`${{apiKey}} as a string`;
         enforce`${{masterKey}} as a string`;
-        enforce`${{sessionDuration}} as an optional string`;
         
         // Set keys
         this._security = { 
             apiKey, 
-            masterKey, 
-            passwordSalt: passwordSalt, 
-            sessionDuration: sessionDuration
+            masterKey
         };
+
+        // Set default auth
+        this.auth.set(User, Session, Client);
+
+        // Enforce
+        enforce`${{accessExpiry}} as an optional string`;
+        enforce`${{sessionRevocation}} as an optional string`;
+        enforce`${{passwordSalt}} as an optional number`;
+
+        // Set expiry, revocation, and password salt
+        if(typeof accessExpiry !== 'undefined') this._auth.expiry = accessExpiry;
+        if(typeof sessionRevocation !== 'undefined') this._auth.revocation = sessionRevocation;
+        if(typeof passwordSalt !== 'undefined') this._auth.salt = passwordSalt;
     }
 
     /**
@@ -468,51 +478,6 @@ export default class WarpServer {
         }
     }
 
-    /**
-     * Authenticate a sessionToken, username, email, or password
-     * @param {AuthOptionsType} options
-     */
-    async authenticate({ sessionToken, username, email, password }: AuthOptionsType): Promise<User | undefined> {
-        // If session token is provided, search for the matching session
-        if(typeof sessionToken !== 'undefined') {
-            // Get session class
-            const SessionClass = this.auth.session();
-            
-            // Verify session token
-            const user = await SessionClass.verify(sessionToken);
-
-            // Return user
-            return user;
-        }
-        else if(typeof password !== 'undefined') {
-            // Get user class
-            const UserClass = this.auth.user();
-
-            // Validate user credentials
-            const user = await UserClass.verify({ username, email, password });
-
-            // Return user
-            return user;
-        }
-
-        return;
-    }
-
-    createSessionToken(user: User) {
-        return uniqid(`${(user.id * 1024 * 1024).toString(36)}-`) + (Math.random()*1e32).toString(36).slice(0, 8);
-    }
-
-    getRevocationDate() {
-        if(typeof this._security.sessionDuration === 'string') {
-            const sessionDuration = this._security.sessionDuration.split(' ');
-            const duration: number = parseInt(sessionDuration[0]);
-            const unit: string = sessionDuration[1];
-            const date = new Date();
-            return addToDate(date.toISOString(), duration, unit).toISOString();
-        }
-        return;
-    }
-
     parseSubqueries(where: {[name: string]: {[name: string]: any}}): {[name: string]: {[name: string]: any}} {
         // Get auth classes
         const User = this.auth.user();
@@ -557,7 +522,6 @@ export default class WarpServer {
             router.use(middleware(this));
             router.use(classesRouter(this));
             router.use(usersRouter(this));
-            router.use(sessionsRouter(this));
             router.use(functionsRouter(this));
 
             // Set the router value
@@ -573,6 +537,7 @@ export {
     Class,
     User,
     Session,
+    Client,
     Function,
     Key,
     WarpServer

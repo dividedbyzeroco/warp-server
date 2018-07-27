@@ -39,7 +39,8 @@ export type QueryGetOptionsType = {
 };
 
 export type MetadataType = {
-    sessionToken?: string,
+    accessToken?: string,
+    refreshToken?: string,
     client?: string,
     sdkVersion?: string,
     appVersion?: string,

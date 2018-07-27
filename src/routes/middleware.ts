@@ -5,6 +5,7 @@ import { RateLimiter } from 'limiter';
 import { Warp } from 'warp-sdk-js';
 import Error from '../utils/error';
 import { WarpServer } from '../index';
+import { InternalKeys } from '../utils/constants';
 
 const middleware = (api: WarpServer) => {
     /**
@@ -13,7 +14,7 @@ const middleware = (api: WarpServer) => {
     const router = express.Router();
     
     /**
-     * Middleware for enabling CORS
+     * Enable CORS
      */
     router.use(cors());
 
@@ -24,11 +25,45 @@ const middleware = (api: WarpServer) => {
     router.use(bodyParser.urlencoded({ extended: false }));
 
     /**
+     * Get access token
+     */
+    router.use((req, res, next) => {
+        // Get parameters
+        const { headers, query } = req;
+
+        // Check if authorization is set
+        if(typeof headers !== 'undefined' && typeof headers.authorization !== 'undefined') {
+            // Split auth parts
+            const authParts = headers.authorization.split(' ');
+
+            // Check auth length
+            if(authParts.length === 2 && authParts[0].toLowerCase() === InternalKeys.Auth.Bearer) {
+                // Set access token
+                req.accessToken = authParts[1];
+            }
+            else return next(new Error(Error.Code.ForbiddenOperation, 'Invalid authorization header'));
+        }
+        
+        // Check if access token is in the query
+        if(typeof query !== 'undefined' && typeof query[InternalKeys.Auth.AccessToken] !== 'undefined') {
+            // If access token already exists, throw an error
+            if(typeof req.accessToken !== 'undefined')
+                return next(new Error(Error.Code.ForbiddenOperation, 'Access token can only be declared once'));
+
+            // Assign the access token
+            req.accessToken = query[InternalKeys.Auth.AccessToken];
+        }
+        
+        // Continue
+        next();
+    });
+
+    /**
      * Get client, sdk and app versions
      */
    router.use((req, res, next) => {
         req.metadata = {
-            sessionToken: req.get('X-Warp-Session-Token'),
+            accessToken: req.accessToken,
             client: req.get('X-Warp-Client'),
             sdkVersion: req.get('X-Warp-Client-Version'),
             appVersion: req.get('X-App-Version'),
@@ -65,36 +100,12 @@ const middleware = (api: WarpServer) => {
     });
 
     /**
-     * Get current user
-     */
-    router.use(async (req, res, next) => {
-        try {
-            // Check if auth exists
-            if(api.auth.exists()) {
-                // Get session token
-                const sessionToken = req.metadata.sessionToken;
-
-                // If session token is undefined, continue
-                if(typeof sessionToken === 'undefined') return next();
-
-                // Set current user on request
-                req.currentUser = await api.authenticate({ sessionToken });
-            }
-            next();
-        }
-        catch(err) {
-            api._log.error(err, 'Could not get current user:', err.message);
-            next(err);
-        }
-    });
-
-    /**
      * Create a new Warp instance
      */
     router.use((req, res, next) => {
-        const sessionToken = req.metadata.sessionToken;
+        const { accessToken } = req.metadata;
         const currentUser = req.currentUser;
-        req.Warp = new Warp({ platform: 'api', api, apiKey: req.metadata.apiKey, sessionToken, currentUser });
+        req.Warp = new Warp({ platform: 'api', api, apiKey: req.metadata.apiKey, sessionToken: accessToken, currentUser });
         next();
     });
 

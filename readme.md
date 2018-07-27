@@ -650,7 +650,7 @@ class User extends WarpUser {
 
 ## Creating a Session class
 
-A `Session` represents a successful authentication of a user. They are created every time a user logs in, and destroyed every time they are logged out. For Warp Server, a Session's `sessionToken` is often used to make requests to the server. This sessionToken is validated and returned as the `currentUser` of the request. You can find more about this in the [Sessions](#sessions) section.
+A `Session` represents a successful authentication of a user. They are created every time a user logs in, and destroyed every time they are logged out. For Warp Server, a Session's `accessToken` is often used to make requests to the server. This accessToken is validated and returned as the `currentUser` of the request. You can find more about this in the [Sessions](#sessions) section.
 
 To enable this feature, you would need to declare a new class which extends from `Session`.
 
@@ -685,8 +685,8 @@ class Session extends WarpSession {
         return 'user';
     }
 
-    static get sessionTokenKey() {
-        return 'session_key';
+    static get accessTokenKey() {
+        return 'access_key';
     }
 
     static get originKey() {

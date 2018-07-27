@@ -10,10 +10,29 @@ export const InternalKeys = Object.freeze({
         Username: 'username',
         Email: 'email',
         Password: 'password',
+        Role: 'role',
         Session: 'session',
-        Origin: 'origin',
-        SessionToken: 'session_token',
-        RevokedAt: 'revoked_at'
+        Bearer: 'bearer',
+        AccessToken: 'access_token',
+        RefreshToken: 'refresh_token',
+        ExpiresAt: 'expires_at',
+        RevokedAt: 'revoked_at',
+        Client: 'client',
+        Secret: 'secret',
+        Name: 'name',
+        Description: 'description',
+        Type: 'type',
+        Status: 'status',
+        Scope: 'scope'
+    }),
+    Access: Object.freeze({
+        Find: 'find',
+        Get: 'get',
+        Create: 'create',
+        Update: 'update',
+        Destroy: 'destroy',
+        Run: 'run',
+        Manage: 'manage'
     }),
     Pointers: Object.freeze({
         LegacyClassName: 'className',
