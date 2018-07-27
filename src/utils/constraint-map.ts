@@ -116,7 +116,7 @@ export default class ConstraintMap {
         if(!constraints)
             throw new Error(Error.Code.MissingConfiguration, `Constraint key being changed does not exist: \`${key}\``);
 
-        // Check if the keys are the same
+        // Don't change keys if they are the same
         if(key === newKey) return;
 
         constraints.changeKey(newKey);
