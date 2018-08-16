@@ -367,7 +367,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         // Prepare script
         const destroyScript = `
             UPDATE ${this._client.escapeKey(source)}
-            SET ${updateKey} = ${now}, ${deleteKey} = ${now}
+            SET ${updateKey} = ${this._client.escape(now)}, ${deleteKey} = ${this._client.escape(now)}
             WHERE ${idKey} = ${id}`;
 
         // Update the item
