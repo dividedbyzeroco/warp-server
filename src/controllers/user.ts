@@ -1,7 +1,6 @@
 import WarpServer from '../index';
 import User from '../classes/user';
-import Session from '../classes/session';
-import ClassCollection from '../utils/class-collection';
+import Collection from '../utils/collection';
 import { Defaults } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
 import Error from '../utils/error';
@@ -10,12 +9,8 @@ import {
     FindOptionsType, 
     CreateOptionsType, 
     UpdateOptionsType,
-    DestroyOptionsType,
-    LoginOptionsType,
-    MeOptionsType,
-    LogoutOptionsType
+    DestroyOptionsType
 } from '../types/users';
-import KeyMap from '../utils/key-map';
 
 export default class UserController {
 
@@ -25,7 +20,7 @@ export default class UserController {
         this._api = api;
     }
 
-    async find({ select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<ClassCollection<User>> {
+    async find({ select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<Collection<User>> {
         // Parse subqueries
         where = this._api.parseSubqueries(where);
     

@@ -1,5 +1,4 @@
 import Class from '../classes/class';
-import User from '../classes/user';
 import KeyMap from '../utils/key-map';
 import ConstraintMap from '../utils/constraint-map';
 
@@ -11,8 +10,6 @@ export type ClassFunctionsType = {
 };
 
 export type ClassOptionsType = {
-    metadata?: MetadataType,
-    currentUser?: any,
     keys?: {[name: string]: any},
     keyMap?: KeyMap,
     id?: number,
@@ -22,7 +19,6 @@ export type ClassOptionsType = {
 };
 
 export type QueryOptionsType = {
-    currentUser?: User,
     select?: Array<string>,
     include?: Array<string>,
     where: ConstraintMap,
@@ -32,19 +28,10 @@ export type QueryOptionsType = {
 };
 
 export type QueryGetOptionsType = {
-    currentUser?: User,
     select?: Array<string>,
+    where?: ConstraintMap,
     include?: Array<string>,
     id: number
-};
-
-export type MetadataType = {
-    accessToken?: string,
-    refreshToken?: string,
-    client?: string,
-    sdkVersion?: string,
-    appVersion?: string,
-    isMaster?: boolean
 };
 
 export type PointerObjectType = {

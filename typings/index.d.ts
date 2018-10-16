@@ -4,12 +4,14 @@ import User from './classes/user';
 import Function from './classes/function';
 import Session from './classes/session';
 import Key from './classes/key';
+import Scope from './classes/scope';
+import Role from './classes/role';
 import { ServerConfigType } from './types/server';
 import { SecurityConfigType } from './types/security';
 import { IDatabaseAdapter } from './types/database';
 import { ThrottlingConfigType } from './types/throttling';
 import { ClassMapType, ClassFunctionsType } from './types/class';
-import { AuthMapType, AuthFunctionsType, AuthOptionsType } from './types/auth';
+import { AuthFunctionsType } from './types/auth';
 import { FunctionMethodsType, FunctionMapType } from './types/functions';
 import { ResponseFunctionsType } from './types/response';
 import { ILogger } from './types/logger';
@@ -17,6 +19,9 @@ import ClassController from './controllers/class';
 import UserController from './controllers/user';
 import SessionController from './controllers/session';
 import FunctionController from './controllers/function';
+import Auth from './classes/auth';
+import Client from './classes/client';
+import { RoleFunctionsType, RoleMapType } from './types/roles';
 /**
  * @class WarpServer
  * @description WarpServer definition
@@ -27,8 +32,9 @@ export default class WarpServer {
     _database: IDatabaseAdapter;
     _throttling: ThrottlingConfigType;
     _classes: ClassMapType;
-    _auth: AuthMapType;
     _functions: FunctionMapType;
+    _roles: RoleMapType;
+    _auth: Auth;
     _router: express.Router;
     _customResponse: boolean;
     _supportLegacy: boolean;
@@ -40,7 +46,7 @@ export default class WarpServer {
      * Constructor
      * @param {Object} config
      */
-    constructor({ apiKey, masterKey, passwordSalt, sessionDuration, databaseURI, keepConnections, charset, timeout, requestLimit, customResponse, supportLegacy }: ServerConfigType);
+    constructor({ apiKey, masterKey, databaseURI, keepConnections, charset, timeout, requestLimit, accessExpiry, sessionRevocation, customResponse, supportLegacy }: ServerConfigType);
     /**
      * API Key
      */
@@ -56,13 +62,17 @@ export default class WarpServer {
      */
     readonly classes: ClassFunctionsType;
     /**
-     * Authentication operations
-     */
-    readonly auth: AuthFunctionsType;
-    /**
      * Function operations
      */
     readonly functions: FunctionMethodsType;
+    /**
+     * Role operations
+     */
+    readonly roles: RoleFunctionsType;
+    /**
+     * Authentication operations
+     */
+    readonly auth: AuthFunctionsType;
     /**
      * Response format
      */
@@ -91,13 +101,6 @@ export default class WarpServer {
      * Initialize the server and connect to the database
      */
     initialize(): Promise<void>;
-    /**
-     * Authenticate a sessionToken, username, email, or password
-     * @param {AuthOptionsType} options
-     */
-    authenticate({ sessionToken, username, email, password }: AuthOptionsType): Promise<User | undefined>;
-    createSessionToken(user: User): string;
-    getRevocationDate(): string | undefined;
     parseSubqueries(where: {
         [name: string]: {
             [name: string]: any;
@@ -112,4 +115,4 @@ export default class WarpServer {
      */
     readonly router: express.Router;
 }
-export { Class, User, Session, Function, Key, WarpServer };
+export { Class, User, Session, Client, Function, Key, Scope, Role, WarpServer };

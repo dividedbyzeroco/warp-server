@@ -3,22 +3,17 @@ import User from './user';
 import { toCamelCase } from '../utils/format';
 import KeyMap from '../utils/key-map';
 import Error from '../utils/error';
-import { MetadataType } from '../types/class';
 import { FunctionOptionsType } from '../types/functions';
 
 export default class FunctionClass {
 
     _warp: Warp;
-    _metadata: MetadataType;
     _currentUser: User;
     _keyMap: KeyMap = new KeyMap();
 
-    constructor({ metadata, currentUser, keys }: FunctionOptionsType = {}) {
-        // Check if metadata is provided
-        if(typeof metadata !== 'undefined') this._metadata = metadata;
-
+    constructor({ user, keys }: FunctionOptionsType) {
         // Check if current user is provided
-        if(typeof currentUser !== 'undefined') this._currentUser = currentUser;
+        if(user !== null) this._currentUser = user;
         
         // Iterate through each param
         if(typeof keys !== 'undefined') {
@@ -62,10 +57,6 @@ export default class FunctionClass {
         return this._warp;
     }
 
-    get isMaster(): boolean {
-        return !!this._metadata.isMaster;
-    }
-
     get currentUser(): any {
         return this._currentUser;
     }
@@ -85,8 +76,9 @@ export default class FunctionClass {
 
     async execute() {
         // Check if master is required
-        if(this.statics().masterOnly && (typeof this._metadata === 'undefined' || !this.isMaster))
-            throw new Error(Error.Code.ForbiddenOperation, `This function is only accessible via master`);
+        // TODO: Change implementation
+        // if(this.statics().masterOnly && (typeof this._metadata === 'undefined' || !this.isMaster))
+        //     throw new Error(Error.Code.ForbiddenOperation, `This function is only accessible via master`);
 
         return await this.run();
     }

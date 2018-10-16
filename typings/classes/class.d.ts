@@ -1,10 +1,9 @@
-import { Warp } from 'warp-sdk-js';
 import KeyMap from '../utils/key-map';
 import ClassCollection from '../utils/class-collection';
 import ConstraintMap from '../utils/constraint-map';
 import { IDatabaseAdapter } from '../types/database';
 import { FindOptionsType, SubqueryOptionsType } from '../types/database';
-import { ClassOptionsType, MetadataType, QueryOptionsType, QueryGetOptionsType, PointerObjectType } from '../types/class';
+import { ClassOptionsType, QueryOptionsType, QueryGetOptionsType, PointerObjectType } from '../types/class';
 export declare class Pointer {
     _class: typeof Class;
     _aliasKey: string;
@@ -61,8 +60,6 @@ export default class Class {
     static _timestamps: {
         [name: string]: boolean;
     };
-    _warp?: Warp;
-    _metadata: MetadataType;
     _currentUser: any;
     _isNew: boolean;
     _id: number;
@@ -73,7 +70,7 @@ export default class Class {
      * @param {Object} params
      * @param {Number} id
      */
-    constructor({ metadata, currentUser, keys, keyMap, id, createdAt, updatedAt, isPointer }?: ClassOptionsType);
+    constructor({ currentUser, keys, keyMap, id, createdAt, updatedAt, isPointer }?: ClassOptionsType);
     /**
      * Initialize
      * @description Function that must be invoked once
@@ -111,7 +108,7 @@ export default class Class {
     /**
      * Find a single object
      */
-    static getById<T extends Class>({ select, include, id }: QueryGetOptionsType): Promise<T | void>;
+    static getById<T extends Class>({ select, where, include, id }: QueryGetOptionsType): Promise<T | void>;
     /**
      * @description Create a pointer
      * @param {string} key
@@ -119,18 +116,12 @@ export default class Class {
      */
     static as(key: string): Pointer;
     statics<T extends typeof Class>(): T;
-    readonly Warp: Warp | undefined;
     readonly isNew: boolean;
     id: number;
     readonly currentUser: any;
     createdAt: string;
     updatedAt: string;
     deletedAt: string;
-    readonly sessionToken: string | void;
-    readonly appClient: string | void;
-    readonly appVersion: string | void;
-    readonly sdkVersion: string | void;
-    readonly isMaster: boolean;
     /**
      * Generic setter for all keys
      * @param {String} key
@@ -153,8 +144,6 @@ export default class Class {
      * @description Executed every time the object is stringified
      */
     toJSON(): object;
-    bindSDK(warp?: Warp): void;
-    runAsMaster(enclosed: () => Promise<any>): Promise<void>;
     /**
      * Save the object
      */

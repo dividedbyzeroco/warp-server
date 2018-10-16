@@ -8,7 +8,6 @@ export type ServerConfigType = {
     keepConnections?: boolean,
     charset?: string,
     timeout?: number,
-    requestLimit?: number,
     customResponse?: boolean,
     supportLegacy?: boolean
 }

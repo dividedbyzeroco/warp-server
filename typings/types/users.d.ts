@@ -56,5 +56,5 @@ export declare type MeOptionsType = {
 };
 export declare type LogoutOptionsType = {
     Warp: Warp;
-    sessionToken: string;
+    accessToken: string;
 };

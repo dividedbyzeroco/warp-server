@@ -1,4 +1,4 @@
-import { Pointer } from '../classes/class';
+import { Pointer } from '../classes/pointer';
 import KeyMap from '../utils/key-map';
 import ConstraintMap from '../utils/constraint-map';
 export interface IDatabaseAdapter {
@@ -18,6 +18,7 @@ export interface IDatabaseAdapter {
         className: string, 
         select: Array<string>, 
         joins: { [key: string]: JoinKeyType },
+        where: ConstraintMap,
         id: number
     ): Promise<KeyMap | null>;
     create(source: string, keys: KeyMap): Promise<number>;

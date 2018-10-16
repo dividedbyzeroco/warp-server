@@ -1,5 +1,4 @@
 import Client from './client';
-import Class, { Pointer } from '../../../classes/class';
 import Error from '../../../utils/error';
 import KeyMap from '../../../utils/key-map';
 import { InternalKeys } from '../../../utils/constants';
@@ -7,6 +6,7 @@ import ConstraintMap, { Constraints } from '../../../utils/constraint-map';
 import { toDatabaseDate } from '../../../utils/format';
 import { DatabaseConfigType, FindOptionsType, IDatabaseAdapter, JoinKeyType } from '../../../types/database';
 import { ConstraintObject } from '../../../types/constraints';
+import { Pointer } from '../../../classes/pointer';
 
 export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
 
@@ -272,10 +272,10 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         className: string,
         select: Array<string>,
         joins: { [key: string]: JoinKeyType },
+        where: ConstraintMap,
         id: number
     ): Promise<KeyMap | null> {
         // Prepare where 
-        let where = new ConstraintMap();
         where.doesNotExist(InternalKeys.Timestamps.DeletedAt);
         where.equalTo(InternalKeys.Id, id);
 

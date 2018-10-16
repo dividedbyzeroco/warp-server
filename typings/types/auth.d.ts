@@ -1,24 +1,14 @@
 import User from '../classes/user';
 import Session from '../classes/session';
-export interface IAuthAdapter {
-    authenticate<T extends User>(credentials: CredentialsType): Promise<T | void>;
-    authorize<T extends Session>(sessionToken: string): Promise<T | void>;
-}
-export declare const IAuthAdapter: {
-    new (salt: string | number): IAuthAdapter;
-};
-export declare type AuthMapType = {
-    user: typeof User;
-    session: typeof Session;
-};
+import Client from '../classes/client';
 export declare type AuthFunctionsType = {
-    exists: () => boolean;
-    set: (user: typeof User, session: typeof Session) => void;
+    use: (user: typeof User, session: typeof Session, client: typeof Client) => void;
     user: () => typeof User;
     session: () => typeof Session;
+    client: () => typeof Client;
 };
 export declare type AuthOptionsType = {
-    sessionToken?: string;
+    accessToken?: string;
     username?: string;
     email?: string;
     password?: string;

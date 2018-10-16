@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import rtg from 'random-token-generator';
+import uniqid from 'uniqid';
 import { CredentialsType } from '../types/auth';
 import User from './user';
 import Session from './session';
@@ -49,6 +50,10 @@ export default class Auth {
         this._revocation = value;
     }
 
+    generateSecret() {
+        return uniqid();
+    }
+
     async register<T extends User>(credentials: CredentialsType): Promise<T> {
         // Get credentials
         const { username, email, password } = credentials;
@@ -93,6 +98,45 @@ export default class Auth {
         // Return user if the password is valid, else return undefined
         if(await bcrypt.compare(password, user.password)) return user;
         else return;
+    }
+
+
+    async saveClient<T extends Client>(name: string, description: string, scope: Array<string>): Promise<T> {
+        // Get client class
+        const clientClass = this._client;
+        const secret = this.generateSecret();
+
+        // Create a new client
+        const client = new clientClass({});
+        client.secret = secret;
+        client.name = name;
+        client.description = description;
+        client.set(clientClass.scopeKey, scope);
+        
+        // Save the client
+        await client.save();
+
+        // Return instance
+        return client as T;
+    }
+
+    async getClient<T extends Client>(identifier: string): Promise<T | void> {
+        // Get client class
+        const clientClass = this._client;
+
+        // Prepare where clause
+        const where = new ConstraintMap();
+        where.equalTo(clientClass.identifierKey, identifier);
+
+        // Get matching client
+        const result = await clientClass.find<T>({ where, skip: 0, limit: 1 });
+        const client  = result.first();
+
+        // If user is not found, return undefined
+        if(typeof client === 'undefined') return;
+
+        // Return client
+        return client;
     }
 
     async saveSession(user: User, client: Client) {

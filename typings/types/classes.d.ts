@@ -1,7 +1,5 @@
-import { Warp } from 'warp-sdk-js';
-import User from '../classes/user';
-import { MetadataType } from './class';
 export declare type FindOptionsType = {
+    accessToken: string;
     className: string;
     select?: Array<string>;
     include?: Array<string>;
@@ -17,24 +15,21 @@ export declare type FindOptionsType = {
     limit?: number;
 };
 export declare type GetOptionsType = {
+    accessToken: string;
     className: string;
     id: number;
     select?: Array<string>;
     include?: Array<string>;
 };
 export declare type CreateOptionsType = {
-    Warp?: Warp;
-    metadata: MetadataType;
-    currentUser?: User;
+    accessToken: string;
     className: string;
     keys: {
         [name: string]: any;
     };
 };
 export declare type UpdateOptionsType = {
-    Warp?: Warp;
-    metadata: MetadataType;
-    currentUser?: User;
+    accessToken: string;
     className: string;
     id: number;
     keys: {
@@ -42,9 +37,7 @@ export declare type UpdateOptionsType = {
     };
 };
 export declare type DestroyOptionsType = {
-    Warp?: Warp;
-    metadata: MetadataType;
-    currentUser?: User;
+    accessToken: string;
     className: string;
     id: number;
 };

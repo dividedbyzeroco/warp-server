@@ -1,4 +1,4 @@
- import express from 'express';
+import express from 'express';
 import parseUrl from 'parse-url';
 import enforce from 'enforce-js';
 import Class from './classes/class'
@@ -6,14 +6,15 @@ import User from './classes/user';
 import Function from './classes/function';
 import Session from './classes/session';
 import Key from './classes/key';
+import Scope from './classes/scope';
+import Role from './classes/role';
 import Database from './adapters/database';
 import Logger from './adapters/logger';
 import Error from './utils/error';
 import { Subqueries } from './utils/constraint-map';
 import { ServerConfigType } from './types/server';
 import { SecurityConfigType } from './types/security';
-import { DatabaseOptionsType, IDatabaseAdapter } from './types/database';
-import { ThrottlingConfigType } from './types/throttling';
+import { DatabaseOptionsType } from './types/database';
 import { ClassMapType, ClassFunctionsType } from './types/class';
 import { AuthFunctionsType } from './types/auth';
 import { FunctionMethodsType, FunctionMapType } from './types/functions';
@@ -31,6 +32,8 @@ import { InternalKeys } from './utils/constants';
 import chalk from 'chalk';
 import Auth from './classes/auth';
 import Client from './classes/client';
+import { RoleFunctionsType, RoleMapType } from './types/roles';
+import Repository from './classes/repository';
 
 enforce.extend(/^equivalent to an array$/i, val => {
     try {
@@ -66,10 +69,10 @@ export default class WarpServer {
     
     _log: ILogger = Logger.use('console', 'Warp Server', process.env.LOG_LEVEL || 'error');
     _security: SecurityConfigType;
-    _database: IDatabaseAdapter;
-    _throttling: ThrottlingConfigType = { limit: 30, unit: 'second' };
+    _repository: Repository;
     _classes: ClassMapType = {};
     _functions: FunctionMapType = {};
+    _roles: RoleMapType = {};
     _auth: Auth;
     _router: express.Router;
     _customResponse: boolean = false;
@@ -90,22 +93,23 @@ export default class WarpServer {
         keepConnections,
         charset,
         timeout,
-        requestLimit,
         accessExpiry,
         sessionRevocation,
+        passwordSalt = 8,
         customResponse,
         supportLegacy
     }: ServerConfigType) {
         // Set security
-        this._setSecurity({ apiKey, masterKey, accessExpiry, sessionRevocation });
+        this._setSecurity({ apiKey, masterKey });
 
+        // Set auth
+        // TODO: Move this out of Warp
+        if(typeof accessExpiry !== 'undefined') {
+            this._setAuth({ accessExpiry, sessionRevocation, passwordSalt });
+        }
         // Set database
         if(typeof databaseURI !== 'undefined')
-            this._setDatabase({ databaseURI, keepConnections, charset, timeout });
-
-        // Set throttling
-        if(typeof requestLimit !== 'undefined')
-            this._setThrottling({ limit: requestLimit, unit: 'second' });
+            this._setRepository({ databaseURI, keepConnections, charset, timeout });
 
         if(typeof customResponse !== 'undefined')
             this._customResponse = customResponse;
@@ -130,11 +134,7 @@ export default class WarpServer {
 
     get hasDatabase(): boolean {
         // Check if database is defined
-        return typeof this._database !== 'undefined';
-    }
-
-    get throttling(): ThrottlingConfigType {
-        return this._throttling;
+        return typeof this._repository !== 'undefined';
     }
 
     /**
@@ -149,7 +149,7 @@ export default class WarpServer {
                 // Loop through each map item
                 for(let key in map) {
                     // Get the class
-                    let classType = map[key];
+                    let classType = class extends map[key] {};
 
                     // Get a sample instance
                     let classInstance = new classType;
@@ -162,7 +162,7 @@ export default class WarpServer {
                         throw new Error(Error.Code.ForbiddenOperation, 'User, Session, and Client classes must be set using `auth` instead of `classes`');
                     else {
                         // Otherwise, it is a regular class
-                        classType.initialize(this._database, this._supportLegacy);                  
+                        classType.initialize(this._supportLegacy);                  
                         this._classes[classType.className] = classType;
                     }
                 }
@@ -237,6 +237,53 @@ export default class WarpServer {
     }
 
     /**
+     * Role operations
+     */
+    get roles(): RoleFunctionsType {
+        return {
+            add: (map: RoleMapType) => {
+                // Enforce
+                enforce`${{ 'roles.add(map)': map }} as an object`;
+
+                // Loop through each map item
+                for(let key in map) {
+                    // Get the role
+                    let role = map[key];
+
+                    // Get a sample instance
+                    let roleInstance = new role;
+
+                    // Enforce data type
+                    enforce`${{ [role.roleName]: roleInstance }} as a ${{ 'Role.Class': Role }}`;
+
+                    // Set function
+                    this._roles[role.roleName] = role;
+                }
+
+            },
+            get: (roleName: string) => {
+                try {
+                    // Enforce
+                    enforce`${{ roleName }} as a string`;
+
+                    // Get the role
+                    const roleClass = this._roles[roleName];
+
+                    // Enforce
+                    enforce`${{ [roleName]: new roleClass }} as a ${{ 'Role.Class': Role }}`;
+
+                    // Return role
+                    return roleClass;
+                }
+                catch(err) {
+                    this._log.error(err, err.message);
+                    throw new Error(Error.Code.MissingConfiguration, `Role \`${roleName}\` does not exist`);
+                }
+            }
+        };
+    }
+
+    /**
      * Authentication operations
      */
     get auth(): AuthFunctionsType {
@@ -261,9 +308,9 @@ export default class WarpServer {
                 session.setClient(client);
 
                 // Set auth classes
-                user.initialize<typeof User>(this._database, this._supportLegacy);
-                session.initialize<typeof Session>(this._database, this._supportLegacy);
-                client.initialize<typeof Client>(this._database, this._supportLegacy);
+                user.initialize<typeof User>(this._supportLegacy);
+                session.initialize<typeof Session>(this._supportLegacy);
+                client.initialize<typeof Client>(this._supportLegacy);
 
                 // Set auth instance
                 this._auth = new Auth(user, session, client);
@@ -306,7 +353,7 @@ export default class WarpServer {
                     next();
                 else {
                     // Set result
-                    const result = req.result;
+                    const result = req[InternalKeys.Middleware.Result];
 
                     // Set status and response
                     res.status(200);
@@ -343,7 +390,7 @@ export default class WarpServer {
      * Set security configuration
      * @param {Object} config
      */
-    private _setSecurity({ apiKey, masterKey, accessExpiry, sessionRevocation, passwordSalt }: SecurityConfigType): void {
+    private _setSecurity({ apiKey, masterKey }: SecurityConfigType): void {
         // Enforce
         enforce`${{apiKey}} as a string`;
         enforce`${{masterKey}} as a string`;
@@ -353,9 +400,15 @@ export default class WarpServer {
             apiKey, 
             masterKey
         };
+    }
 
+    /**
+     * Set auth configuration
+     * @param databaseURI
+     */
+    private _setAuth({ accessExpiry, sessionRevocation, passwordSalt }): void {
         // Set default auth
-        this.auth.set(User, Session, Client);
+        this.auth.use(User, Session, Client);
 
         // Enforce
         enforce`${{accessExpiry}} as an optional string`;
@@ -387,10 +440,10 @@ export default class WarpServer {
     }
 
     /**
-     * Set database configuration
+     * Set database repository configuration
      * @param {Object} config
      */
-    private _setDatabase({ databaseURI, keepConnections = false, charset = 'utf8mb4_unicode_ci', timeout = 30 * 1000 }: DatabaseOptionsType) {
+    private _setRepository({ databaseURI, keepConnections = false, charset = 'utf8mb4_unicode_ci', timeout = 30 * 1000 }: DatabaseOptionsType) {
         // Extract database config
         const { protocol, host, port, user, password, schema } = this._extractDatabaseConfig(databaseURI);
 
@@ -405,8 +458,8 @@ export default class WarpServer {
         enforce`${{charset}} as a string`;
         enforce`${{timeout}} as a number`;
 
-        // Set database
-        this._database = Database.use(protocol, {
+        // Prepare database
+        const database = Database.use(protocol, {
             host,
             port,
             user,
@@ -416,22 +469,9 @@ export default class WarpServer {
             charset,
             timeout
         });
-    }
 
-    /**
-     * Set throttling configuration
-     * @param {Object} config
-     */
-    private _setThrottling({ 
-        limit = 60, 
-        unit = 'second' 
-    }: ThrottlingConfigType) {
-        // Enforce
-        enforce`${{limit}} as a number`;
-        enforce`${{unit}} as a string`;
-
-        // Set values
-        this._throttling = { limit, unit };
+        // Set repository
+        this._repository = new Repository(database);
     }
 
     /**
@@ -442,7 +482,7 @@ export default class WarpServer {
             this._log.info('Starting Warp Server...');
 
             // Attempt to connect to the database
-            if(this.hasDatabase) await this._database.initialize();
+            if(this.hasDatabase) await this._repository.initialize();
 
 
             // Display startup screen
@@ -540,5 +580,7 @@ export {
     Client,
     Function,
     Key,
+    Scope,
+    Role,
     WarpServer
 };

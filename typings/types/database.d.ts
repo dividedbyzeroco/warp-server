@@ -9,7 +9,7 @@ export interface IDatabaseAdapter {
     }, where: ConstraintMap, sort: Array<string>, skip: number, limit: number): Promise<Array<KeyMap>>;
     get(source: string, className: string, select: Array<string>, joins: {
         [key: string]: JoinKeyType;
-    }, id: number): Promise<KeyMap | null>;
+    }, where: ConstraintMap, id: number): Promise<KeyMap | null>;
     create(source: string, keys: KeyMap): Promise<number>;
     update(source: string, keys: KeyMap, id: number): Promise<void>;
     destroy(source: string, keys: KeyMap, id: number): Promise<void>;

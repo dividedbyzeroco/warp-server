@@ -1,6 +1,6 @@
 import WarpServer from '../index';
 import Session from '../classes/session';
-import ClassCollection from '../utils/class-collection';
+import Collection from '../utils/collection';
 import { Defaults } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
 import Error from '../utils/error';
@@ -17,7 +17,7 @@ export default class SessionController {
         this._api = api;
     }
 
-    async find({ metadata, select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<ClassCollection<Session>> {
+    async find({ metadata, select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<Collection<Session>> {
         // Validate master access
         if(!metadata.isMaster)
             throw new Error(Error.Code.ForbiddenOperation, 'Only masters can access sessions');

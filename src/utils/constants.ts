@@ -18,6 +18,7 @@ export const InternalKeys = Object.freeze({
         ExpiresAt: 'expires_at',
         RevokedAt: 'revoked_at',
         Client: 'client',
+        Identifier: 'identifier',
         Secret: 'secret',
         Name: 'name',
         Description: 'description',
@@ -25,20 +26,20 @@ export const InternalKeys = Object.freeze({
         Status: 'status',
         Scope: 'scope'
     }),
-    Access: Object.freeze({
-        Find: 'find',
-        Get: 'get',
-        Create: 'create',
-        Update: 'update',
-        Destroy: 'destroy',
-        Run: 'run',
-        Manage: 'manage'
-    }),
     Pointers: Object.freeze({
         LegacyClassName: 'className',
         ClassName: 'class_name',
         Attributes: 'attributes'
-    })
+    }),
+    ClientStatus: {
+        Active: 'active',
+        Inactive: 'inactive'
+    },
+    Middleware: {
+        AccessToken: 'accessToken',
+        User: 'user',
+        Result: 'result'
+    }
 });
 
 export const Defaults = Object.freeze({
@@ -48,3 +49,10 @@ export const Defaults = Object.freeze({
         Limit: 100
     })
 });
+
+export const AccessFind = 'find';
+export const AccessGet = 'get';
+export const AccessCreate = 'create';
+export const AccessUpdate = 'update';
+export const AccessDestroy = 'destroy';
+export const AccessRun = 'run';

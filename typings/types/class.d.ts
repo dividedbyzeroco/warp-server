@@ -10,7 +10,6 @@ export declare type ClassFunctionsType = {
     get: (className: string) => typeof Class;
 };
 export declare type ClassOptionsType = {
-    metadata?: MetadataType;
     currentUser?: any;
     keys?: {
         [name: string]: any;
@@ -35,14 +34,12 @@ export declare type QueryOptionsType = {
 export declare type QueryGetOptionsType = {
     currentUser?: User;
     select?: Array<string>;
+    where?: ConstraintMap;
     include?: Array<string>;
     id: number;
 };
 export declare type MetadataType = {
-    sessionToken?: string;
-    client?: string;
-    sdkVersion?: string;
-    appVersion?: string;
+    accessToken?: string;
     isMaster?: boolean;
 };
 export declare type PointerObjectType = {

@@ -1,6 +1,7 @@
 import express from 'express';
 import WarpServer from '../index';
 import FunctionController from '../controllers/function';
+import { InternalKeys } from '../utils/constants';
 
 /**
  * Define router
@@ -21,18 +22,16 @@ const functions = (api: WarpServer): express.Router => {
      */
     router.post('/functions/:functionName', async (req, res, next) => {
         // Get parameters
-        const Warp = req.Warp;
-        const metadata = req.metadata;
-        const currentUser = req.currentUser;
         const { functionName } = req.params;
+        const user = req[InternalKeys.Middleware.User];
         const keys = req.body;
 
         try {
             // Run function
-            const result = await controller.run({ Warp, metadata, currentUser, functionName, keys });
+            const result = await controller.run({ functionName, keys, user });
 
             // Return response
-            req.result = result;
+            req[InternalKeys.Middleware.Result] = result;
             api.response.success(req, res, next);
         }
         catch(err) {

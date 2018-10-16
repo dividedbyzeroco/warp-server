@@ -104,7 +104,7 @@ export default class DatabaseClient {
 
     async _connect(): Promise<mysql.PoolConnection> {
         // Create a promise connect method
-        const onConnect = new Promise((resolve, reject) => {
+        const onConnect: Promise<mysql.PoolConnection> = new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {
                 if(err) return reject(err);
                 resolve(connection);

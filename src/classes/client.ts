@@ -1,3 +1,4 @@
+import uniqid from 'uniqid';
 import Class from './class';
 import Key from './key';
 import { InternalKeys } from '../utils/constants';
@@ -6,6 +7,10 @@ export default class Client extends Class {
 
     static get className(): string {
         return InternalKeys.Auth.Session;
+    }
+
+    static get identifierKey(): string {
+        return InternalKeys.Auth.Identifier;
     }
 
     static get secretKey(): string {
@@ -34,6 +39,7 @@ export default class Client extends Class {
 
     static get keys(): Array<any> {
         return [
+            this.identifierKey,
             this.secretKey,
             this.nameKey,
             this.descriptionKey,
@@ -41,6 +47,10 @@ export default class Client extends Class {
             Key(this.scopeKey).asJSON(),
             this.statusKey
         ];
+    }
+
+    set identifier(value: string) {
+        this.set(this.statics<typeof Client>().identifierKey, value);
     }
     
     set secret(value: string) {
@@ -62,6 +72,10 @@ export default class Client extends Class {
     set status(value: string) {
         this.set(this.statics<typeof Client>().statusKey, value);
     }
+
+    get identifier(): string {
+        return this.get(this.statics<typeof Client>().identifierKey);
+    }
     
     get secret(): string {
         return this.get(this.statics<typeof Client>().secretKey);
@@ -79,11 +93,14 @@ export default class Client extends Class {
         return this.get(this.statics<typeof Client>().typeKey);
     }
 
-    get scope(): any {
-        return this.get(this.statics<typeof Client>().scopeKey);
-    }
-
     get status(): string {
         return this.get(this.statics<typeof Client>().statusKey);
+    }
+
+    async beforeSave() {
+        if(this.isNew) {
+            this.identifier = uniqid();
+            this.status = InternalKeys.ClientStatus.Active;
+        }
     }
 }

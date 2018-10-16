@@ -1,8 +1,9 @@
 import WarpServer from '../index';
 import Class from '../classes/class';
-import ClassCollection from '../utils/class-collection';
+import User from '../classes/user';
+import Collection from '../utils/collection';
 import Error from '../utils/error';
-import { Defaults } from '../utils/constants';
+import { Defaults, AccessFind, AccessGet, AccessCreate, AccessUpdate, AccessDestroy } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
 import { 
     GetOptionsType, 
@@ -11,6 +12,8 @@ import {
     UpdateOptionsType, 
     DestroyOptionsType 
 } from '../types/classes';
+import { AccessType } from '../types/scope';
+import Query from '../classes/query';
 
 export default class ClassController {
 
@@ -19,93 +22,102 @@ export default class ClassController {
     constructor(api: WarpServer) {
         this._api = api;
     }
+    
+    async checkAccess(user: User | null, classType: typeof Class, action: AccessType, where: ConstraintMap) {
+        // Return the where clause if user is null
+        // TODO: Prevent anonymous requests unless explicitly stated
+        if(user === null) return where;
 
-    async find({ className, select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<ClassCollection<Class>> {
-        // Parse subqueries
-        where = this._api.parseSubqueries(where);
-    
-        // Prepare query
-        const query = {
-            select,
-            include,
-            where: new ConstraintMap(where),
-            sort: sort || Defaults.Query.Sort,
-            skip: skip || Defaults.Query.Skip,
-            limit: limit || Defaults.Query.Limit
-        };
-    
+        // Apply role
+        const roleClass = this._api.roles.get(user.role);
+        const role = new roleClass;
+
+        // Set the current user
+        role.setUser(user); 
+
+        // Get accessibility
+        const accessibility = await role.can(action, classType, where);
+        
+        return accessibility;
+    }
+
+    async find({ user, className, select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<Collection<Class>> {
         // Get class
         const classType = this._api.classes.get(className);
+        
+        // Parse subqueries
+        where = this._api.parseSubqueries(where);
+
+        // Prepare query
+        const query = new Query(classType);
+
+        // Set options
+        if(typeof select !== 'undefined') query.select(select);
+        if(typeof include !== 'undefined') query.include(include);
+        if(typeof sort !== 'undefined') query._sort = sort;
+        if(typeof skip !== 'undefined') query.skip(skip);
+        if(typeof limit !== 'undefined') query.limit(limit);
+        if(typeof where !== 'undefined') query._where = new ConstraintMap(where);
     
         // Find matching objects
-        const classCollection = await classType.find(query);
+        const classCollection = await this._api._repository.find(query);
     
         // Return collection
         return classCollection;
     }
     
-    async get({ className, id, select, include }: GetOptionsType): Promise<Class> {
-        // Prepare query
-        const query = {
-            select: select || [],
-            include: include || [],
-            id
-        };
-    
+    async get({ user, className, id, select, include }: GetOptionsType): Promise<Class> {
         // Get class
         const classType = this._api.classes.get(className);
     
         // Find matching objects
-        const classInstance = await classType.getById(query);
+        const classInstance = await this._api._repository.getById(classType, id, select, include);
     
         // Check if class is found
-        if(typeof classInstance === 'undefined')
+        if(classInstance === null)
             throw new Error(Error.Code.ForbiddenOperation, `Object \`${classType.className}\` with id \`${id}\` not found`);
     
         // Return the class
         return classInstance;
     }
     
-    async create({ Warp, metadata, currentUser, className, keys }: CreateOptionsType): Promise<Class> {
+    async create({ user, className, keys }: CreateOptionsType): Promise<Class> {
         // Get class
         const classType = this._api.classes.get(className);
-        const classInstance = new classType({ metadata, currentUser, keys });
 
-        // Bind Warp
-        classInstance.bindSDK(Warp);
-    
-        // Save the object
-        await classInstance.save();
+        // Prepare instance
+        const classInstance = new classType({ keys });
+
+        // Save the instance
+        await this._api._repository.save(classInstance);
     
         // Return the class
         return classInstance;
     }
     
-    async update({ Warp, metadata, currentUser, className, keys, id }: UpdateOptionsType): Promise<Class> {
+    async update({ user, className, keys, id }: UpdateOptionsType): Promise<Class> {
         // Get class
         const classType = this._api.classes.get(className);
-        const classInstance = new classType({ metadata, currentUser, keys, id });
 
-        // Bind Warp
-        classInstance.bindSDK(Warp);
+        // Prepare instance
+        const classInstance = new classType({ keys, id });
     
-        // Save the object
-        await classInstance.save();
+        // Save the instance
+        await this._api._repository.save(classInstance);
     
         // Return the class
         return classInstance;
     }
     
-   async destroy({ Warp, metadata, currentUser, className, id }: DestroyOptionsType): Promise<Class> {
+   async destroy({ user, className, id }: DestroyOptionsType): Promise<Class> {
         // Get class
         const classType = this._api.classes.get(className);
-        const classInstance = new classType({ metadata, currentUser, id });
 
-        // Bind Warp
-        classInstance.bindSDK(Warp);
+        // Prepare instance
+        const classInstance = new classType({ id });
     
-        // Destroy the object
-        await classInstance.destroy();
+        // Destroy the instance
+        await this._api._repository.destroy(classInstance);
     
         // Return the class
         return classInstance;
