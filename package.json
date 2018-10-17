@@ -35,11 +35,11 @@
     "cors": "^2.7.1",
     "enforce-js": "^1.2.7",
     "express": "^4.13.4",
-    "limiter": "^1.1.2",
     "mysql": "^2.14.1",
     "parse-url": "^3.0.2",
     "promise": "^7.1.1",
     "random-token-generator": "^1.0.2",
+    "reflect-metadata": "^0.1.12",
     "uniqid": "^4.1.1",
     "warp-sdk-js": "^5.9.0"
   },

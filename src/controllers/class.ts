@@ -1,9 +1,8 @@
 import WarpServer from '../index';
 import Class from '../classes/class';
-import User from '../classes/user';
+import User from '../classes/auth/user';
 import Collection from '../utils/collection';
 import Error from '../utils/error';
-import { Defaults, AccessFind, AccessGet, AccessCreate, AccessUpdate, AccessDestroy } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
 import { 
     GetOptionsType, 
@@ -44,9 +43,6 @@ export default class ClassController {
     async find({ user, className, select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<Collection<Class>> {
         // Get class
         const classType = this._api.classes.get(className);
-        
-        // Parse subqueries
-        where = this._api.parseSubqueries(where);
 
         // Prepare query
         const query = new Query(classType);
@@ -60,7 +56,7 @@ export default class ClassController {
         if(typeof where !== 'undefined') query._where = new ConstraintMap(where);
     
         // Find matching objects
-        const classCollection = await this._api._repository.find(query);
+        const classCollection = await this._api.classes.find(query);
     
         // Return collection
         return classCollection;
@@ -71,7 +67,7 @@ export default class ClassController {
         const classType = this._api.classes.get(className);
     
         // Find matching objects
-        const classInstance = await this._api._repository.getById(classType, id, select, include);
+        const classInstance = await this._api.classes.getById(classType, id, select, include);
     
         // Check if class is found
         if(classInstance === null)
@@ -89,7 +85,7 @@ export default class ClassController {
         const classInstance = new classType({ keys });
 
         // Save the instance
-        await this._api._repository.save(classInstance);
+        await this._api.classes.save(classInstance);
     
         // Return the class
         return classInstance;
@@ -103,7 +99,7 @@ export default class ClassController {
         const classInstance = new classType({ keys, id });
     
         // Save the instance
-        await this._api._repository.save(classInstance);
+        await this._api.classes.save(classInstance);
     
         // Return the class
         return classInstance;
@@ -117,7 +113,7 @@ export default class ClassController {
         const classInstance = new classType({ id });
     
         // Destroy the instance
-        await this._api._repository.destroy(classInstance);
+        await this._api.classes.destroy(classInstance);
     
         // Return the class
         return classInstance;

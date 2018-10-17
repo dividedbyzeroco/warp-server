@@ -1,10 +1,10 @@
 import enforce from 'enforce-js';
 import Class from './class';
+import Pointer from './pointer';
 import ConstraintMap, { Constraints } from '../utils/constraint-map';
 import { toDatabaseDate } from '../utils/format';
 import Error from '../utils/error';
 import { InternalKeys, Defaults } from '../utils/constants';
-import { Pointer } from './pointer';
 import KeyMap from '../utils/key-map';
 import CompoundKey from '../utils/compound-key';
 
@@ -17,6 +17,7 @@ export default class Query<T extends typeof Class> {
     _sort: Array<string> = Defaults.Query.Sort;
     _skip: number = Defaults.Query.Skip;
     _limit: number = Defaults.Query.Limit;
+    _isSubquery: boolean = false;
 
     constructor(classType: T) {
         this._class = classType;
@@ -33,7 +34,7 @@ export default class Query<T extends typeof Class> {
         enforce`${{ key }} as a string`;
 
         // Check if the key exists for the class
-        if(!this._class.has(key))
+        if(!this.class.has(key))
             throw new Error(Error.Code.ForbiddenOperation, `The constraint key \`${key}\` does not exist`);
 
         // Convert to string if value is a date
@@ -42,6 +43,14 @@ export default class Query<T extends typeof Class> {
         // Set the constraint
         this._where.set(key, constraint, value);
         return this;
+    }
+
+    get SubqueryPrefix() {
+        return 'subquery_';
+    }
+
+    get class() {
+        return this._class;
     }
 
     /**
@@ -214,6 +223,7 @@ export default class Query<T extends typeof Class> {
      * @param {Object} value 
      */
     foundIn<U extends typeof Class>(key: string, select: string, value: Query<U>): this {
+        // Set constraint
         this.set(key, Constraints.FoundIn, value.toSubquery(select));
         return this;
     }
@@ -253,6 +263,7 @@ export default class Query<T extends typeof Class> {
      * @param {Object} value 
      */
     notFoundIn<U extends typeof Class>(key: string, select: string, value: Query<U>): this {
+        // Set constraint
         this.set(key, Constraints.NotFoundIn, value.toSubquery(select));
         return this;
     }
@@ -285,7 +296,7 @@ export default class Query<T extends typeof Class> {
             enforce`${{key}} as a string`;
 
             // Check if the key exists for the class
-            if(!this._class.has(key))
+            if(!this.class.has(key))
                 throw new Error(Error.Code.ForbiddenOperation, `The constraint key \`${key}\` does not exist`);
 
             this._select.push(key);
@@ -308,7 +319,7 @@ export default class Query<T extends typeof Class> {
             enforce`${{key}} as a string`;
 
             // Check if the key exists for the class
-            if(!this._class.has(key))
+            if(!this.class.has(key))
                 throw new Error(Error.Code.ForbiddenOperation, `The constraint key \`${key}\` does not exist`);
 
             this._include.push(key);
@@ -330,7 +341,7 @@ export default class Query<T extends typeof Class> {
             enforce`${{key}} as a string`;
 
             // Check if the key exists for the class
-            if(!this._class.has(key))
+            if(!this.class.has(key))
                 throw new Error(Error.Code.ForbiddenOperation, `The constraint key \`${key}\` does not exist`);
 
             this._sort.push(key);
@@ -352,7 +363,7 @@ export default class Query<T extends typeof Class> {
             enforce`${{key}} as a string`;
 
             // Check if the key exists for the class
-            if(!this._class.has(key))
+            if(!this.class.has(key))
                 throw new Error(Error.Code.ForbiddenOperation, `The constraint key \`${key}\` does not exist`);
 
             this._sort.push(`-${key}`);
@@ -385,13 +396,10 @@ export default class Query<T extends typeof Class> {
      * @param {String} select 
      */
     toSubquery(select: string) {
-        const classNameKey = this._class._supportLegacy? 
-            InternalKeys.Pointers.LegacyClassName
-            : InternalKeys.Pointers.ClassName;
-        const className = this._class.className;
-        const where = this._where.toJSON();
-
-        return { [classNameKey]: className, where, select };
+        this._select = [];
+        this.select(select);
+        this._isSubquery = true;
+        return this;
     }
 
     private getKeys() {
@@ -405,13 +413,13 @@ export default class Query<T extends typeof Class> {
 
         // If select is empty, use the default keys
         if(select.length === 0) {
-            select = [InternalKeys.Id, ...Object.keys(this._class._keys), ...Object.keys(this._class._timestamps)];
+            select = [InternalKeys.Id, ...Object.keys(this.class._keys), ...Object.keys(this.class._timestamps)];
         }
 
         // Iterate through the selected keys
         for(let key of select) {
             // If the key is an internal key
-            if(key === InternalKeys.Id || this._class._timestamps[key]) {
+            if(key === InternalKeys.Id || this.class._timestamps[key]) {
                 // Push the key
                 keys.push(key);
             }
@@ -421,9 +429,9 @@ export default class Query<T extends typeof Class> {
                 include.push(key);
             }
             // If it is a regular key and it exists
-            else if(typeof this._class._keys[key] !== 'undefined') {
+            else if(typeof this.class._keys[key] !== 'undefined') {
                 // Get key name
-                const keyName = this._class._keys[key];
+                const keyName = this.class._keys[key];
                 
                 // If they key provided is a pointer (foreign key without '.')
                 if(keyName instanceof Pointer) {
@@ -440,52 +448,52 @@ export default class Query<T extends typeof Class> {
                 else keys.push(key);
             }
             else
-                throw new Error(Error.Code.ForbiddenOperation, `Select key \`${key}\` does not exist in \`${this._class.className}\``);
+                throw new Error(Error.Code.ForbiddenOperation, `Select key \`${key}\` does not exist in \`${this.class.className}\``);
         }
         
         // Check include keys
         for(let key of include) {
             // Validate key
-            this._class.hasPointer(key);
+            this.class.has(key);
 
             // Add it to the select keys and included joins
             keys.push(key);
             includedJoins[Pointer.getAliasFrom(key)] = true;
 
             // If the key is from a secondary join, add the parent join
-            const join = this._class._joins[Pointer.getAliasFrom(key)];
+            const join = this.class._joins[Pointer.getAliasFrom(key)];
             if(join.isSecondary) {
                 includedJoins[join.parentAliasKey] = true;
             }
         }
 
         // Create joins
-        const joins = Object.keys(this._class._joins).reduce((map, key) => {
+        const joins = Object.keys(this.class._joins).reduce((map, key) => {
             // Get join 
-            const join = this._class._joins[key];
+            const join = this.class._joins[key];
             map[key] = { join, included: includedJoins[key] };
             return map;
         }, {});
 
-        return { keys, joins };
+        return { select: keys, joins };
     }
 
-    private getConstraints() {
+    private getConstraints(prefix: string = '') {
         // Create a new instance of where
         const where = new ConstraintMap(this._where.toJSON());
 
         // Iterate through keys
         for(let key of where.getKeys()) {
             // Check if key exists
-            if(!this._class.has(key))
+            if(!this.class.has(key))
                 throw new Error(Error.Code.ForbiddenOperation, `The constraint key \`${key}\` does not exist`);
 
             // Check if key is compound
             if(CompoundKey.isUsedBy(key)) {
-                const keys = CompoundKey.from(key).map(k => this._class.getConstraintKey(k));
+                const keys = CompoundKey.from(key).map(k => prefix + this.class.getConstraintKey(k));
                 where.changeKey(key, keys.join(CompoundKey.Delimiter));
             }
-            else where.changeKey(key, this._class.getConstraintKey(key));
+            else where.changeKey(key, prefix + this.class.getConstraintKey(key));
         }
 
         return where;
@@ -501,12 +509,12 @@ export default class Query<T extends typeof Class> {
         // Iterate through each sort
         for(let key of sort) {
             // Check if key exists
-            if(!this._class.has(key.replace('-', '')))
+            if(!this.class.has(key.replace('-', '')))
                 throw new Error(Error.Code.ForbiddenOperation, `The sort key \`${key}\` does not exist`);
 
             // Add className to sort key if it is not a pointer
             if(!Pointer.isUsedBy(key))
-                key = `${key.indexOf('-') >= 0? '-' : ''}${this._class.className}.${key.replace('-', '')}`;
+                key = `${key.indexOf('-') >= 0? '-' : ''}${this.class.className}.${key.replace('-', '')}`;
             
             // Push the key
             sorting.push(key);
@@ -525,23 +533,29 @@ export default class Query<T extends typeof Class> {
         keys.remove(InternalKeys.Id);
 
         // Return the new class
-        return <T>(new this._class({ keyMap: keys, id, createdAt, updatedAt }));
+        return <T>(new this.class({ keyMap: keys, id, createdAt, updatedAt }));
     }
 
     toQueryOptions() {
+        // Get prefix
+        const prefix = this._isSubquery? this.SubqueryPrefix : '';
+
+        // Get class alias
+        const classAlias = prefix + this.class.className;
+
         // Get keys and joins
-        const { keys, joins } = this.getKeys();
+        const { select, joins } = this.getKeys();
 
         // Get where constraints
-        const where = this.getConstraints();
+        const where = this.getConstraints(prefix);
 
         // Get sorting
         const sorting = this.getSorting();
 
         return {
-            source: this._class.source,
-            className: this._class.className,
-            keys,
+            source: this.class.source,
+            classAlias,
+            select,
             joins,
             where,
             sorting,

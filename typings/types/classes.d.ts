@@ -1,5 +1,5 @@
+import { User } from '..';
 export declare type FindOptionsType = {
-    accessToken: string;
     className: string;
     select?: Array<string>;
     include?: Array<string>;
@@ -8,36 +8,35 @@ export declare type FindOptionsType = {
             [name: string]: any;
         };
     };
-    sort?: Array<string | {
-        [name: string]: any;
-    }>;
+    sort?: Array<string>;
     skip?: number;
     limit?: number;
+    user: User | null;
 };
 export declare type GetOptionsType = {
-    accessToken: string;
     className: string;
     id: number;
     select?: Array<string>;
     include?: Array<string>;
+    user: User | null;
 };
 export declare type CreateOptionsType = {
-    accessToken: string;
     className: string;
     keys: {
         [name: string]: any;
     };
+    user: User | null;
 };
 export declare type UpdateOptionsType = {
-    accessToken: string;
     className: string;
     id: number;
     keys: {
         [name: string]: any;
     };
+    user: User | null;
 };
 export declare type DestroyOptionsType = {
-    accessToken: string;
     className: string;
     id: number;
+    user: User | null;
 };

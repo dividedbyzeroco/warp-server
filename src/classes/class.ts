@@ -1,13 +1,11 @@
-import { KeyManager } from './key';
+import { KeyManager } from './keys/key';
 import Error from '../utils/error';
 import KeyMap from '../utils/key-map';
 import { toCamelCase, toISODate } from '../utils/format'; 
 import { InternalKeys } from '../utils/constants';
-import ConstraintMap from '../utils/constraint-map';
 import { getPropertyDescriptor } from '../utils/props';
-import { FindOptionsType, SubqueryOptionsType } from '../types/database';
 import { ClassOptionsType } from '../types/class';
-import { Pointer } from './pointer';
+import Pointer from './pointer';
 import CompoundKey from '../utils/compound-key';
 
 export default class Class {
@@ -20,7 +18,7 @@ export default class Class {
     static _timestamps: {[name: string]: boolean};
     _isNew: boolean = true;
     _id: number;
-    _keyMap: KeyMap = new KeyMap();
+    _keyMap: KeyMap = new KeyMap;
     _isPointer: boolean;
 
     /**
@@ -66,6 +64,30 @@ export default class Class {
         // Check if class is a pointer
         this._isPointer = isPointer;
     }
+
+    /**
+     * Class definition decorator
+     * @description Defines and initializes the class
+     * @param {String} className 
+     * @param {String} source
+     */
+    static of(className: string, source?: string) {
+        return <T extends { new(...args: any[]): Class }>(constructor: T) => {
+            class definedClass extends constructor {
+                static get className() {
+                    return className;
+                }
+
+                static get source() {
+                    return source || this.className;
+                }
+            };
+
+            definedClass['initialize']();
+            return definedClass;
+        };
+    }
+
 
     /**
      * Initialize
@@ -206,10 +228,6 @@ export default class Class {
         return this as T;
     }
 
-    static get isClass(): boolean {
-        return true;
-    }
-
     static get className(): string {
         throw new Error(Error.Code.MissingConfiguration, 
             'Classes extended from `Class` must define a static getter for className');
@@ -233,32 +251,6 @@ export default class Class {
 
     static get supportLegacy(): boolean {
         return this._supportLegacy;
-    }
-
-    /**
-     * Get subquery
-     */
-    static getSubquery({ where, select }: SubqueryOptionsType): FindOptionsType {
-        // Get class alias
-        const classAlias = `subquery_${this.className}`;
-
-        // Get subquery constraints
-        const constraints = new ConstraintMap(where);
-        
-        // Get query keys
-        const { keys, joins } = this._getQueryKeys([select], []);
-
-        // Check constraints
-        this._checkQueryConstraints(constraints, classAlias);
-
-        // Return subquery
-        return {
-            classAlias,
-            source: this.source,
-            select: keys,
-            joins,
-            where: constraints
-        };
     }
 
     /**
@@ -312,7 +304,7 @@ export default class Class {
      * @param {String} key
      */
     static getConstraintKey(key: string) {
-        // Check if the key is an id for a pointer
+        // Check if the key is for a pointer
         if(Pointer.isUsedBy(key)) {
             // Get alias and join
             const alias = Pointer.getAliasFrom(key);

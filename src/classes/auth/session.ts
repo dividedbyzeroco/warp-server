@@ -1,8 +1,8 @@
-import Class from './class';
+import Class from '../class';
 import User from './user';
 import Client from './client';
-import Key from './key';
-import { InternalKeys } from '../utils/constants';
+import Key from '../keys/key';
+import { InternalKeys } from '../../utils/constants';
 
 export default class Session extends Class {
 

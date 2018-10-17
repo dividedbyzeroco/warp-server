@@ -1,7 +1,7 @@
 import uniqid from 'uniqid';
-import Class from './class';
-import Key from './key';
-import { InternalKeys } from '../utils/constants';
+import Class from '../class';
+import Key from '../keys/key';
+import { InternalKeys } from '../../utils/constants';
 
 export default class Client extends Class {
 

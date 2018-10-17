@@ -1,4 +1,4 @@
-import { Pointer } from '../classes/pointer';
+import Pointer from '../classes/pointer';
 import KeyMap from '../utils/key-map';
 import ConstraintMap from '../utils/constraint-map';
 export interface IDatabaseAdapter {

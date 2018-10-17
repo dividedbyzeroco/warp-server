@@ -1,10 +1,10 @@
 import { InternalKeys } from '../utils/constants';
-import Error from '../utils/error';
-import { Class } from '..';
 import { PointerObjectType } from '../types/class';
+import Class from './class';
+import Error from '../utils/error';
 import KeyMap from '../utils/key-map';
 
-export class Pointer {
+export default class Pointer {
 
     _class: typeof Class;
     _aliasKey: string;

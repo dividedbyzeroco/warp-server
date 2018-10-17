@@ -77,27 +77,6 @@ export default class ConstraintMap {
     get(key: string): KeyConstraints;
     getKeys(): Array<string>;
     getConstraints(key: string): Array<Object>;
-    equalTo(key: string, value: any): void;
-    notEqualTo(key: string, value: any): void;
-    greaterThan(key: string, value: any): void;
-    greaterThanOrEqualTo(key: string, value: any): void;
-    lessThan(key: string, value: any): void;
-    lessThanOrEqualTo(key: string, value: any): void;
-    exists(key: string): void;
-    doesNotExist(key: string): void;
-    containedIn(key: string, value: Array<any>): void;
-    notContainedIn(key: string, value: Array<any>): void;
-    containedInOrDoesNotExist(key: string, value: Array<any>): void;
-    startsWith(key: string, value: string): void;
-    endsWith(key: string, value: string): void;
-    contains(key: string, value: string): void;
-    containsEither(key: string, value: Array<string>): void;
-    containsAll(key: string, value: Array<string>): void;
-    foundIn(key: string, value: Object): void;
-    foundInEither(key: string, value: Object): void;
-    foundInAll(key: string, value: Object): void;
-    notFoundIn(key: string, value: Object): void;
-    notFoundInEither(key: string, value: Object): void;
     toList(): KeyConstraints[];
     toJSON(): {};
 }

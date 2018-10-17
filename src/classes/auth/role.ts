@@ -1,9 +1,9 @@
-import Error from '../utils/error';
+import Error from '../../utils/error';
 import Scope from './scope';
-import { AccessMapType, AccessType } from '../types/scope';
-import { Class, Function, User } from '..';
-import ConstraintMap from '../utils/constraint-map';
-import { AccessFind, AccessGet, AccessCreate, AccessUpdate, AccessDestroy, AccessRun } from '../utils/constants';
+import { AccessMapType, AccessType } from '../../types/scope';
+import { Class, Function, User } from '../..';
+import ConstraintMap from '../../utils/constraint-map';
+import { AccessFind, AccessGet, AccessCreate, AccessUpdate, AccessDestroy, AccessRun } from '../../utils/constants';
 
 export default class Role {
 

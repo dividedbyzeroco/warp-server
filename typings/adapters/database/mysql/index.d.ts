@@ -1,7 +1,7 @@
 import Client from './client';
 import KeyMap from '../../../utils/key-map';
 import ConstraintMap from '../../../utils/constraint-map';
-import { DatabaseConfigType, FindOptionsType, IDatabaseAdapter, JoinKeyType } from '../../../types/database';
+import { DatabaseConfigType, IDatabaseAdapter, JoinKeyType } from '../../../types/database';
 export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
     /**
      * Private properties
@@ -18,6 +18,9 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
      */
     readonly currentTimestamp: string;
     initialize(): Promise<void>;
+    private regularEscape;
+    private collectionEscape;
+    private subqueryEscape;
     mapConstraint(key: string, constraint: string, value: any): string;
     /**
      * Generate Find Statement
@@ -30,13 +33,13 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
      * @param {KeyMap} where
      * @param {boolean} isSubquery
      */
-    _generateFindClause({ source, classAlias, select, joins, where }: FindOptionsType): string;
+    private generateFindClause;
     /**
      * Generate Sorting
      * @param {String} className
      * @param {Array} sort
      */
-    _generateSortingClause(className: string, sort: Array<string>): string;
+    private generateSortingClause;
     /**
      * Map row keys into appropriate pointers
      * @param {Object} row

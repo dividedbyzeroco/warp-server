@@ -56,7 +56,7 @@ const classes = (api: WarpServer): express.Router => {
             api.response.success(req, res, next);
         }
         catch(err) {
-            api._log.error(err, `Could not find the objects for \`${className}\`: ${err.message}`);
+            api.logger.error(err, `Could not find the objects for \`${className}\`: ${err.message}`);
             api.response.error(err, req, res, next);
         }
     });
@@ -91,7 +91,7 @@ const classes = (api: WarpServer): express.Router => {
             api.response.success(req, res, next);
         }
         catch(err) {
-            api._log.error(err, `Could not find the object for \`${className}\`: ${err.message}`);
+            api.logger.error(err, `Could not find the object for \`${className}\`: ${err.message}`);
             api.response.error(err, req, res, next);
         }
     });
@@ -114,7 +114,7 @@ const classes = (api: WarpServer): express.Router => {
             api.response.success(req, res, next);
         }
         catch(err) {
-            api._log.error(err, `Could not create the object for \`${className}\`: ${err.message}`);
+            api.logger.error(err, `Could not create the object for \`${className}\`: ${err.message}`);
             api.response.error(err, req, res, next);
         }
     });
@@ -137,7 +137,7 @@ const classes = (api: WarpServer): express.Router => {
             api.response.success(req, res, next);
         }
         catch(err) {
-            api._log.error(err, `Could not update the object for \`${className}\`: ${err.message}`);
+            api.logger.error(err, `Could not update the object for \`${className}\`: ${err.message}`);
             api.response.error(err, req, res, next);
         }
     });
@@ -159,7 +159,7 @@ const classes = (api: WarpServer): express.Router => {
             api.response.success(req, res, next);
         }
         catch(err) {
-            api._log.error(err, `Could not destroy the object for \`${className}\`: ${err.message}`);
+            api.logger.error(err, `Could not destroy the object for \`${className}\`: ${err.message}`);
             api.response.error(err, req, res, next);
         }
     });

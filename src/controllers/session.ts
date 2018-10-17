@@ -1,5 +1,5 @@
 import WarpServer from '../index';
-import Session from '../classes/session';
+import Session from '../classes/auth/session';
 import Collection from '../utils/collection';
 import { Defaults } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
@@ -17,13 +17,10 @@ export default class SessionController {
         this._api = api;
     }
 
-    async find({ metadata, select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<Collection<Session>> {
+    async find({ select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<Collection<Session>> {
         // Validate master access
         if(!metadata.isMaster)
             throw new Error(Error.Code.ForbiddenOperation, 'Only masters can access sessions');
-        
-        // Parse subqueries
-        where = this._api.parseSubqueries(where);
     
         // Prepare query
         const query = {
@@ -45,7 +42,7 @@ export default class SessionController {
         return classCollection;
     }
     
-    async get({ metadata, id, select, include }: GetOptionsType): Promise<Session> {
+    async get({ id, select, include }: GetOptionsType): Promise<Session> {
         // Validate master access
         if(!metadata.isMaster)
             throw new Error(Error.Code.ForbiddenOperation, 'Only masters can access sessions');

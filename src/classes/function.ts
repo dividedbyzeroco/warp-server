@@ -1,5 +1,5 @@
 import { Warp } from 'warp-sdk-js';
-import User from './user';
+import User from './auth/user';
 import { toCamelCase } from '../utils/format';
 import KeyMap from '../utils/key-map';
 import Error from '../utils/error';

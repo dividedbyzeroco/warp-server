@@ -5,6 +5,19 @@ export const InternalKeys = Object.freeze({
         UpdatedAt: 'updated_at',
         DeletedAt: 'deleted_at'
     }),
+    Middleware: Object.freeze({
+        ApiKey: 'X-Warp-API-Key',
+        MasterKey: 'X-Warp-Master-Key',
+        AccessToken: 'accessToken',
+        User: 'user',
+        Result: 'result',
+        DataMapper: 'classes'
+    }),
+    Pointers: Object.freeze({
+        LegacyClassName: 'className',
+        ClassName: 'class_name',
+        Attributes: 'attributes'
+    }),
     Auth: Object.freeze({
         User: 'user',
         Username: 'username',
@@ -26,20 +39,10 @@ export const InternalKeys = Object.freeze({
         Status: 'status',
         Scope: 'scope'
     }),
-    Pointers: Object.freeze({
-        LegacyClassName: 'className',
-        ClassName: 'class_name',
-        Attributes: 'attributes'
-    }),
-    ClientStatus: {
+    ClientStatus: Object.freeze({
         Active: 'active',
         Inactive: 'inactive'
-    },
-    Middleware: {
-        AccessToken: 'accessToken',
-        User: 'user',
-        Result: 'result'
-    }
+    })
 });
 
 export const Defaults = Object.freeze({

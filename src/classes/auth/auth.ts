@@ -1,13 +1,13 @@
 import bcrypt from 'bcryptjs';
 import rtg from 'random-token-generator';
 import uniqid from 'uniqid';
-import { CredentialsType } from '../types/auth';
+import { CredentialsType } from '../../types/auth';
 import User from './user';
 import Session from './session';
 import Client from './client';
-import ConstraintMap from '../utils/constraint-map';
-import { InternalKeys } from '../utils/constants';
-import { addToDate } from '../utils/format';
+import ConstraintMap from '../../utils/constraint-map';
+import { InternalKeys } from '../../utils/constants';
+import { addToDate } from '../../utils/format';
 
 export default class Auth {
     /**

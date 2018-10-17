@@ -1,6 +1,4 @@
-import { MetadataType } from './class';
 export declare type FindOptionsType = {
-    metadata: MetadataType;
     select?: Array<string>;
     include?: Array<string>;
     where?: {
@@ -15,7 +13,6 @@ export declare type FindOptionsType = {
     limit?: number;
 };
 export declare type GetOptionsType = {
-    metadata: MetadataType;
     id: number;
     select?: Array<string>;
     include?: Array<string>;

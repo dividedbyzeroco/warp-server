@@ -1,5 +1,5 @@
 export const toCamelCase = (value: string) => {
-    return value.replace(/_\w/g, (word) => word[1].toUpperCase());
+    return value.replace(/_\w/g, word => word[1].toUpperCase());
 };
 
 export const toPascalCase = (value: string) => {
@@ -7,6 +7,10 @@ export const toPascalCase = (value: string) => {
     value = value[0].toUpperCase() + value.slice(1);
     return value;
 };
+
+export const toSnakeCase = (value: string) => {
+    return value.replace(/\.?([A-Z]+)/g, word => '_' + word.toLowerCase()).replace(/^_/, '');
+}
 
 export const toDatabaseDate = (value: string) => {
     return (new Date(value)).toISOString().slice(0, 19).replace('T', ' ');

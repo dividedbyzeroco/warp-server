@@ -1,9 +1,9 @@
-import Error from '../utils/error';
-import Class from './class';
-import Function from './function';
-import { AccessMapType, AccessType, ClassScopeCheckerType, FunctionScopeCheckerType, AccessClassType, AccessFunctionType } from '../types/scope';
-import { AccessFind, AccessGet, AccessCreate, AccessUpdate, AccessDestroy, AccessRun } from '../utils/constants';
-import ConstraintMap from '../utils/constraint-map';
+import Error from '../../utils/error';
+import Class from '../class';
+import Function from '../function';
+import { AccessMapType, AccessType, ClassScopeCheckerType, FunctionScopeCheckerType, AccessClassType, AccessFunctionType } from '../../types/scope';
+import { AccessFind, AccessGet, AccessCreate, AccessUpdate, AccessDestroy, AccessRun } from '../../utils/constants';
+import ConstraintMap from '../../utils/constraint-map';
 import { getHeapStatistics } from 'v8';
 
 export class AccessDefinition {

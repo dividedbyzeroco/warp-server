@@ -1,12 +1,16 @@
+import enforce from 'enforce-js';
 import { IDatabaseAdapter } from '../types/database';
 import Class from './class';
 import Query from './query';
 import Collection from '../utils/collection';
+import Error from '../utils/error';
 import { InternalKeys } from '../utils/constants';
+import { ClassMapType } from '../types/class';
 
-export default class Repository {
+export default class DataMapper {
 
     _database: IDatabaseAdapter;
+    _classes: ClassMapType = {};
 
     constructor(database: IDatabaseAdapter) {
         this._database = database;
@@ -20,15 +24,52 @@ export default class Repository {
     }
 
     /**
+     * Register classes to data mapper
+     * @param classMap
+     */
+    register(classMap: ClassMapType) {
+        // Iterate through class map
+        for(const [className, classType] of Object.entries(classMap)) {
+            // Make a sample instance
+            const sampleInstance = new classType;
+
+            // Check data type
+            enforce`${{ [className]: sampleInstance }} as a ${{ Class }}`;
+
+            // Add to classes
+            this._classes[classType.className] = classType;
+        }
+    }
+
+    /**
+     * Get class from registry
+     * @param className
+     */
+    get(className: string) {
+        // Get class
+        const classType = this._classes[className];
+
+        // Check if class exists
+        if(typeof classType === 'undefined')
+            throw new Error(Error.Code.MissingConfiguration, `Class '${className}' has not been registered`);
+
+        // Return class
+        return classType;
+    }
+
+    /**
      * Find objects
      * @param Query
      */
     async find<T extends typeof Class>(query: Query<T>): Promise<Collection<T['prototype']>> {
+        // Validate instance
+        enforce`${{ QueryToFind: query }} as a ${{ Query }}`;
+
         // Get query options
         const {
             source,
-            className,
-            keys,
+            classAlias,
+            select,
             joins,
             where,
             sorting,
@@ -39,8 +80,8 @@ export default class Repository {
         // Execute find
         const result = await this._database.find(
             source, 
-            className, 
-            keys, 
+            classAlias, 
+            select, 
             joins,
             where,
             sorting, 
@@ -60,6 +101,9 @@ export default class Repository {
     }
 
     async first<T extends typeof Class>(query: Query<T>): Promise<T['prototype'] | null> {
+        // Validate instance
+        enforce`${{ QueryToFind: query }} as a ${{ Query }}`;
+
         // Limit to first item
         query.limit(1);
 
@@ -82,6 +126,9 @@ export default class Repository {
         select?: Array<string>, 
         include?: Array<string>
     ): Promise<T['prototype'] | null> {
+        // Validate instance
+        const classInstance = new classType;
+        enforce`${{ ClassToGet: classInstance }} as a ${{ Class }}`;
         
         // Prepare query
         const query = new Query(classType)
@@ -93,8 +140,8 @@ export default class Repository {
         // Get parameters
         const { 
             source,
-            className,
-            keys, 
+            classAlias,
+            select: keys, 
             joins,
             where
         } = query.toQueryOptions();
@@ -102,7 +149,7 @@ export default class Repository {
         // Execute first
         const result = await this._database.get(
             source, 
-            className, 
+            classAlias, 
             keys, 
             joins,
             where,
@@ -121,6 +168,9 @@ export default class Repository {
      * @param classInstance
      */
     async save(classInstance: Class) {
+        // Validate instance
+        enforce`${{ ClassToSave: classInstance }} as a ${{ Class }}`;
+
         // Run beforeSave as master
         await classInstance.beforeSave();
 
@@ -149,6 +199,9 @@ export default class Repository {
      * @param classInstance
      */
     async destroy(classInstance: Class) {
+        // Validate instance
+        enforce`${{ ClassToDestroy: classInstance }} as a ${{ Class }}`;
+
         // Run beforeDestroy
         await classInstance.beforeDestroy();
 

@@ -1,5 +1,4 @@
 import Class from '../classes/class';
-import User from '../classes/user';
 import KeyMap from '../utils/key-map';
 import ConstraintMap from '../utils/constraint-map';
 export declare type ClassMapType = {
@@ -10,7 +9,6 @@ export declare type ClassFunctionsType = {
     get: (className: string) => typeof Class;
 };
 export declare type ClassOptionsType = {
-    currentUser?: any;
     keys?: {
         [name: string]: any;
     };
@@ -21,7 +19,6 @@ export declare type ClassOptionsType = {
     isPointer?: boolean;
 };
 export declare type QueryOptionsType = {
-    currentUser?: User;
     select?: Array<string>;
     include?: Array<string>;
     where: ConstraintMap;
@@ -32,15 +29,10 @@ export declare type QueryOptionsType = {
     limit: number;
 };
 export declare type QueryGetOptionsType = {
-    currentUser?: User;
     select?: Array<string>;
     where?: ConstraintMap;
     include?: Array<string>;
     id: number;
-};
-export declare type MetadataType = {
-    accessToken?: string;
-    isMaster?: boolean;
 };
 export declare type PointerObjectType = {
     type: string;

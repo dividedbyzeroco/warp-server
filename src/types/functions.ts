@@ -1,10 +1,8 @@
-import { Warp } from 'warp-sdk-js';
-import User from '../classes/user';
+import User from '../classes/auth/user';
 import Function from '../classes/function';
-import { MetadataType } from './class';
 
 export type FunctionOptionsType = {
-    user: User | null
+    user?: User | null
     keys?: {[name: string]: any}
 };
 

@@ -25,8 +25,8 @@ export default class Auth {
     saveClient<T extends Client>(name: string, description: string, scope: Array<string>): Promise<T>;
     getClient<T extends Client>(identifier: string): Promise<T | void>;
     saveSession(user: User, client: Client): Promise<void>;
-    getSession<T extends Session>(accessToken: string): Promise<void | T>;
-    refreshSession<T extends Session>(refreshToken: string): Promise<string>;
+    getSession<T extends Session>(accessToken: string): Promise<any>;
+    refreshSession<T extends Session>(refreshToken: string): Promise<any>;
     revokeSession<T extends Session>(refreshToken: string): Promise<void>;
-    getUser<T extends User>(accessToken: string): Promise<void | T>;
+    getUser<T extends User>(accessToken: string): Promise<any>;
 }

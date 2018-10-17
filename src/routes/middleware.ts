@@ -1,9 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { RateLimiter } from 'limiter';
 import Error from '../utils/error';
 import { WarpServer } from '../index';
+import { InternalKeys } from '../utils/constants';
 
 const middleware = (api: WarpServer) => {
     /**
@@ -26,13 +26,22 @@ const middleware = (api: WarpServer) => {
      * Require API Keys for all requests
      */
     router.use((req, res, next) => {
-        const key = req.get('X-Warp-API-Key');
+        const key = req.get(InternalKeys.Middleware.ApiKey);
 
         if(!key || key !== api.apiKey) {
             const error = new Error(Error.Code.InvalidAPIKey, 'Invalid API Key');
             next(error);
         }
         else next();
+    });
+
+    /**
+     * Add the data mapper to req.classes
+     */
+    router.use((req, res, next) => {
+        // Add the data mapper to the request
+        req[InternalKeys.Middleware.DataMapper] = api.classes;
+        next();
     });
 
     // Return the router

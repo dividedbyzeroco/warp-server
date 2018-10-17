@@ -1,5 +1,5 @@
 import WarpServer from '../index';
-import User from '../classes/user';
+import User from '../classes/auth/user';
 import Collection from '../utils/collection';
 import { Defaults } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';
@@ -21,9 +21,6 @@ export default class UserController {
     }
 
     async find({ select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<Collection<User>> {
-        // Parse subqueries
-        where = this._api.parseSubqueries(where);
-    
         // Prepare query
         const query = {
             select,

@@ -5,6 +5,19 @@ export declare const InternalKeys: Readonly<{
         UpdatedAt: string;
         DeletedAt: string;
     }>;
+    Middleware: Readonly<{
+        ApiKey: string;
+        MasterKey: string;
+        AccessToken: string;
+        User: string;
+        Result: string;
+        DataMapper: string;
+    }>;
+    Pointers: Readonly<{
+        LegacyClassName: string;
+        ClassName: string;
+        Attributes: string;
+    }>;
     Auth: Readonly<{
         User: string;
         Username: string;
@@ -26,15 +39,10 @@ export declare const InternalKeys: Readonly<{
         Status: string;
         Scope: string;
     }>;
-    Pointers: Readonly<{
-        LegacyClassName: string;
-        ClassName: string;
-        Attributes: string;
-    }>;
-    ClientStatus: {
+    ClientStatus: Readonly<{
         Active: string;
         Inactive: string;
-    };
+    }>;
 }>;
 export declare const Defaults: Readonly<{
     Query: Readonly<{

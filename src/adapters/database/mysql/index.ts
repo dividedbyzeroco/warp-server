@@ -6,7 +6,9 @@ import ConstraintMap, { Constraints } from '../../../utils/constraint-map';
 import { toDatabaseDate } from '../../../utils/format';
 import { DatabaseConfigType, FindOptionsType, IDatabaseAdapter, JoinKeyType } from '../../../types/database';
 import { ConstraintObject } from '../../../types/constraints';
-import { Pointer } from '../../../classes/pointer';
+import Pointer from '../../../classes/pointer';
+import Query from '../../../classes/query';
+import Class from '../../../classes/class';
 
 export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
 
@@ -38,6 +40,20 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         await this._client.initialize();
     }
 
+    private regularEscape(value: any) {
+        return this._client.escape(value);
+    }
+
+    private collectionEscape(value: any) {
+        return value.map(item => this.regularEscape(item)).join(', ');
+    }
+
+    private subqueryEscape<T extends typeof Class>(query: Query<T>) {
+        // Get query keys
+        const { classAlias, source, select, joins, where } = query.toQueryOptions();
+        return this.generateFindClause({ source, classAlias, select, joins, where });
+    }
+
     mapConstraint(key: string, constraint: string, value: any): string {
         // Escape key
         const escapedKey = key.indexOf('|') >= 0 ? 
@@ -47,9 +63,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
             : this._client.escapeKey(key);
 
         // Escape definitions
-        const regularEscape = value => this._client.escape(value);
-        const collectionEscape = value => value.map(item => regularEscape(item)).join(', ');
-        const subqueryEscape = (options: FindOptionsType) => this._generateFindClause(options);
+        const { regularEscape, collectionEscape, subqueryEscape } = this;
 
         // List of Constraints
         const constraints = {
@@ -96,7 +110,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
      * @param {KeyMap} where
      * @param {boolean} isSubquery 
      */
-    _generateFindClause({
+    private generateFindClause({
         source,
         classAlias,
         select,
@@ -140,7 +154,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         });
         
         // Remove deleted rows
-        where.doesNotExist(`${classAlias}${Pointer.Delimiter}${InternalKeys.Timestamps.DeletedAt}`);
+        where.set(InternalKeys.Timestamps.DeletedAt, Constraints.Exists, false);
 
         // Get constraints
         const constraints = where.toList()
@@ -161,7 +175,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
      * @param {String} className
      * @param {Array} sort
      */
-    _generateSortingClause(className: string, sort: Array<string>): string {
+    private generateSortingClause(className: string, sort: Array<string>): string {
         // Return sorting string
         return sort.map(keySort => {
             // Add the className to the key in order to avoid ambiguity
@@ -242,10 +256,10 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         limit: number
     ): Promise<Array<KeyMap>> {
         // Generate find clause
-        const findClause = this._generateFindClause({ source, classAlias: className, select, joins, where });
+        const findClause = this.generateFindClause({ source, classAlias: className, select, joins, where });
         
         // Generate sorting clause
-        const sortingClause = this._generateSortingClause(className, sort);
+        const sortingClause = this.generateSortingClause(className, sort);
         
         // Prepare script 
         const selectScript = `
@@ -276,11 +290,11 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         id: number
     ): Promise<KeyMap | null> {
         // Prepare where 
-        where.doesNotExist(InternalKeys.Timestamps.DeletedAt);
-        where.equalTo(InternalKeys.Id, id);
+        where.set(InternalKeys.Timestamps.DeletedAt, Constraints.Exists, false);
+        where.set(InternalKeys.Id, Constraints.EqualTo, id);
 
         // Generate get script
-        const getScript = this._generateFindClause({ source, classAlias: className, select, joins, where });
+        const getScript = this.generateFindClause({ source, classAlias: className, select, joins, where });
 
         // Get result
         const result = await this._client.query(getScript);

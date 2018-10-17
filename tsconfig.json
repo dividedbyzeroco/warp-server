@@ -9,7 +9,9 @@
         "sourceMap": true,
         "removeComments": false,
         "esModuleInterop": true,
-        "lib": [ "es2015", "es2017" ]
+        "lib": [ "es2015", "es2017" ],
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true
     },
     "include": [
         "./src/**/*"

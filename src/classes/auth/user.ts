@@ -1,8 +1,8 @@
 import enforce from 'enforce-js';
-import Class from './class';
-import Error from '../utils/error';
-import ConstraintMap from '../utils/constraint-map';
-import { InternalKeys } from '../utils/constants';
+import Class from '../class';
+import Error from '../../utils/error';
+import ConstraintMap from '../../utils/constraint-map';
+import { InternalKeys } from '../../utils/constants';
 
 export default class User extends Class {
 

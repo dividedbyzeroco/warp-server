@@ -6,47 +6,32 @@ import Session from './classes/session';
 import Key from './classes/key';
 import Scope from './classes/scope';
 import Role from './classes/role';
+import Client from './classes/client';
+import DataMapper from './classes/data-mapper';
 import { ServerConfigType } from './types/server';
-import { SecurityConfigType } from './types/security';
-import { IDatabaseAdapter } from './types/database';
-import { ThrottlingConfigType } from './types/throttling';
-import { ClassMapType, ClassFunctionsType } from './types/class';
-import { AuthFunctionsType } from './types/auth';
-import { FunctionMethodsType, FunctionMapType } from './types/functions';
 import { ResponseFunctionsType } from './types/response';
 import { ILogger } from './types/logger';
 import ClassController from './controllers/class';
-import UserController from './controllers/user';
-import SessionController from './controllers/session';
 import FunctionController from './controllers/function';
-import Auth from './classes/auth';
-import Client from './classes/client';
-import { RoleFunctionsType, RoleMapType } from './types/roles';
+import Response from './utils/response';
 /**
  * @class WarpServer
  * @description WarpServer definition
  */
 export default class WarpServer {
-    _log: ILogger;
-    _security: SecurityConfigType;
-    _database: IDatabaseAdapter;
-    _throttling: ThrottlingConfigType;
-    _classes: ClassMapType;
-    _functions: FunctionMapType;
-    _roles: RoleMapType;
-    _auth: Auth;
+    private _logger;
+    private _security;
+    private _dataMapper;
     _router: express.Router;
-    _customResponse: boolean;
+    _response: Response;
     _supportLegacy: boolean;
     _classController: ClassController;
-    _userController: UserController;
-    _sessionController: SessionController;
     _functionController: FunctionController;
     /**
      * Constructor
      * @param {Object} config
      */
-    constructor({ apiKey, masterKey, databaseURI, keepConnections, charset, timeout, requestLimit, accessExpiry, sessionRevocation, customResponse, supportLegacy }: ServerConfigType);
+    constructor({ apiKey, masterKey, databaseURI, keepConnections, charset, timeout, customResponse, supportLegacy }: ServerConfigType);
     /**
      * API Key
      */
@@ -56,60 +41,47 @@ export default class WarpServer {
      */
     readonly masterKey: string;
     readonly hasDatabase: boolean;
-    readonly throttling: ThrottlingConfigType;
     /**
      * Class operations
      */
-    readonly classes: ClassFunctionsType;
+    readonly classes: DataMapper;
     /**
-     * Function operations
+     * Logger
      */
-    readonly functions: FunctionMethodsType;
-    /**
-     * Role operations
-     */
-    readonly roles: RoleFunctionsType;
-    /**
-     * Authentication operations
-     */
-    readonly auth: AuthFunctionsType;
+    readonly logger: ILogger;
     /**
      * Response format
      */
     readonly response: ResponseFunctionsType;
     /**
+     * Set logger
+     * @param customResponse
+     */
+    private setLogger;
+    /**
      * Set security configuration
      * @param {Object} config
      */
-    private _setSecurity;
+    private setSecurity;
     /**
      * Extract database configuration from URI
      * @param {Object} config
      */
-    private _extractDatabaseConfig;
+    private extractDatabaseConfig;
     /**
-     * Set database configuration
+     * Set data mapper configuration
      * @param {Object} config
      */
-    private _setDatabase;
+    private setDataMapper;
     /**
-     * Set throttling configuration
-     * @param {Object} config
+     * Set response format
+     * @param customResponse
      */
-    private _setThrottling;
+    private setResponse;
     /**
      * Initialize the server and connect to the database
      */
     initialize(): Promise<void>;
-    parseSubqueries(where: {
-        [name: string]: {
-            [name: string]: any;
-        };
-    }): {
-        [name: string]: {
-            [name: string]: any;
-        };
-    };
     /**
      * Get express router
      */

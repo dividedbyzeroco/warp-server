@@ -1,5 +1,5 @@
 import { AccessFind, AccessGet, AccessCreate, AccessUpdate, AccessDestroy, AccessRun } from '../utils/constants';
-import User from '../classes/user';
+import User from '../classes/auth/user';
 import ConstraintMap from '../utils/constraint-map';
 
 export type AccessQueryType = typeof AccessFind | typeof AccessGet;
