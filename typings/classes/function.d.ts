@@ -1,5 +1,5 @@
 import { Warp } from 'warp-sdk-js';
-import User from './user';
+import User from './auth/user';
 import KeyMap from '../utils/key-map';
 import { FunctionOptionsType } from '../types/functions';
 export default class FunctionClass {

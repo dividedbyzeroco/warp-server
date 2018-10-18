@@ -1,4 +1,4 @@
-import User from '../classes/user';
+import User from '../classes/auth/user';
 import Function from '../classes/function';
 export declare type FunctionOptionsType = {
     user?: User | null;

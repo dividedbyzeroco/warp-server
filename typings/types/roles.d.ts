@@ -1,4 +1,4 @@
-import Role from '../classes/role';
+import Role from '../classes/auth/role';
 export declare type RoleMapType = {
     [name: string]: typeof Role;
 };

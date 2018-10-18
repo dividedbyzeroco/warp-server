@@ -1,3 +1,3 @@
-export declare type KeyDefinition = {
-    type: string;
+export declare type KeyOptions = {
+    via: string;
 };

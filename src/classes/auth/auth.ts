@@ -68,7 +68,7 @@ export default class Auth {
         user.password = await bcrypt.hash(password, this._salt);
 
         // Save the user
-        await user.save();
+        // await user.save();
 
         // Return instance
         return user as T;
@@ -85,19 +85,19 @@ export default class Auth {
         const where = new ConstraintMap();
         
         // Determine whether to search by username or by email
-        if(typeof username !== 'undefined') where.equalTo(userClass.usernameKey, username);
-        else where.equalTo(userClass.emailKey, email);
+        // if(typeof username !== 'undefined') where.equalTo(userClass.usernameKey, username);
+        // else where.equalTo(userClass.emailKey, email);
 
         // Get matching user
-        const result = await userClass.find<T>({ where, skip: 0, limit: 1 });
-        const user = result.first();
+        // const result = await userClass.find<T>({ where, skip: 0, limit: 1 });
+        // const user = result.first();
 
-        // If user is not found, return undefined
-        if(typeof user === 'undefined') return;
+        // // If user is not found, return undefined
+        // if(typeof user === 'undefined') return;
 
-        // Return user if the password is valid, else return undefined
-        if(await bcrypt.compare(password, user.password)) return user;
-        else return;
+        // // Return user if the password is valid, else return undefined
+        // if(await bcrypt.compare(password, user.password)) return user;
+        // else return;
     }
 
 
@@ -114,7 +114,7 @@ export default class Auth {
         client.set(clientClass.scopeKey, scope);
         
         // Save the client
-        await client.save();
+        // await client.save();
 
         // Return instance
         return client as T;
@@ -126,17 +126,17 @@ export default class Auth {
 
         // Prepare where clause
         const where = new ConstraintMap();
-        where.equalTo(clientClass.identifierKey, identifier);
+        // where.equalTo(clientClass.identifierKey, identifier);
 
-        // Get matching client
-        const result = await clientClass.find<T>({ where, skip: 0, limit: 1 });
-        const client  = result.first();
+        // // Get matching client
+        // const result = await clientClass.find<T>({ where, skip: 0, limit: 1 });
+        // const client  = result.first();
 
-        // If user is not found, return undefined
-        if(typeof client === 'undefined') return;
+        // // If user is not found, return undefined
+        // if(typeof client === 'undefined') return;
 
-        // Return client
-        return client;
+        // // Return client
+        // return client;
     }
 
     async saveSession(user: User, client: Client) {
@@ -166,7 +166,7 @@ export default class Auth {
         session.set(sessionClass.revokedAtKey, addToDate(now, this._revocation).toISOString());
 
         // Save session
-        await session.save();
+        // await session.save();
     }
 
     async getSession<T extends Session>(accessToken: string) {
@@ -178,19 +178,19 @@ export default class Auth {
 
         // Prepare where clause
         const where = new ConstraintMap();
-        where.equalTo(sessionClass.accessTokenKey, accessToken);
-        where.greaterThanOrEqualTo(sessionClass.expiresAtKey, now);
-        where.greaterThanOrEqualTo(sessionClass.revokedAtKey, now);
+        // where.equalTo(sessionClass.accessTokenKey, accessToken);
+        // where.greaterThanOrEqualTo(sessionClass.expiresAtKey, now);
+        // where.greaterThanOrEqualTo(sessionClass.revokedAtKey, now);
 
         // Prepare sorting
         const sort = [`-${InternalKeys.Timestamps.CreatedAt}`];
 
         // Get matching session
-        const matches = await sessionClass.find<T>({ where, sort, skip: 0, limit: 1 });
-        const session = matches.first();
+        // const matches = await sessionClass.find<T>({ where, sort, skip: 0, limit: 1 });
+        // const session = matches.first();
 
-        // Return session
-        return session;
+        // // Return session
+        // return session;
     }
 
     async refreshSession<T extends Session>(refreshToken: string) {
@@ -202,33 +202,33 @@ export default class Auth {
 
         // Prepare where clause
         const where = new ConstraintMap();
-        where.equalTo(sessionClass.refreshTokenKey, refreshToken);
-        where.greaterThanOrEqualTo(sessionClass.revokedAtKey, now);
+        // where.equalTo(sessionClass.refreshTokenKey, refreshToken);
+        // where.greaterThanOrEqualTo(sessionClass.revokedAtKey, now);
 
         // Prepare sorting
         const sort = [`-${InternalKeys.Timestamps.CreatedAt}`];
 
-        // Get matching session
-        const matches = await sessionClass.find<T>({ where, sort, skip: 0, limit: 1 });
-        const session = matches.first();
+        // // Get matching session
+        // const matches = await sessionClass.find<T>({ where, sort, skip: 0, limit: 1 });
+        // const session = matches.first();
 
-        // Check if session exists
-        if(typeof session === 'undefined') throw new Error('Session not found');
+        // // Check if session exists
+        // if(typeof session === 'undefined') throw new Error('Session not found');
 
-        // Update access token and expiry
-        session.accessToken = await rtg.generateKey({
-            len: 28,
-            string: true,
-            strong: true,
-            retry: false
-        });
-        session.set(sessionClass.expiresAtKey, addToDate(now, this._expiry).toISOString());
+        // // Update access token and expiry
+        // session.accessToken = await rtg.generateKey({
+        //     len: 28,
+        //     string: true,
+        //     strong: true,
+        //     retry: false
+        // });
+        // session.set(sessionClass.expiresAtKey, addToDate(now, this._expiry).toISOString());
 
-        // Save session
-        await session.save();
+        // // Save session
+        // await session.save();
 
-        // Return access token
-        return session.accessToken;
+        // // Return access token
+        // return session.accessToken;
     }
 
     async revokeSession<T extends Session>(refreshToken: string) {
@@ -239,26 +239,26 @@ export default class Auth {
         const now = new Date(sessionClass.currentTimestamp);
 
         // Prepare where clause
-        const where = new ConstraintMap();
-        where.equalTo(sessionClass.refreshTokenKey, refreshToken);
-        where.greaterThanOrEqualTo(sessionClass.revokedAtKey, now);
+        // const where = new ConstraintMap();
+        // where.equalTo(sessionClass.refreshTokenKey, refreshToken);
+        // where.greaterThanOrEqualTo(sessionClass.revokedAtKey, now);
 
-        // Prepare sorting
-        const sort = [`-${InternalKeys.Timestamps.CreatedAt}`];
+        // // Prepare sorting
+        // const sort = [`-${InternalKeys.Timestamps.CreatedAt}`];
 
-        // Get matching session
-        const matches = await sessionClass.find<T>({ where, sort, skip: 0, limit: 1 });
-        const session = matches.first();
+        // // Get matching session
+        // const matches = await sessionClass.find<T>({ where, sort, skip: 0, limit: 1 });
+        // const session = matches.first();
         
-        // Check if session exists
-        if(typeof session === 'undefined') throw new Error('Session not found');
+        // // Check if session exists
+        // if(typeof session === 'undefined') throw new Error('Session not found');
 
-        // Update expiry and revocation
-        session.set(sessionClass.expiresAtKey, now.toISOString());
-        session.set(sessionClass.revokedAtKey, now.toISOString());
+        // // Update expiry and revocation
+        // session.set(sessionClass.expiresAtKey, now.toISOString());
+        // session.set(sessionClass.revokedAtKey, now.toISOString());
 
-        // Save session
-        await session.save();
+        // // Save session
+        // await session.save();
     }
 
     async getUser<T extends User>(accessToken: string) {
@@ -269,11 +269,11 @@ export default class Auth {
         const session = await this.getSession(accessToken);
 
         // Check if session exists
-        if(!session) return;
+        // if(!session) return;
 
-        // Get user details
-        const user = await userClass.getById<T>({ id: session['user'].id });
+        // // Get user details
+        // const user = await userClass.getById<T>({ id: session['user'].id });
 
-        return user;
+        // return user;
     }
 }

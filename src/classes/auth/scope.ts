@@ -13,7 +13,7 @@ export class AccessDefinition {
 
     constructor(action: AccessType, context: typeof Class | typeof Function) {
         this._action = action;
-        this._context = context;
+        // this._context = context;
     }
 
     get action(): AccessType {
@@ -57,7 +57,7 @@ export class AccessFunctionDefinition extends AccessDefinition {
     constructor(action: AccessFunctionType, context: typeof Function) {
         super(action, context);
         this._action = action;
-        this._context = context;
+        // this._context = context;
     }
 
     when(accessibility: FunctionScopeCheckerType) {

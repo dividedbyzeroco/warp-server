@@ -22,23 +22,23 @@ export default class ClassController {
         this._api = api;
     }
     
-    async checkAccess(user: User | null, classType: typeof Class, action: AccessType, where: ConstraintMap) {
-        // Return the where clause if user is null
-        // TODO: Prevent anonymous requests unless explicitly stated
-        if(user === null) return where;
+    // async checkAccess(user: User | null, classType: typeof Class, action: AccessType, where: ConstraintMap) {
+    //     // Return the where clause if user is null
+    //     // TODO: Prevent anonymous requests unless explicitly stated
+    //     if(user === null) return where;
 
-        // Apply role
-        const roleClass = this._api.roles.get(user.role);
-        const role = new roleClass;
+    //     // Apply role
+    //     const roleClass = this._api.roles.get(user.role);
+    //     const role = new roleClass;
 
-        // Set the current user
-        role.setUser(user); 
+    //     // Set the current user
+    //     role.setUser(user); 
 
-        // Get accessibility
-        const accessibility = await role.can(action, classType, where);
+    //     // Get accessibility
+    //     const accessibility = await role.can(action, classType, where);
         
-        return accessibility;
-    }
+    //     return accessibility;
+    // }
 
     async find({ user, className, select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<Collection<Class>> {
         // Get class

@@ -9,18 +9,15 @@ export default class FunctionController {
         this._api = api;
     }
     
-    async run({ Warp, metadata, currentUser, functionName, keys }: RunOptionsType): Promise<any> {
-        // Get function
-        const functionClass = this._api.functions.get(functionName);
-        const func = new functionClass({ metadata, currentUser, keys });
+    async run({ user, functionName, keys }: RunOptionsType): Promise<any> {
+        // // Get function
+        // const functionClass = this._api.functions.get(functionName);
+        // const func = new functionClass({ keys });
 
-        // Bind Warp
-        func.bindSDK(Warp);
+        // // Run the function
+        // const result = await func.execute();
 
-        // Run the function
-        const result = await func.execute();
-
-        // Return the result
-        return result;
+        // // Return the result
+        // return result;
     }
 }

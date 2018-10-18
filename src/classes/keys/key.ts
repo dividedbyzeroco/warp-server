@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { toSnakeCase } from '../../utils/format';
-import { KeyDefinition, KeyOptions } from '../../types/key';
+import { KeyOptions } from '../../types/key';
 import Class from '../class';
 import StringKey from './types/string';
 import DateKey from './types/date';
@@ -45,7 +45,7 @@ export class KeyManager {
  * @param opts
  */
 export const keyDecorator = (opts?: KeyOptions) => {
-    <T extends Class>(classInstance: T, name: string) => {
+    return <T extends Class>(classInstance: T, name: string) => {
         // Infer data type
         const type = Reflect.getMetadata('design:type', classInstance, name);
 
@@ -63,47 +63,71 @@ export const keyDecorator = (opts?: KeyOptions) => {
 
         // Set key manager
         classInstance.statics()._keys[keyName] = keyManager;
+
+        // Override pointer getter and setter
+        Object.defineProperty(classInstance.statics().prototype, keyName, {
+            set(value) {
+                value = keyManager.setter(value);
+                classInstance._keyMap.set(keyManager.name, value);
+            },
+            get() {
+                return keyManager.getter(classInstance._keyMap.get(keyManager.name));
+            }
+        });
     }
 };
 
 /**
- * Key definition
- * @param opts
+ * Key Instance definition for legacy usage
  */
-const Key = (...args: any[]) => {
-    // As property decorator
-    if(args.length === 0 || args.length === 1 && typeof args[0] === 'object') {
-        return keyDecorator(args[0]);
+export class KeyInstance {
+    
+    _name: string;
+    
+    constructor(name: string) {
+        this._name = name;
     }
-    // For legacy usage of Key
-    else { 
-        // Get name value
-        const name = args[0];
 
-        // Check if name is a string
-        if(typeof name !== 'string') throw new Error(`Key() must have a string 'name' parameter`);
+    asString = (minLength?: number, maxLength?: number) => StringKey(this._name, { minLength, maxLength });
+    asDate = () => DateKey(this._name);
+    asBoolean = () => BooleanKey(this._name);
+    asNumber = (max?: number, min?: number) => NumberKey(this._name, { type: 'number', min, max });
+    asInteger = (min?: number, max?: number) => NumberKey(this._name, { type: 'integer', min, max });
+    asFloat = (decimals: number = 2, min?: number, max?: number) => NumberKey(this._name, { type: 'float', decimals, min, max });
+    asJSON = () => JSONKey(this._name);
 
-        // Instance
-        const instance = { 
-            type: 'Key', 
-            name,
-            asString: (minLength?: number, maxLength?: number) => StringKey(instance.name, { minLength, maxLength }),
-            asDate: () => DateKey(instance.name),
-            asBoolean: () => BooleanKey(instance.name),
-            asNumber: (max?: number, min?: number) => NumberKey(instance.name, { type: 'number', min, max }),
-            asInteger: (min?: number, max?: number) => NumberKey(instance.name, { type: 'integer', min, max }),
-            asFloat: (decimals: number = 2, min?: number, max?: number) => NumberKey(instance.name, { type: 'float', decimals, min, max }),
-            asJSON: () => JSONKey(instance.name)
-        };
-
-        return instance;
-    }
 }
 
-export const keyIsImplementedBy = (value: KeyDefinition) => {
-    if(typeof value !== 'object') return false;
-    if(value.type === 'Key') return true;
-    else return false;
-};
+/**
+ * Key definition
+ */
+function Key(): void;
+function Key(opts: KeyOptions): void;
+function Key<T extends Class>(classInstance: T, name: string): void;
+function Key(name: string): KeyInstance;
+function Key<T extends Class>(...args: [] | [KeyOptions] | [T, string] | [string]) {
+    // As property decorator
+    if(args.length === 2) {
+        return keyDecorator()(args[0], args[1]);
+    }
+    // With args
+    else {
+        // As property decorator without args
+        if(args.length === 0) {
+            return keyDecorator();
+        }
+        // For legacy usage of Key
+        else if(typeof args[0] === 'string') {
+            // Get name value
+            const name = args[0];
+
+            return new KeyInstance(name);
+        }
+        // As property decorator with args
+        else { 
+            return keyDecorator(args[0]);
+        }
+    }
+}
 
 export default Key;

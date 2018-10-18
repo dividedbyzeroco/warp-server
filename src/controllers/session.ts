@@ -17,54 +17,54 @@ export default class SessionController {
         this._api = api;
     }
 
-    async find({ select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<Collection<Session>> {
-        // Validate master access
-        if(!metadata.isMaster)
-            throw new Error(Error.Code.ForbiddenOperation, 'Only masters can access sessions');
+    async find({ select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<void> { // Promise<Collection<Session>> {
+        // // Validate master access
+        // if(!metadata.isMaster)
+        //     throw new Error(Error.Code.ForbiddenOperation, 'Only masters can access sessions');
     
-        // Prepare query
-        const query = {
-            select,
-            include,
-            where: new ConstraintMap(where),
-            sort: sort || Defaults.Query.Sort,
-            skip: skip || Defaults.Query.Skip,
-            limit: limit || Defaults.Query.Limit
-        };
+        // // Prepare query
+        // const query = {
+        //     select,
+        //     include,
+        //     where: new ConstraintMap(where),
+        //     sort: sort || Defaults.Query.Sort,
+        //     skip: skip || Defaults.Query.Skip,
+        //     limit: limit || Defaults.Query.Limit
+        // };
     
-        // Get class
-        const classType = this._api.auth.session();
+        // // Get class
+        // const classType = this._api.auth.session();
     
-        // Find matching objects
-        const classCollection = await classType.find<Session>(query);
+        // // Find matching objects
+        // const classCollection = await classType.find<Session>(query);
     
-        // Return collection
-        return classCollection;
+        // // Return collection
+        // return classCollection;
     }
     
-    async get({ id, select, include }: GetOptionsType): Promise<Session> {
-        // Validate master access
-        if(!metadata.isMaster)
-            throw new Error(Error.Code.ForbiddenOperation, 'Only masters can access sessions');
+    async get({ id, select, include }: GetOptionsType): Promise<void> {// Promise<Session> {
+        // // Validate master access
+        // if(!metadata.isMaster)
+        //     throw new Error(Error.Code.ForbiddenOperation, 'Only masters can access sessions');
 
-        // Prepare query
-        const query = {
-            select: select || [],
-            include: include || [],
-            id
-        };
+        // // Prepare query
+        // const query = {
+        //     select: select || [],
+        //     include: include || [],
+        //     id
+        // };
     
-        // Get class
-        const classType = this._api.auth.session();
+        // // Get class
+        // const classType = this._api.auth.session();
     
-        // Find matching objects
-        const classInstance = await classType.getById<Session>(query);
+        // // Find matching objects
+        // const classInstance = await classType.getById<Session>(query);
     
-        // Check if class is found
-        if(typeof classInstance === 'undefined')
-            throw new Error(Error.Code.ForbiddenOperation, `Session with id \`${id}\` not found`);
+        // // Check if class is found
+        // if(typeof classInstance === 'undefined')
+        //     throw new Error(Error.Code.ForbiddenOperation, `Session with id \`${id}\` not found`);
     
-        // Return the class
-        return classInstance;
+        // // Return the class
+        // return classInstance;
     }
 }

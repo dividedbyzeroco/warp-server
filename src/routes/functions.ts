@@ -35,7 +35,7 @@ const functions = (api: WarpServer): express.Router => {
             api.response.success(req, res, next);
         }
         catch(err) {
-            api._log.error(err, `Could not run the function \`${functionName}\`: ${err.message}`);
+            api.logger.error(err, `Could not run the function \`${functionName}\`: ${err.message}`);
             api.response.error(err, req, res, next);
         }
     });

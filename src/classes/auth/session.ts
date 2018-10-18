@@ -62,7 +62,8 @@ export default class Session extends Class {
     }
 
     static get currentTimestamp(): string {
-        return this._database.currentTimestamp;
+        // return this._database.currentTimestamp;
+        return '';
     }
 
     static setUser(user: typeof User) {

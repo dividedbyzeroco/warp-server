@@ -1,12 +1,12 @@
 import express from 'express';
 import Class from './classes/class';
-import User from './classes/user';
+import User from './classes/auth/user';
 import Function from './classes/function';
-import Session from './classes/session';
-import Key from './classes/key';
-import Scope from './classes/scope';
-import Role from './classes/role';
-import Client from './classes/client';
+import Session from './classes/auth/session';
+import Key from './classes/keys/key';
+import Scope from './classes/auth/scope';
+import Role from './classes/auth/role';
+import Client from './classes/auth/client';
 import DataMapper from './classes/data-mapper';
 import { ServerConfigType } from './types/server';
 import { ResponseFunctionsType } from './types/response';

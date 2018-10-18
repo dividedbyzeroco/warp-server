@@ -13,7 +13,7 @@ export default class FunctionClass {
 
     constructor({ user, keys }: FunctionOptionsType) {
         // Check if current user is provided
-        if(user !== null) this._currentUser = user;
+        if(typeof user !== 'undefined' && user !== null) this._currentUser = user;
         
         // Iterate through each param
         if(typeof keys !== 'undefined') {

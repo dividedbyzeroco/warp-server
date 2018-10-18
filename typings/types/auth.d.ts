@@ -1,6 +1,6 @@
-import User from '../classes/user';
-import Session from '../classes/session';
-import Client from '../classes/client';
+import User from '../classes/auth/user';
+import Session from '../classes/auth/session';
+import Client from '../classes/auth/client';
 export declare type AuthFunctionsType = {
     use: (user: typeof User, session: typeof Session, client: typeof Client) => void;
     user: () => typeof User;
