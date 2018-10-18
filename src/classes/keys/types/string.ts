@@ -6,7 +6,7 @@ export type StringOptions = {
     maxLength?: number
 };
 
-export default function StringKey(name, opts: StringOptions): KeyManager {
+export default function StringKey(name, opts: StringOptions = {}): KeyManager {
     const { minLength, maxLength } = opts;
     
     const key = new KeyManager(name);

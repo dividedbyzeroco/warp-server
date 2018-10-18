@@ -3,14 +3,15 @@ import Error from '../../../utils/error';
 import { Increment } from '../../specials';
 
 export type NumberKeyOptions = {
-    type: 'number' | 'integer' | 'float'
+    type?: 'number' | 'integer' | 'float'
     decimals?: number,
     min?: number,
     max?: number
 };
 
-export default function NumberKey(name: string, opts: NumberKeyOptions): KeyManager {
-    const { type, decimals, min, max } = opts;
+export default function NumberKey(name: string, opts: NumberKeyOptions = {}): KeyManager {
+    const { type = 'number', decimals, min, max } = opts;
+    
     
     const key = new KeyManager(name);
     key.setterDefinition = value => {

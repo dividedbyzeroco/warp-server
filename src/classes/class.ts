@@ -93,10 +93,10 @@ export default class Class {
      * Initialize
      * @description Function that must be invoked once
      * in order to initialize the class
-     * @param {IDatabaseAdapter} database
+     * @param {boolean} supportLegacy
      * @returns {WarpServer}
      */
-    static initialize<T extends typeof Class>(supportLegacy: boolean = false): T {
+    static initialize(supportLegacy: boolean = false) {
         // Set legacy support
         this._supportLegacy = supportLegacy;
 
@@ -224,8 +224,10 @@ export default class Class {
             [InternalKeys.Timestamps.UpdatedAt]: true,
             [InternalKeys.Timestamps.DeletedAt]: true
         };
+    }
 
-        return this as T;
+    static fromId(id: number) {
+        return new this({ id });
     }
 
     static get className(): string {

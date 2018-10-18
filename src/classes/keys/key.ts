@@ -44,36 +44,43 @@ export class KeyManager {
  * Key Decorator
  * @param opts
  */
-export const keyDecorator = (opts?: KeyOptions) => {
+export const keyDecorator = (opts?: KeyOptions): any => {
     return <T extends Class>(classInstance: T, name: string) => {
         // Infer data type
         const type = Reflect.getMetadata('design:type', classInstance, name);
 
         // Convert key name to snake case, then add to the key map
         const keyName = toSnakeCase(name);
+        const sourceName = opts && opts.via || keyName;
         let keyManager = new KeyManager(keyName);
 
         // Infer type
         switch(type) {
-            case 'String': keyManager = StringKey(keyName, {}); break;
-            case 'Date': keyManager = DateKey(keyName); break;
-            case 'Boolean': keyManager = BooleanKey(keyName); break;
-            case 'Number': keyManager = NumberKey(keyName, { type: 'number' }); break;
+            case 'String': keyManager = StringKey(sourceName); break;
+            case 'Date': keyManager = DateKey(sourceName); break;
+            case 'Boolean': keyManager = BooleanKey(sourceName); break;
+            case 'Number': keyManager = NumberKey(sourceName); break;
+            case 'Array':
+            case 'Object': 
+                keyManager = JSONKey(sourceName); 
+                break;
         }
 
         // Set key manager
         classInstance.statics()._keys[keyName] = keyManager;
 
         // Override pointer getter and setter
-        Object.defineProperty(classInstance.statics().prototype, keyName, {
+        return {
             set(value) {
                 value = keyManager.setter(value);
-                classInstance._keyMap.set(keyManager.name, value);
+                this._keyMap.set(keyManager.name, value);
             },
             get() {
-                return keyManager.getter(classInstance._keyMap.get(keyManager.name));
-            }
-        });
+                return keyManager.getter(this._keyMap.get(keyManager.name));
+            },
+            enumerable: true,
+            configurable: true
+        };
     }
 };
 

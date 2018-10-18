@@ -3,12 +3,11 @@
   "version": "5.9.12",
   "description": "Warp Server",
   "main": "./dist/index.js",
-  "typings": "./typings/index.d.ts",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp package.json ./dist/package.json",
     "clean": "node ./node_modules/rimraf/bin dist",
     "test": "mocha",
-    "lint": "eslint src/**",
     "prepublish": "npm run clean && npm run build"
   },
   "repository": {
@@ -27,7 +26,10 @@
   "homepage": "https://github.com/dividedbyzeroco/warp-server#readme",
   "dependencies": {
     "@types/bcryptjs": "^2.4.1",
+    "@types/cors": "^2.8.4",
     "@types/es6-promise": "^3.3.0",
+    "@types/express": "^4.16.0",
+    "@types/mysql": "^2.15.5",
     "@types/node": "^9.4.7",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.15.1",
@@ -40,13 +42,11 @@
     "promise": "^7.1.1",
     "random-token-generator": "^1.0.2",
     "reflect-metadata": "^0.1.12",
+    "typescript": "^3.1.3",
     "uniqid": "^4.1.1",
     "warp-sdk-js": "^5.9.0"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.4",
-    "@types/express": "^4.16.0",
-    "@types/mysql": "^2.15.5",
     "chai": "^4.1.2",
     "eslint": "^4.16.0",
     "mocha": "^5.0.1",

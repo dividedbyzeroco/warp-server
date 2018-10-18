@@ -1,14 +1,12 @@
-import express from 'express';
+import { Router } from 'express';
 import parseUrl from 'parse-url';
 import enforce from 'enforce-js';
 import Class from './classes/class'
+import Query from './classes/query';
 import User from './classes/auth/user';
 import Function from './classes/function';
 import Session from './classes/auth/session';
 import Key from './classes/keys/key';
-import Scope from './classes/auth/scope';
-import Role from './classes/auth/role';
-import Client from './classes/auth/client';
 import DataMapper from './classes/data-mapper';
 import Database from './adapters/database';
 import Logger from './adapters/logger';
@@ -61,7 +59,7 @@ export default class WarpServer {
     private _logger: ILogger;
     private _security: SecurityConfigType;
     private _dataMapper: DataMapper;
-    _router: express.Router;
+    _router: Router;
     _response: Response;
     _supportLegacy: boolean = false;
     _classController: ClassController = new ClassController(this);
@@ -271,11 +269,11 @@ export default class WarpServer {
     /**
      * Get express router
      */
-    get router(): express.Router {
+    get router(): Router {
         // If a router has not yet been defined, prepare the router
         if(typeof this._router === 'undefined') {
             // Prepare routers
-            const router = express.Router();
+            const router = Router();
             router.use(middleware(this));
             router.use(classesRouter(this));
             router.use(usersRouter(this));
@@ -290,14 +288,15 @@ export default class WarpServer {
     }
 }
 
+/**
+ * Export features
+ */
 export {
     Class,
+    Query,
     User,
     Session,
-    Client,
     Function,
     Key,
-    Scope,
-    Role,
     WarpServer
 };

@@ -42,7 +42,7 @@ export default class Pointer {
     }
 
     static isValid(key: string) {
-        return this.isUsedBy(key) && key.length === 2;
+        return this.isUsedBy(key) && key.split(this.Delimiter).length === 2;
     }
 
     static getAliasFrom(key: string) {
