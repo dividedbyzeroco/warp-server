@@ -85,7 +85,7 @@ export default class ClassController {
         const classInstance = new classType({ keys });
 
         // Save the instance
-        await this._api.classes.save(classInstance);
+        await this._api.classes.save(classInstance, user || undefined);
     
         // Return the class
         return classInstance;
@@ -99,7 +99,7 @@ export default class ClassController {
         const classInstance = new classType({ keys, id });
     
         // Save the instance
-        await this._api.classes.save(classInstance);
+        await this._api.classes.save(classInstance, user || undefined);
     
         // Return the class
         return classInstance;
@@ -113,7 +113,7 @@ export default class ClassController {
         const classInstance = new classType({ id });
     
         // Destroy the instance
-        await this._api.classes.destroy(classInstance);
+        await this._api.classes.destroy(classInstance, user || undefined);
     
         // Return the class
         return classInstance;

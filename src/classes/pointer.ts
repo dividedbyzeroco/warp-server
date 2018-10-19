@@ -1,8 +1,12 @@
+import 'reflect-metadata';
 import { InternalKeys } from '../utils/constants';
 import { PointerObjectType } from '../types/class';
 import Class from './class';
 import Error from '../utils/error';
 import KeyMap from '../utils/key-map';
+import { toSnakeCase } from '../utils/format';
+import PointerKey from './keys/types/pointer';
+import { ClassDefinition } from '../types/pointer';
 
 export default class Pointer {
 
@@ -177,3 +181,58 @@ export default class Pointer {
         else return null;
     }
 }
+
+export class PointerDefinition<C extends typeof Class> {
+
+    _classDefinition: ClassDefinition<C>;
+    _keyName: string;
+    _via?: string;
+
+    constructor(classDefinition: ClassDefinition<C>, keyName: string, via?: string) {
+        this._classDefinition = classDefinition;
+        this._keyName = keyName;
+        this._via = via;
+    }
+
+    toPointer() {
+        const pointer = this._classDefinition().as(this._keyName);
+        if(typeof this._via === 'string') pointer.via(this._via);
+        return pointer;
+    }
+}
+
+/**
+ * BelongsTo decorator for pointers
+ * @param classDefinition 
+ */
+export const BelongsTo = <C extends typeof Class>(classDefinition: ClassDefinition<C>, via?: string) => {
+    return <T extends Class>(classInstance: T, name: string): any => {
+        // Get pointer name
+        const keyName = toSnakeCase(name);
+
+        // Prepare pointer definition
+        const pointerDefinition = new PointerDefinition(classDefinition, keyName, via);
+
+        // Prepare key manager
+        const keyManager = PointerKey(name, pointerDefinition);
+
+        // Set metadata
+        const metadata = classInstance.getMetadata();
+        metadata.keys[keyName] = keyManager;
+        metadata.joins[keyName] = pointerDefinition;
+        classInstance.setMetadata(metadata);
+
+        // Override pointer getter and setter
+        return {
+            set(value) {
+                value = keyManager.setter(value);
+                this._keyMap.set(keyManager.name, value);
+            },
+            get() {
+                return keyManager.getter(this._keyMap.get(keyManager.name));
+            },
+            enumerable: true,
+            configurable: true
+        };
+    };
+};

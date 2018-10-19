@@ -8,6 +8,7 @@ import Function from './classes/function';
 import Session from './classes/auth/session';
 import Key from './classes/keys/key';
 import DataMapper from './classes/data-mapper';
+import { BelongsTo } from './classes/pointer';
 import Database from './adapters/database';
 import Logger from './adapters/logger';
 import { ServerConfigType } from './types/server';
@@ -298,5 +299,7 @@ export {
     Session,
     Function,
     Key,
-    WarpServer
+    WarpServer,
+    DataMapper,
+    BelongsTo
 };

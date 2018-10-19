@@ -16,8 +16,8 @@ export class KeyManager {
 
     keyName: string;
     isNewFlag: boolean = false;
-    setterDefinition: (value: any) => any;
-    getterDefinition: (value: any) => any;
+    setterDefinition: (value: any) => any = value => value;
+    getterDefinition: (value: any) => any = value => value;
 
     constructor(name: string) {
         this.keyName = name;
@@ -44,8 +44,8 @@ export class KeyManager {
  * Key Decorator
  * @param opts
  */
-export const keyDecorator = (opts?: KeyOptions): any => {
-    return <T extends Class>(classInstance: T, name: string) => {
+export const keyDecorator = (opts?: KeyOptions) => {
+    return <T extends Class>(classInstance: T, name: string): any => {
         // Infer data type
         const type = Reflect.getMetadata('design:type', classInstance, name);
 
@@ -66,10 +66,12 @@ export const keyDecorator = (opts?: KeyOptions): any => {
                 break;
         }
 
-        // Set key manager
-        classInstance.statics()._keys[keyName] = keyManager;
+        // Set metadata
+        const metadata = classInstance.getMetadata();
+        metadata.keys[keyName] = keyManager;
+        classInstance.setMetadata(metadata);
 
-        // Override pointer getter and setter
+        // Override getter and setter
         return {
             set(value) {
                 value = keyManager.setter(value);
@@ -108,13 +110,14 @@ export class KeyInstance {
 /**
  * Key definition
  */
-function Key(): void;
-function Key(opts: KeyOptions): void;
-function Key<T extends Class>(classInstance: T, name: string): void;
+function Key<T extends Class>(): (classInstance: T, name: string) => any;
+function Key<T extends Class>(opts: KeyOptions): (classInstance: T, name: string) => any;
+function Key<T extends Class>(classInstance: T, name: string): any;
+function Key<T extends Class>(classInstance: T, name: string, descriptor: any): any;
 function Key(name: string): KeyInstance;
-function Key<T extends Class>(...args: [] | [KeyOptions] | [T, string] | [string]) {
+function Key<T extends Class>(...args: [] | [KeyOptions] | [T, string] | [T, string, any] | [string]) {
     // As property decorator
-    if(args.length === 2) {
+    if(args.length === 2 || args.length === 3) {
         return keyDecorator()(args[0], args[1]);
     }
     // With args

@@ -6,6 +6,7 @@ import Collection from '../utils/collection';
 import Error from '../utils/error';
 import { InternalKeys } from '../utils/constants';
 import { ClassMapType } from '../types/class';
+import { User } from '..';
 
 export default class DataMapper {
 
@@ -167,12 +168,12 @@ export default class DataMapper {
      * Save the Object
      * @param classInstance
      */
-    async save(classInstance: Class) {
+    async save<T extends User | undefined>(classInstance: Class, user?: T) {
         // Validate instance
         enforce`${{ ClassToSave: classInstance }} as a ${{ Class }}`;
 
         // Run beforeSave as master
-        await classInstance.beforeSave();
+        await classInstance.beforeSave(this, user);
 
         // Get keys to save
         const keys = classInstance._keyMap;
@@ -188,7 +189,7 @@ export default class DataMapper {
         }
 
         // Run the afterSave method in the background as master
-        try { classInstance.afterSave(); } catch(err) { /* Do nothing */ }
+        try { classInstance.afterSave(this, user); } catch(err) { /* Do nothing */ }
 
         // Return immediately
         return classInstance;
@@ -198,12 +199,12 @@ export default class DataMapper {
      * Destroy the Object
      * @param classInstance
      */
-    async destroy(classInstance: Class) {
+    async destroy<T extends User | undefined>(classInstance: Class, user?: T) {
         // Validate instance
         enforce`${{ ClassToDestroy: classInstance }} as a ${{ Class }}`;
 
         // Run beforeDestroy
-        await classInstance.beforeDestroy();
+        await classInstance.beforeDestroy(this, user);
 
         // Get keys
         const keys = classInstance._keyMap;
@@ -212,7 +213,7 @@ export default class DataMapper {
         await this._database.destroy(classInstance.statics().className, keys, classInstance.id);
 
         // Run the afterDestroy method in the background
-        try { classInstance.afterDestroy(); } catch(err) { /* Do nothing */ }
+        try { classInstance.afterDestroy(this, user); } catch(err) { /* Do nothing */ }
 
         // Return immediately
         return;

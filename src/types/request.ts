@@ -5,9 +5,9 @@ import User from '../classes/auth/user';
 /**
  * Middleware interface for additional Warp props
  */
-interface MiddlewareRequest<U extends void | User> {
+interface MiddlewareRequest<U extends User | undefined> {
     user: U,
     classes: DataMapper
 }
 
-export type Request<U extends void | User> = ExpressRequest & MiddlewareRequest<U>;
+export type Request<U extends User | undefined> = ExpressRequest & MiddlewareRequest<U>;

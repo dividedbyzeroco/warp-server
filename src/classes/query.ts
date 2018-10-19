@@ -59,6 +59,7 @@ export default class Query<T extends typeof Class> {
      * @param {*} value 
      */
     equalTo(key: string, value: any): this {
+        if(typeof value === 'boolean') value = value ? 1 : 0;
         this.set(key, Constraints.EqualTo, value);
         return this;
     }
@@ -69,6 +70,7 @@ export default class Query<T extends typeof Class> {
      * @param {*} value 
      */
     notEqualTo(key: string, value: any): this {
+        if(typeof value === 'boolean') value = value ? 1 : 0;
         this.set(key, Constraints.NotEqualTo, value);
         return this;
     }
@@ -403,6 +405,9 @@ export default class Query<T extends typeof Class> {
     }
 
     private getKeys() {
+        // Get metadata
+        const metadata = this.class.prototype.getMetadata();
+
         // Prepare selection keys
         let select = this._select;
         let include = this._include;
@@ -413,13 +418,13 @@ export default class Query<T extends typeof Class> {
 
         // If select is empty, use the default keys
         if(select.length === 0) {
-            select = [InternalKeys.Id, ...Object.keys(this.class._keys), ...Object.keys(this.class._timestamps)];
+            select = [InternalKeys.Id, ...Object.keys(metadata.keys), ...Object.keys(metadata.timestamps)];
         }
 
         // Iterate through the selected keys
         for(let key of select) {
             // If the key is an internal key
-            if(key === InternalKeys.Id || this.class._timestamps[key]) {
+            if(key === InternalKeys.Id || metadata.timestamps[key]) {
                 // Push the key
                 keys.push(key);
             }
@@ -429,9 +434,9 @@ export default class Query<T extends typeof Class> {
                 include.push(key);
             }
             // If it is a regular key and it exists
-            else if(typeof this.class._keys[key] !== 'undefined') {
+            else if(typeof metadata.keys[key] !== 'undefined') {
                 // Get key name
-                const keyName = this.class._keys[key];
+                const keyName = metadata.keys[key];
                 
                 // If they key provided is a pointer (foreign key without '.')
                 if(keyName instanceof Pointer) {
@@ -461,16 +466,16 @@ export default class Query<T extends typeof Class> {
             includedJoins[Pointer.getAliasFrom(key)] = true;
 
             // If the key is from a secondary join, add the parent join
-            const join = this.class._joins[Pointer.getAliasFrom(key)];
+            const join = metadata.joins[Pointer.getAliasFrom(key)].toPointer();
             if(join.isSecondary) {
                 includedJoins[join.parentAliasKey] = true;
             }
         }
 
         // Create joins
-        const joins = Object.keys(this.class._joins).reduce((map, key) => {
+        const joins = Object.keys(metadata.joins).reduce((map, key) => {
             // Get join 
-            const join = this.class._joins[key];
+            const join = metadata.joins[key];
             map[key] = { join, included: includedJoins[key] };
             return map;
         }, {});

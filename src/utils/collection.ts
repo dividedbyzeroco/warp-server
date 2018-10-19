@@ -52,9 +52,9 @@ export default class Collection<T extends Class> {
      * Map Objects into an array using an iterator
      * @param {Function} iterator 
      */
-    map(iterator: (object: T) => any): Array<any> {
+    map<U extends any>(iterator: (object: T) => any): Array<U> {
         const objects = [...this._collection];
-        const map: Array<any> = [];
+        const map: Array<U> = [];
 
         for(let object of objects) {
             map.push(iterator(object));
@@ -86,14 +86,14 @@ export default class Collection<T extends Class> {
      * Convert the collection into an array
      */
     toArray() {
-        return this.map(object => object);
+        return this._collection.map(object => object);
     }
 
     /**
      * Convert the collection into an object literal
      */
     toJSON() {
-        return this.map(object => object.toJSON());
+        return this._collection.map(object => object.toJSON());
     }
 
     /**
@@ -122,23 +122,14 @@ export default class Collection<T extends Class> {
         return;
     }
 
-    [Symbol.iterator](): Iterator<T | undefined> {
+    [Symbol.iterator](): Iterator<T> {
         // Set index to 0
         let _index = 0;
 
         return {
             next: () => {
-                // Check if object list has reached the end
-                if(this._collection.length === _index) {
-                    // Reset index
-                    _index = 0;
-
-                    // Return iterator result
-                    return { value: undefined, done: true };
-                }
-
                 // Return iterator result
-                return { value: this._collection[_index++], done: false };
+                return { value: this._collection[_index++], done: _index >= this._collection.length };
             }
         };
     }
