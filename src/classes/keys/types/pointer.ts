@@ -13,7 +13,7 @@ export default function PointerKey<C extends typeof Class>(name: string, pointer
         // Check pointer type
         if(pointer.isSecondary)
             throw new Error(Error.Code.ForbiddenOperation, `Cannot manually set secondary pointers`);
-        if(!pointer.isImplementedBy(value))
+        if(!(value instanceof pointer.class) && !pointer.isImplementedBy(value))
             throw new Error(Error.Code.ForbiddenOperation, `Key \`${pointer.aliasKey}\` must be a pointer to \`${pointer.class.className}\``);
         
         // Return id

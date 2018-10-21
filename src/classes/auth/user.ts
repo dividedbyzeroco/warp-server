@@ -1,6 +1,7 @@
 import Class from '../class';
 import Key from '../keys/key';
 
+@Class.definition
 export default class User extends Class {
 
     @Key username: string;

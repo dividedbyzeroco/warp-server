@@ -50,7 +50,7 @@ export type ConnectionConfig = {
     port: number,
     user: string,
     password: string,
-    schema: string
+    database: string
 };
 
 export type ConnectionCollection = {

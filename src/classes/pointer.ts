@@ -224,6 +224,7 @@ export const BelongsTo = <C extends typeof Class>(classDefinition: ClassCaller<C
 
         // Set metadata
         const metadata = classInstance.getMetadata();
+        if(!metadata.keys.includes(keyName)) metadata.keys.push(keyName);
         metadata.joins[keyName] = pointerDefinition;
         classInstance.setMetadata(metadata);
 
@@ -231,10 +232,10 @@ export const BelongsTo = <C extends typeof Class>(classDefinition: ClassCaller<C
         return {
             set(value) {
                 value = keyManager.setter(value);
-                this._keyMap.set(keyManager.name, value);
+                this._keys.set(keyManager.name, value);
             },
             get() {
-                return keyManager.getter(this._keyMap.get(keyManager.name));
+                return keyManager.getter(this._keys.get(keyManager.name));
             },
             enumerable: true,
             configurable: true

@@ -30,19 +30,27 @@ export default class Class {
      * @param {Object} params 
      * @param {Number} id 
      */
-    constructor(keys: { [key: string]: any } = {}) {
-        // Iterate through each param
-        for(let key in keys) {
-            // Get value
-            let value = keys[key];
-
-            // Check if key exists
-            if(!this.statics().has(key))
-                throw new Error(Error.Code.ForbiddenOperation, `Key \`${key}\` does not exist in '${this.statics().className}'`);
-
-            // Set value
-            this[toCamelCase(key)] = value;
+    constructor(keys: number | { [key: string]: any } = {}) {
+        // If 'keys' is an id, set the id
+        if(typeof keys === 'number') {
+            this._id = keys;
         }
+        // If 'keys' is an object, set values
+        else if(typeof keys === 'object') {
+            // Iterate through each param
+            for(let key in keys) {
+                // Get value
+                let value = keys[key];
+    
+                // Check if key exists
+                if(!this.statics().has(key))
+                    throw new Error(Error.Code.ForbiddenOperation, `Key \`${key}\` does not exist in '${this.statics().className}'`);
+    
+                // Set value
+                this[toCamelCase(key)] = value;
+            }
+        }
+        else throw new Error(Error.Code.ForbiddenOperation, `'keys' must be an object or an id`);
     }
 
     private static decorator = (className: string, source?: string) => {
@@ -91,12 +99,6 @@ export default class Class {
      */
     static of(className: string, source?: string) {
         return this.definition(className, source);
-    }
-
-    static fromId(id: number) {
-        const instance = new this;
-        instance._id = id;
-        return instance;
     }
 
     static get className(): string {

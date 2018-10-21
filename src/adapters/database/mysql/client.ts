@@ -56,7 +56,7 @@ export default class DatabaseClient {
             port: parsedURI.port,
             user: identity[0],
             password: identity[1],
-            schema: parsedURI.pathname.slice(1)
+            database: parsedURI.pathname.slice(1)
         };
 
         // Enforce
@@ -65,7 +65,7 @@ export default class DatabaseClient {
         enforce`${{ port: config.port }} as a number`;
         enforce`${{ user: config.user }} as a string`;
         enforce`${{ password: config.password }} as a string`;
-        enforce`${{ schema: config.schema }} as a string`;
+        enforce`${{ database: config.database }} as a string`;
 
         return config;
     }

@@ -76,10 +76,10 @@ export const keyDecorator = (opts?: KeyOptions) => {
         return {
             set(value) {
                 value = keyManager.setter(value);
-                this._keyMap.set(keyManager.name, value);
+                this._keys.set(keyManager.name, value);
             },
             get() {
-                return keyManager.getter(this._keyMap.get(keyManager.name));
+                return keyManager.getter(this._keys.get(keyManager.name));
             },
             enumerable: true,
             configurable: true
