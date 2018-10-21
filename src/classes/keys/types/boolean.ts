@@ -2,7 +2,7 @@ import { KeyManager } from '../key';
 import Error from '../../../utils/error';
 
 export default function BooleanKey(name: string): KeyManager {
-    const key = new KeyManager(name);
+    const key = new KeyManager(name, 'boolean');
     key.setterDefinition = value => {
         // If null, set value to null
         if(typeof value === 'undefined' || value === null) return null;

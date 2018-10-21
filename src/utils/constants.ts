@@ -8,7 +8,6 @@ export const InternalKeys = Object.freeze({
     Middleware: Object.freeze({
         ApiKey: 'X-Warp-API-Key',
         MasterKey: 'X-Warp-Master-Key',
-        AccessToken: 'accessToken',
         User: 'user',
         Result: 'result',
         DataMapper: 'classes'
@@ -22,28 +21,12 @@ export const InternalKeys = Object.freeze({
         User: 'user',
         Username: 'username',
         Email: 'email',
-        Password: 'password',
-        Role: 'role',
-        Session: 'session',
-        Bearer: 'bearer',
-        AccessToken: 'access_token',
-        RefreshToken: 'refresh_token',
-        ExpiresAt: 'expires_at',
-        RevokedAt: 'revoked_at',
-        Client: 'client',
-        Identifier: 'identifier',
-        Secret: 'secret',
-        Name: 'name',
-        Description: 'description',
-        Type: 'type',
-        Status: 'status',
-        Scope: 'scope'
-    }),
-    ClientStatus: Object.freeze({
-        Active: 'active',
-        Inactive: 'inactive'
+        Password: 'password'
     })
 });
+
+export const DatabaseWrite = 'write';
+export const DatabaseRead = 'read';
 
 export const Defaults = Object.freeze({
     Query: Object.freeze({

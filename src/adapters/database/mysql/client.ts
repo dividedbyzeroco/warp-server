@@ -1,47 +1,77 @@
 import mysql from 'mysql';
+import parseUrl from 'parse-url';
+import enforce from 'enforce-js';
 import Error from '../../../utils/error';
 import { Increment, SetJson, AppendJson } from '../../../classes/specials';
-import { DatabaseConfigType, DatabaseResult } from '../../../types/database';
+import { DatabaseResult, DatabaseConfig, ConnectionCollection, DatabaseAction } from '../../../types/database';
+import { DatabaseWrite, DatabaseRead } from '../../../utils/constants';
 
 export default class DatabaseClient {
 
     /**
      * Private propreties
      */
-    _config: DatabaseConfigType = {
-        host: 'localhost',
-        user: '',
-        password: ''
-    };
-    _pool: mysql.Pool;
+    _connectionConfigs: ConnectionCollection = { write: [], read: [] };
+    _poolCluster: mysql.PoolCluster;
+    _persistent: boolean;
+    _charset: string;
+    _timeout: number;
 
     /**
      * Constructor
      * @param {Object} config 
      */
-    constructor({ 
-        host, 
-        port, 
-        user, 
-        password, 
-        schema, 
-        timeout, 
-        charset, 
-        keepConnections 
-    }: DatabaseConfigType) {
-        // Prepare parameters
-        this._config.host = host;
-        this._config.port = port;
-        this._config.user = user;
-        this._config.password = password;
-        this._config.schema = schema;
-        this._config.keepConnections = keepConnections;
-        this._config.charset = charset;
-        this._config.timeout = timeout;
+    constructor({ uris, persistent, charset, timeout }: DatabaseConfig) {
+        // Get connection configs
+        for(const uriConfig of uris) {
+            // Check if action is write
+            if(uriConfig.action === DatabaseWrite) {
+                this._connectionConfigs.write.push(this.extractConfig(uriConfig.uri));
+            }
+            // Check if action is read
+            else if(uriConfig.action === DatabaseRead) {
+                this._connectionConfigs.read.push(this.extractConfig(uriConfig.uri));
+            }
+            else throw new Error(Error.Code.ForbiddenOperation, `Database action must either be 'write' or 'read'`);
+        }
+
+        // Set connection settings
+        this._persistent = persistent;
+        this._charset = charset;
+        this._timeout = timeout;
+
     }
 
-    get pool(): mysql.Pool {
-        return this._pool;
+    /**
+     * Extract database configuration from URI
+     * @param {Object} config
+     */
+    private extractConfig(uri: string) {
+        const parsedURI = parseUrl(uri);
+        const identity = parsedURI.user.split(':');
+
+        const config = {
+            protocol: parsedURI.protocol,
+            host: parsedURI.resource,
+            port: parsedURI.port,
+            user: identity[0],
+            password: identity[1],
+            schema: parsedURI.pathname.slice(1)
+        };
+
+        // Enforce
+        enforce`${{ protocol: config.protocol }} as a string`;
+        enforce`${{ host: config.host }} as a string`;
+        enforce`${{ port: config.port }} as a number`;
+        enforce`${{ user: config.user }} as a string`;
+        enforce`${{ password: config.password }} as a string`;
+        enforce`${{ schema: config.schema }} as a string`;
+
+        return config;
+    }
+
+    get poolCluster(): mysql.PoolCluster {
+        return this._poolCluster;
     }
 
     escape(value: any) {
@@ -53,45 +83,52 @@ export default class DatabaseClient {
         }
         else if(value instanceof SetJson) {
             const key = value.isNew? 'JSON_OBJECT()' : `IFNULL(${this.escapeKey(value.key)}, JSON_OBJECT())`;
-            const path = value.isNew? '$' : this.pool.escape(value.path);
-            const val = typeof value.value === 'object'? `CAST(${JSON.stringify(value.value)} AS JSON)` : this.pool.escape(value.value);
+            const path = value.isNew? '$' : mysql.escape(value.path);
+            const val = typeof value.value === 'object'? `CAST(${JSON.stringify(value.value)} AS JSON)` : mysql.escape(value.value);
             const escaped = `JSON_SET(${key}, ${path}, ${val})`;
             return escaped;
         }
         else if(value instanceof AppendJson) {
             const key = value.isNew? 'JSON_ARRAY()' : `IFNULL(${this.escapeKey(value.key)}, JSON_ARRAY())`;
-            const path = value.isNew? '$' : this.pool.escape(value.path);
-            const val = typeof value.value === 'object'? `CAST(${JSON.stringify(value.value)} AS JSON)` : this.pool.escape(value.value);
+            const path = value.isNew? '$' : mysql.escape(value.path);
+            const val = typeof value.value === 'object'? `CAST(${JSON.stringify(value.value)} AS JSON)` : mysql.escape(value.value);
             return `JSON_ARRAY_APPEND(${key}, ${path}, ${val})`;
         }
-        else return this.pool.escape(value);
+        else return mysql.escape(value);
     }
 
     escapeKey(value: string, useRaw: boolean = false) {
         if(useRaw) {
-            value = this.pool.escapeId(value.replace('.', '$'));
+            value = mysql.escapeId(value.replace('.', '$'));
             return value.replace('$', '.');
         }
-        return this.pool.escapeId(value, useRaw);
+        return mysql.escapeId(value, useRaw);
     }
 
     async initialize(): Promise<void> {
         // If pool is already initialized, skip
-        if(this.pool) return;
+        if(this.poolCluster) return;
         
-        // Prepare pool
-        this._pool = mysql.createPool({
-            host: this._config.host,
-            port: this._config.port,
-            user: decodeURIComponent(this._config.user),
-            password: decodeURIComponent(this._config.password),
-            database: this._config.schema,
-            acquireTimeout: this._config.timeout,
-            charset: this._config.charset
-        });
+        // Prepare pool cluster
+        this._poolCluster = mysql.createPoolCluster();
+
+        // Get connection settings
+        const { _charset: charset, _timeout: timeout } = this;
+
+        // Loop through write connections
+        let index = 0;
+        for(const writeConfig of this._connectionConfigs.write) {
+            this._poolCluster.add(`${DatabaseWrite.toUpperCase()}${++index}`, { ...writeConfig, charset, timeout });
+        }
+
+        // Loop through read connections
+        index = 0;
+        for(const readConfig of this._connectionConfigs.read) {
+            this._poolCluster.add(`${DatabaseRead.toUpperCase()}${++index}`, { ...readConfig, charset, timeout });
+        }
 
         // Test connection
-        const result = await this.query('SELECT 1+1 AS result');
+        const result = await this.query('SELECT 1+1 AS result', DatabaseRead);
         try {
             const rows = result['rows'] || [{ result: undefined }];
             if(rows[0]['result'] === 2) return;
@@ -102,10 +139,10 @@ export default class DatabaseClient {
         }
     }
 
-    async _connect(): Promise<mysql.PoolConnection> {
+    private async connect(action: DatabaseAction = DatabaseWrite): Promise<mysql.PoolConnection> {
         // Create a promise connect method
         const onConnect: Promise<mysql.PoolConnection> = new Promise((resolve, reject) => {
-            this.pool.getConnection((err, connection) => {
+            this.poolCluster.getConnection(`${action.toUpperCase()}*`, (err, connection) => {
                 if(err) return reject(err);
                 resolve(connection);
             });
@@ -120,9 +157,9 @@ export default class DatabaseClient {
         }
     }
 
-    async query(queryString: string): Promise<DatabaseResult> {
+    async query(queryString: string, action: DatabaseAction): Promise<DatabaseResult> {
         // Create promise query method
-        const connection = await this._connect();
+        const connection = await this.connect(action);
         const onQuery = new Promise((resolve, reject) => {
             connection.query(queryString, (err, result) => {
                 if(err) return reject(err);
@@ -135,7 +172,7 @@ export default class DatabaseClient {
             const rows = await onQuery;
 
             // Release or destroy the connection
-            if(this._config.keepConnections) connection.release();
+            if(this._persistent) connection.release();
             else connection.destroy();
 
             // Prepare result

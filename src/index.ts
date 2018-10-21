@@ -1,11 +1,9 @@
-import { Router } from 'express';
-import parseUrl from 'parse-url';
+import { Request as ExpressRequest, Router } from 'express';
 import enforce from 'enforce-js';
 import Class from './classes/class'
 import Query from './classes/query';
 import User from './classes/auth/user';
 import Function from './classes/function';
-import Session from './classes/auth/session';
 import Key from './classes/keys/key';
 import DataMapper from './classes/data-mapper';
 import { BelongsTo } from './classes/pointer';
@@ -13,7 +11,6 @@ import Database from './adapters/database';
 import Logger from './adapters/logger';
 import { ServerConfigType } from './types/server';
 import { SecurityConfigType } from './types/security';
-import { DatabaseOptionsType } from './types/database';
 import { ResponseFunctionsType } from './types/response';
 import { ILogger } from './types/logger';
 import middleware from './routes/middleware';
@@ -24,6 +21,8 @@ import ClassController from './controllers/class';
 import FunctionController from './controllers/function';
 import chalk from 'chalk';
 import Response from './utils/response';
+import { MiddlewareRequest } from './types/request';
+import { URIConfig } from './types/database';
 
 enforce.extend(/^equivalent to an array$/i, val => {
     try {
@@ -74,11 +73,10 @@ export default class WarpServer {
         apiKey,
         masterKey,
         databaseURI,
-        keepConnections,
-        charset,
-        timeout,
-        customResponse,
-        supportLegacy
+        persistent = false,
+        charset = 'utf8mb4_unicode_ci',
+        timeout = 30 * 1000,
+        customResponse
     }: ServerConfigType) {
         // Set logger
         this.setLogger('console');
@@ -87,13 +85,10 @@ export default class WarpServer {
         this.setSecurity({ apiKey, masterKey });
 
         // Set database
-        this.setDataMapper({ databaseURI, keepConnections, charset, timeout });
+        this.setDataMapper(databaseURI, persistent, charset, timeout);
 
         // Set response format
         this.setResponse(customResponse);
-
-        if(typeof supportLegacy !== 'undefined')
-            this._supportLegacy = supportLegacy;
     }
 
     /**
@@ -160,57 +155,35 @@ export default class WarpServer {
         };
     }
 
-    /**
-     * Extract database configuration from URI
-     * @param {Object} config
-     */
-    private extractDatabaseConfig(databaseURI: string) {
-        const parsedURI = parseUrl(databaseURI);
-        const identity = parsedURI.user.split(':');
-
-        return {
-            protocol: parsedURI.protocol,
-            host: parsedURI.resource,
-            port: parsedURI.port,
-            user: identity[0],
-            password: identity[1],
-            schema: parsedURI.pathname.slice(1)
-        };
-    }
 
     /**
      * Set data mapper configuration
      * @param {Object} config
      */
-    private setDataMapper({ databaseURI, keepConnections = false, charset = 'utf8mb4_unicode_ci', timeout = 30 * 1000 }: DatabaseOptionsType) {
-        // Enforce databaseURI format
-        enforce`${{ databaseURI }} as a string`;
+    private setDataMapper(databaseURI: string | URIConfig[], persistent: boolean, charset: string, timeout: number) {
+        // Get uris
+        let uris: URIConfig[] = [];
 
-        // Extract database config
-        const { protocol, host, port, user, password, schema } = this.extractDatabaseConfig(databaseURI);
+        // Check if uri is a string
+        if(typeof databaseURI === 'string') {
+            uris = [
+                { uri: databaseURI, action: 'read' }, 
+                { uri: databaseURI, action: 'write' }
+            ];
+        }
+        // Check if uri is an array
+        else if(databaseURI instanceof Array) {
+            uris = [ ...databaseURI ];
+        }
+        else {
+            throw new Error(`'databaseURI' must be a string or an array of configs`);
+        }
 
-        // Enforce
-        enforce`${{protocol}} as a string`;
-        enforce`${{host}} as a string`;
-        enforce`${{port}} as a number`;
-        enforce`${{user}} as a string`;
-        enforce`${{password}} as a string`;
-        enforce`${{schema}} as a string`;
-        enforce`${{keepConnections}} as a boolean`;
-        enforce`${{charset}} as a string`;
-        enforce`${{timeout}} as a number`;
+        // Get database protocol
+        const protocol = uris[0].uri.split(':')[0];
 
         // Prepare database
-        const database = Database.use(protocol, {
-            host,
-            port,
-            user,
-            password,
-            schema,
-            keepConnections,
-            charset,
-            timeout
-        });
+        const database = Database.use(protocol, { uris, persistent, charset, timeout });
 
         // Set data mapper
         this._dataMapper = new DataMapper(database);
@@ -254,7 +227,7 @@ export default class WarpServer {
             -------------------------------------------
             -------------------------------------------
                                                                                             
-                         Warp Server ${require('../package.json').version}
+                         Warp Server ${require('./package.json').version}
 
             +-----------------------------------------+
             |     The server has been initialized     |
@@ -290,13 +263,17 @@ export default class WarpServer {
 }
 
 /**
+ * Request extended from Express.Request
+ */
+export type Request<U extends User | undefined> = ExpressRequest & MiddlewareRequest<U>;
+
+/**
  * Export features
  */
 export {
     Class,
     Query,
     User,
-    Session,
     Function,
     Key,
     WarpServer,

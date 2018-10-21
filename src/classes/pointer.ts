@@ -3,10 +3,9 @@ import { InternalKeys } from '../utils/constants';
 import { PointerObjectType } from '../types/class';
 import Class from './class';
 import Error from '../utils/error';
-import KeyMap from '../utils/key-map';
 import { toSnakeCase } from '../utils/format';
 import PointerKey from './keys/types/pointer';
-import { ClassDefinition } from '../types/pointer';
+import { ClassCaller } from '../types/pointer';
 
 export default class Pointer {
 
@@ -145,9 +144,8 @@ export default class Pointer {
         if(value === null) return true;
         if(typeof value !== 'object') return false;
         if(value['type'] !== 'Pointer') return false;
-        if((this.class.supportLegacy && value[InternalKeys.Pointers.LegacyClassName] !== this.class.className) 
-            || (!this.class.supportLegacy && value[InternalKeys.Pointers.ClassName] !== this.class.className)) return false;
-        if(value['id'] <= 0) return false;
+        if(value[InternalKeys.Pointers.ClassName] !== this.class.className) return false;
+        if(value[InternalKeys.Id] <= 0) return false;
         return true;
     }
 
@@ -155,16 +153,18 @@ export default class Pointer {
         // Check if value exists
         if(!value) return null;
 
+        // Get class type
+        const classType = this.class;
+
         // If value is a number
         if(typeof value === 'number') {
+            // Create class instance
+            const id = value;
+            const classInstance = new classType;
+            classInstance._id = id;
+
             // Otherwise, return a pointer object
-            return {
-                type: 'Pointer',
-                [this.class.supportLegacy? 
-                    InternalKeys.Pointers.LegacyClassName 
-                    : InternalKeys.Pointers.ClassName]: this.class.className,
-                id: value
-            };
+            return classInstance.toJSON() as PointerObjectType;
         }
         else if(typeof value === 'object') {    
             // Get key values
@@ -172,8 +172,14 @@ export default class Pointer {
             const createdAt = value[InternalKeys.Timestamps.CreatedAt];
             const updatedAt = value[InternalKeys.Timestamps.UpdatedAt];
             const attributes = value[InternalKeys.Pointers.Attributes];
-            const classType = this.class;
-            const classInstance = new classType({ id, keyMap: new KeyMap(attributes), createdAt, updatedAt, isPointer: true });
+
+            // Create class instance
+            const classInstance = new classType;
+            classInstance._id = id;
+            classInstance._keys = attributes;
+            classInstance._keys.set(InternalKeys.Timestamps.CreatedAt, createdAt);
+            classInstance._keys.set(InternalKeys.Timestamps.UpdatedAt, updatedAt);
+            classInstance._isPointer = true;
 
             // Return a pointer object
             return classInstance.toJSON() as PointerObjectType;
@@ -184,18 +190,18 @@ export default class Pointer {
 
 export class PointerDefinition<C extends typeof Class> {
 
-    _classDefinition: ClassDefinition<C>;
+    _classCaller: ClassCaller<C>;
     _keyName: string;
     _via?: string;
 
-    constructor(classDefinition: ClassDefinition<C>, keyName: string, via?: string) {
-        this._classDefinition = classDefinition;
+    constructor(classDefinition: ClassCaller<C>, keyName: string, via?: string) {
+        this._classCaller = classDefinition;
         this._keyName = keyName;
         this._via = via;
     }
 
     toPointer() {
-        const pointer = this._classDefinition().as(this._keyName);
+        const pointer = this._classCaller().as(this._keyName);
         if(typeof this._via === 'string') pointer.via(this._via);
         return pointer;
     }
@@ -205,7 +211,7 @@ export class PointerDefinition<C extends typeof Class> {
  * BelongsTo decorator for pointers
  * @param classDefinition 
  */
-export const BelongsTo = <C extends typeof Class>(classDefinition: ClassDefinition<C>, via?: string) => {
+export const BelongsTo = <C extends typeof Class>(classDefinition: ClassCaller<C>, via?: string) => {
     return <T extends Class>(classInstance: T, name: string): any => {
         // Get pointer name
         const keyName = toSnakeCase(name);
@@ -218,7 +224,6 @@ export const BelongsTo = <C extends typeof Class>(classDefinition: ClassDefiniti
 
         // Set metadata
         const metadata = classInstance.getMetadata();
-        metadata.keys[keyName] = keyManager;
         metadata.joins[keyName] = pointerDefinition;
         classInstance.setMetadata(metadata);
 

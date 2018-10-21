@@ -1,4 +1,4 @@
-import { IDatabaseAdapter, DatabaseConfigType } from '../../types/database';
+import { IDatabaseAdapter, URIConfig, DatabaseConfig } from '../../types/database';
 import MySQLDatabaseAdapter from './mysql';
 import Error from '../../utils/error';
 
@@ -12,7 +12,7 @@ export default class Database {
      * Static use
      * @param {String} protocol
      */
-    static use(protocol: string, config: DatabaseConfigType): IDatabaseAdapter {
+    static use(protocol: string, config: DatabaseConfig): IDatabaseAdapter {
         // Get database protocol
         const database = this.Protocols[protocol];
 

@@ -1,6 +1,9 @@
 import Pointer from '../classes/pointer';
 import KeyMap from '../utils/key-map';
 import ConstraintMap from '../utils/constraint-map';
+
+export type DatabaseAction = 'read' | 'write';
+
 export interface IDatabaseAdapter {
     currentTimestamp: string;
     initialize(): Promise<void>;
@@ -27,25 +30,32 @@ export interface IDatabaseAdapter {
 }
 
 export declare const IDatabaseAdapter: {
-    new(config: DatabaseConfigType): IDatabaseAdapter;
+    new(config: DatabaseConfig): IDatabaseAdapter;
 }
 
-export type DatabaseOptionsType = {
-    databaseURI: string,
-    keepConnections?: boolean,
-    charset?: string,
-    timeout?: number
-};
+export type DatabaseConfig = {
+    uris: URIConfig[],
+    persistent: boolean,
+    charset: string,
+    timeout: number
+}
 
-export type DatabaseConfigType = {
+export type URIConfig = {
+    uri: string,
+    action: DatabaseAction
+}; 
+
+export type ConnectionConfig = {
     host: string,
-    port?: number,
+    port: number,
     user: string,
     password: string,
-    schema?: string,
-    keepConnections?: boolean,
-    charset?: string,
-    timeout?: number
+    schema: string
+};
+
+export type ConnectionCollection = {
+    write: ConnectionConfig[],
+    read: ConnectionConfig[]
 };
 
 export type FindOptionsType = {
@@ -59,7 +69,7 @@ export type FindOptionsType = {
 export type SubqueryOptionsType = {
     className: string,
     select: string,
-    where: { [key: string]: { [key: string]: any }}
+    where: { [key: string]: { [key: string]: any } }
 };
 
 export type DatabaseResult = {

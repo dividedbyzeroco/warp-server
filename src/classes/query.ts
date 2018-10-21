@@ -290,7 +290,7 @@ export default class Query<T extends typeof Class> {
      */
     select(...keys: Array<any>): this {
         // Check if first key is an array
-        if(!keys) throw new Error(Error.Code.MissingConfiguration, 'Select key must be a string or an array of strings');
+        if(keys.length === 0) throw new Error(Error.Code.MissingConfiguration, 'Select key must be a string or an array of strings');
         const keyList: Array<string> = keys[0] instanceof Array? keys[0] : keys;
 
         // Loop through the keys
@@ -418,13 +418,13 @@ export default class Query<T extends typeof Class> {
 
         // If select is empty, use the default keys
         if(select.length === 0) {
-            select = [InternalKeys.Id, ...Object.keys(metadata.keys), ...Object.keys(metadata.timestamps)];
+            select = [InternalKeys.Id, ...metadata.keys, ...metadata.timestamps];
         }
 
         // Iterate through the selected keys
         for(let key of select) {
             // If the key is an internal key
-            if(key === InternalKeys.Id || metadata.timestamps[key]) {
+            if(key === InternalKeys.Id || metadata.timestamps.includes(key)) {
                 // Push the key
                 keys.push(key);
             }
@@ -434,20 +434,23 @@ export default class Query<T extends typeof Class> {
                 include.push(key);
             }
             // If it is a regular key and it exists
-            else if(typeof metadata.keys[key] !== 'undefined') {
-                // Get key name
-                const keyName = metadata.keys[key];
-                
+            else if(metadata.keys.includes(key)) {
+                // Check if pointer exists
+                const pointerDefinition = metadata.joins[key];
+
                 // If they key provided is a pointer (foreign key without '.')
-                if(keyName instanceof Pointer) {
+                if(typeof pointerDefinition !== 'undefined') {
+                    // Get pointer
+                    const pointer = pointerDefinition.toPointer();
+
                     // If the pointer is secondary
-                    if(keyName.isSecondary) {
+                    if(pointer.isSecondary) {
                         // Move it to the include list
-                        include.push(keyName.pointerIdKey);
+                        include.push(pointer.pointerIdKey);
                     }
                     else {
                         // Use the via key
-                        keys.push(`${keyName.pointerIdKey}${Pointer.IdDelimiter}${keyName.viaKey}`);
+                        keys.push(`${pointer.pointerIdKey}${Pointer.IdDelimiter}${pointer.viaKey}`);
                     }
                 }
                 else keys.push(key);
@@ -466,7 +469,8 @@ export default class Query<T extends typeof Class> {
             includedJoins[Pointer.getAliasFrom(key)] = true;
 
             // If the key is from a secondary join, add the parent join
-            const join = metadata.joins[Pointer.getAliasFrom(key)].toPointer();
+            const pointerDefinition = metadata.joins[Pointer.getAliasFrom(key)];
+            const join = pointerDefinition.toPointer();
             if(join.isSecondary) {
                 includedJoins[join.parentAliasKey] = true;
             }

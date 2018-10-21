@@ -1,14 +1,15 @@
 import Client from './client';
 import Error from '../../../utils/error';
 import KeyMap from '../../../utils/key-map';
-import { InternalKeys } from '../../../utils/constants';
+import { InternalKeys, DatabaseWrite, DatabaseRead } from '../../../utils/constants';
 import ConstraintMap, { Constraints } from '../../../utils/constraint-map';
 import { toDatabaseDate } from '../../../utils/format';
-import { DatabaseConfigType, FindOptionsType, IDatabaseAdapter, JoinKeyType } from '../../../types/database';
+import { FindOptionsType, IDatabaseAdapter, JoinKeyType, DatabaseConfig } from '../../../types/database';
 import { ConstraintObject } from '../../../types/constraints';
 import Pointer from '../../../classes/pointer';
 import Query from '../../../classes/query';
 import Class from '../../../classes/class';
+import CompoundKey from '../../../utils/compound-key';
 
 export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
 
@@ -21,7 +22,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
      * Constructor
      * @param {Object} config 
      */
-    constructor(config: DatabaseConfigType) {
+    constructor(config: DatabaseConfig) {
         // Prepare parameters
         this._client = new Client(config);
     }
@@ -40,15 +41,15 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         await this._client.initialize();
     }
 
-    private regularEscape(value: any) {
+    private regularEscape = (value: any) => {
         return this._client.escape(value);
     }
 
-    private collectionEscape(value: any) {
+    private collectionEscape = (value: any) => {
         return value.map(item => this.regularEscape(item)).join(', ');
     }
 
-    private subqueryEscape<T extends typeof Class>(query: Query<T>) {
+    private subqueryEscape = <T extends typeof Class>(query: Query<T>) => {
         // Get query keys
         const { classAlias, source, select, joins, where } = query.toQueryOptions();
         return this.generateFindClause({ source, classAlias, select, joins, where });
@@ -56,9 +57,9 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
 
     mapConstraint(key: string, constraint: string, value: any): string {
         // Escape key
-        const escapedKey = key.indexOf('|') >= 0 ? 
+        const escapedKey = CompoundKey.isUsedBy(key) ? 
             // If key is a compound key, use concat
-            `CONCAT(${key.split('|').map(k => this._client.escapeKey(k))})`
+            `CONCAT(${CompoundKey.from(key).map(k => this._client.escapeKey(k))})`
             // Else, do a simple escape
             : this._client.escapeKey(key);
 
@@ -194,7 +195,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
      * Map row keys into appropriate pointers
      * @param {Object} row
      */
-    _mapRowKeys(row: Object, joins: { [key: string]: JoinKeyType }): KeyMap | null {
+    private mapRowKeys(row: Object, joins: { [key: string]: JoinKeyType }): KeyMap | null {
         // If row is empty, return null
         if(!row) return null;
 
@@ -268,12 +269,12 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
             LIMIT ${skip}, ${limit}`;
 
         // Get result
-        const result = await this._client.query(selectScript);
+        const result = await this._client.query(selectScript, DatabaseRead);
 
         // Map rows
         const rows: Array<KeyMap> = [];
         for(let row of result.rows) {
-            const item = this._mapRowKeys(row, joins);
+            const item = this.mapRowKeys(row, joins);
             if(item instanceof KeyMap) rows.push(item);
         }
 
@@ -297,10 +298,10 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         const getScript = this.generateFindClause({ source, classAlias: className, select, joins, where });
 
         // Get result
-        const result = await this._client.query(getScript);
+        const result = await this._client.query(getScript, DatabaseRead);
 
         // Return result as a KeyMap
-        return this._mapRowKeys(result.rows[0], joins);
+        return this.mapRowKeys(result.rows[0], joins);
     }
 
     async create(source: string, keys: KeyMap): Promise<number> {
@@ -331,7 +332,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
             (${sqlInput.values.join(', ')})`;
 
         // Create the item and get id
-        const result = await this._client.query(createScript);
+        const result = await this._client.query(createScript, DatabaseWrite);
         
         // Return the id
         return result.id;
@@ -364,7 +365,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
             WHERE ${idKey} = ${id}`;
 
         // Update the item
-        await this._client.query(updateScript);
+        await this._client.query(updateScript, DatabaseWrite);
     }
 
     async destroy(source: string, keys: KeyMap, id: number): Promise<void> {
@@ -385,6 +386,6 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
             WHERE ${idKey} = ${id}`;
 
         // Update the item
-        await this._client.query(destroyScript);
+        await this._client.query(destroyScript, DatabaseWrite);
     }
 }

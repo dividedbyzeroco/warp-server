@@ -9,7 +9,7 @@ export type StringOptions = {
 export default function StringKey(name, opts: StringOptions = {}): KeyManager {
     const { minLength, maxLength } = opts;
     
-    const key = new KeyManager(name);
+    const key = new KeyManager(name, 'string');
     key.setterDefinition = value => {
         if(typeof value === 'undefined' || value === null) return null;
         else if(typeof minLength !== 'undefined' && value.length < minLength) {

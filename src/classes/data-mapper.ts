@@ -176,7 +176,7 @@ export default class DataMapper {
         await classInstance.beforeSave(this, user);
 
         // Get keys to save
-        const keys = classInstance._keyMap;
+        const keys = classInstance._keys;
 
         // If the object is new
         if(classInstance.isNew) {
@@ -207,7 +207,7 @@ export default class DataMapper {
         await classInstance.beforeDestroy(this, user);
 
         // Get keys
-        const keys = classInstance._keyMap;
+        const keys = classInstance._keys;
 
         // Execute destroy query
         await this._database.destroy(classInstance.statics().className, keys, classInstance.id);

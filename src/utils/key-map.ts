@@ -70,6 +70,10 @@ export default class KeyMap {
         this._immutable = immutable;
     }
 
+    get length() {
+        return Object.keys(this._map).length;
+    }
+
     set(key: string, value: any): void {
         // Check if immutable
         if(this._immutable)    

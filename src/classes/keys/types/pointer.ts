@@ -4,7 +4,7 @@ import Class from '../../class';
 import { PointerDefinition } from '../../pointer';
 
 export default function PointerKey<C extends typeof Class>(name: string, pointerDefinition: PointerDefinition<C>): KeyManager {
-    const key = new KeyManager(name);
+    const key = new KeyManager(name, 'pointer');
 
     key.setterDefinition = value => {
         // Get pointer

@@ -13,7 +13,7 @@ export default function NumberKey(name: string, opts: NumberKeyOptions = {}): Ke
     const { type = 'number', decimals, min, max } = opts;
     
     
-    const key = new KeyManager(name);
+    const key = new KeyManager(name, 'number');
     key.setterDefinition = value => {
         // If null, set value to null
         if(typeof value === 'undefined' || value === null) 

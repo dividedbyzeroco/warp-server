@@ -1,31 +1,28 @@
 import 'reflect-metadata';
-import { KeyManager } from './keys/key';
 import Error from '../utils/error';
 import KeyMap from '../utils/key-map';
-import { toCamelCase, toISODate } from '../utils/format'; 
+import { toCamelCase, toSnakeCase } from '../utils/format'; 
 import { InternalKeys } from '../utils/constants';
-import { ClassOptionsType } from '../types/class';
 import Pointer, { PointerDefinition } from './pointer';
 import CompoundKey from '../utils/compound-key';
 import DataMapper from './data-mapper';
 import User from './auth/user';
+import DateKey from './keys/types/date';
 
-export const MetadataSymbol = 'METADATA';
+export const MetadataSymbol = Symbol.for('METADATA');
 
 export interface ClassMetadata {
-    keys: {[name: string]: KeyManager};
-    joins: {[name: string]: PointerDefinition<typeof Class>};
-    hidden: {[name: string]: string};
-    protected: {[name: string]: string};
-    timestamps: {[name: string]: boolean}
+    keys: string[];
+    joins: { [name: string]: PointerDefinition<typeof Class> };
+    hidden: string[];
+    protected: string[];
+    timestamps: string[];
 }
 
 export default class Class {
 
-    static _supportLegacy: boolean = false;
-    _isNew: boolean = true;
     _id: number;
-    _keyMap: KeyMap = new KeyMap;
+    _keys: KeyMap = new KeyMap;
     _isPointer: boolean = false;
 
     /**
@@ -33,43 +30,24 @@ export default class Class {
      * @param {Object} params 
      * @param {Number} id 
      */
-    constructor({ keys = {}, keyMap, id, createdAt, updatedAt, isPointer = false }: ClassOptionsType = {}) {
-
+    constructor(keys: { [key: string]: any } = {}) {
         // Iterate through each param
         for(let key in keys) {
             // Get value
             let value = keys[key];
 
+            // Check if key exists
+            if(!this.statics().has(key))
+                throw new Error(Error.Code.ForbiddenOperation, `Key \`${key}\` does not exist in '${this.statics().className}'`);
+
             // Set value
             this[toCamelCase(key)] = value;
         }
-
-        // If key map exists, override the existing key map
-        if(typeof keyMap !== 'undefined') this._keyMap = keyMap;
-
-        // If id exists, save it and toggle off the isNew flag
-        if(typeof id !== 'undefined') {
-            this._id = id;
-            this._isNew = false;
-        }
-
-        // If timestamps exist, save them
-        if(typeof createdAt !== 'undefined') this._keyMap.set(InternalKeys.Timestamps.CreatedAt, createdAt);
-        if(typeof updatedAt !== 'undefined') this._keyMap.set(InternalKeys.Timestamps.UpdatedAt, updatedAt);
-
-        // Check if class is a pointer
-        this._isPointer = isPointer;
     }
 
-    /**
-     * Class definition decorator
-     * @description Defines and initializes the class
-     * @param {String} className 
-     * @param {String} source
-     */
-    static of(className: string, source?: string) {
+    private static decorator = (className: string, source?: string) => {
         return <T extends { new(...args: any[]): Class }>(constructor: T) => {
-            class definedClass extends constructor {
+            class DefinedClass extends constructor {
                 static get className() {
                     return className;
                 }
@@ -79,12 +57,46 @@ export default class Class {
                 }
             };
 
-            return definedClass;
+            return DefinedClass;
         };
     }
 
+    /**
+     * Class definition decorator
+     * @description Defines and initializes the class
+     * @param {String} className 
+     * @param {String} source
+     */
+    static definition<C extends { new(...args: any[]): Class }>(constructor: C): any;
+    static definition(className: string, source?: string): any;
+    static definition<C extends { new(...args: any[]): Class }>(...args: [string, string?] | [C]) {
+        if(args.length === 1) {
+            if(typeof args[0] !== 'string') {
+                const className = toSnakeCase(args[0].name);
+                return Class.decorator(className)(args[0]);
+            }
+            else {
+                return Class.decorator(args[0]);
+            }
+        }
+        else {
+            return Class.decorator(args[0], args[1]);
+        }
+    }
+
+    /**
+     * Alias of Class.definition
+     * @param className
+     * @param source
+     */
+    static of(className: string, source?: string) {
+        return this.definition(className, source);
+    }
+
     static fromId(id: number) {
-        return new this({ id });
+        const instance = new this;
+        instance._id = id;
+        return instance;
     }
 
     static get className(): string {
@@ -94,10 +106,6 @@ export default class Class {
 
     static get source(): string {
         return this.className;
-    }
-
-    static get supportLegacy(): boolean {
-        return this._supportLegacy;
     }
 
     /**
@@ -116,9 +124,9 @@ export default class Class {
             return true;
         }
         else if(key === InternalKeys.Id) return true;
-        else if(this.prototype.getMetadata().timestamps[key]) return true;
-        else if(typeof this.prototype.getMetadata().keys[key] === 'undefined') return false;
-        else return true;
+        else if(this.prototype.getMetadata().timestamps.includes(key)) return true;
+        else if(this.prototype.getMetadata().keys.includes(key)) return true;
+        else return false;
     }
 
     static hasPointer(key: string) {
@@ -143,10 +151,10 @@ export default class Class {
             const pointer = pointerDefinition.toPointer();
             const pointerMetadata = pointer.class.prototype.getMetadata();
 
-            if((typeof pointerMetadata.keys[pointerKey] === 'undefined'
-                    && !pointerMetadata.timestamps[pointerKey]
+            if((!pointerMetadata.keys.includes(pointerKey)
+                    && !pointerMetadata.timestamps.includes(pointerKey)
                     && InternalKeys.Id !== pointerKey)
-                || typeof pointerMetadata.hidden[pointerKey] !== 'undefined') {
+                    || pointerMetadata.hidden.includes(pointerKey)) {
                 throw new Error(Error.Code.ForbiddenOperation, `The pointer key for \`${key}\` does not exist or is hidden`);
             }
         }
@@ -189,20 +197,18 @@ export default class Class {
     /**
      * Get class metadata
      */
-    getMetadata() {
-        // const metadata = Reflect.getMetadata(MetadataSymbol, this.constructor.prototype) as ClassMetadata;
+    getMetadata(): ClassMetadata {
+        // Get metadata
+        const metadata = Reflect.getMetadata(MetadataSymbol, this) as ClassMetadata;
 
+        // Override default metadata
         return  {
-            keys: {},
+            keys: [],
             joins: {},
-            hidden: {},
-            protected: {},
-            timestamps: {
-                [InternalKeys.Timestamps.CreatedAt]: true,
-                [InternalKeys.Timestamps.UpdatedAt]: true,
-                [InternalKeys.Timestamps.DeletedAt]: true
-            },
-            // ...metadata
+            hidden: [],
+            protected: [],
+            timestamps: Object.values(InternalKeys.Timestamps),
+            ...metadata
         };
     }
 
@@ -220,7 +226,7 @@ export default class Class {
     }
 
     get isNew(): boolean {
-        return this._isNew;
+        return typeof this._id !== 'undefined';
     }
 
     get id(): number {
@@ -228,21 +234,21 @@ export default class Class {
     }
 
     get createdAt(): string {
-        const dateTime = this._keyMap.get(InternalKeys.Timestamps.CreatedAt);
-        if(typeof dateTime === 'undefined' || dateTime === null) return dateTime;
-        else return toISODate(dateTime);
+        const keyManager = DateKey(InternalKeys.Timestamps.CreatedAt);
+        const getter = keyManager.getter.bind(this);
+        return getter();
     }
 
     get updatedAt(): string {
-        const dateTime = this._keyMap.get(InternalKeys.Timestamps.UpdatedAt);
-        if(typeof dateTime === 'undefined' || dateTime === null) return dateTime;
-        else return toISODate(dateTime);
+        const keyManager = DateKey(InternalKeys.Timestamps.UpdatedAt);
+        const getter = keyManager.getter.bind(this);
+        return getter();
     }
 
     get deletedAt(): string {
-        const dateTime = this._keyMap.get(InternalKeys.Timestamps.DeletedAt);
-        if(typeof dateTime === 'undefined' || dateTime === null) return dateTime;
-        else return toISODate(dateTime);
+        const keyManager = DateKey(InternalKeys.Timestamps.CreatedAt);
+        const getter = keyManager.getter.bind(this);
+        return getter();
     }
 
     set id(value: number) {
@@ -278,39 +284,36 @@ export default class Class {
         // Get keys
         const { id, createdAt, updatedAt, deletedAt } = this;
         let keys = {};
+        let body = {};
 
+        // Iterate through each key in key map
+        for(let key of this.getMetadata().keys) {
+            // If the key is a timestamp, skip it
+            if(this.getMetadata().timestamps.includes(key))
+                continue;
+
+            // If the key is hidden, skip it
+            if(this.getMetadata().hidden.includes(key))
+                continue;
+
+            // Assign key
+            keys[key] = this[toCamelCase(key)];
+        }
 
         // If class is a pointer, use attributes
         if(this._isPointer) {
-            keys = { 
+            body = { 
                 type: 'Pointer',
-                [this.statics().supportLegacy? InternalKeys.Pointers.LegacyClassName
-                    : InternalKeys.Pointers.ClassName]: this.statics().className,
+                [InternalKeys.Pointers.ClassName]: this.statics().className,
                 [InternalKeys.Pointers.Attributes]: Object.keys(keys).length > 0 ? keys : undefined
             };
         }
-        else {
-            // Iterate through each key in key map
-            for(let key of Object.keys(this.getMetadata().keys)) {
-                // If the key is a timestamp, skip it
-                if(InternalKeys.Timestamps.CreatedAt === key 
-                    || InternalKeys.Timestamps.UpdatedAt === key
-                    || InternalKeys.Timestamps.DeletedAt === key)
-                    continue;
-
-                // If the key is hidden, skip it
-                if(this.getMetadata().hidden[key])
-                    continue;
-
-                // Assign key
-                keys[key] = this[toCamelCase(key)];
-            }
-        }
+        else body = keys; // Else use the keys as-is
 
         // Return the object
         return {
             [InternalKeys.Id]: id,
-            ...keys,
+            ...body,
             [InternalKeys.Timestamps.CreatedAt]: createdAt,
             [InternalKeys.Timestamps.UpdatedAt]: updatedAt,
             [InternalKeys.Timestamps.DeletedAt]: deletedAt

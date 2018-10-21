@@ -3,7 +3,7 @@ import Error from '../../../utils/error';
 import { SetJson, AppendJson } from '../../specials';
 
 export default function JSONKey(name: string): KeyManager {
-    const key = new KeyManager(name);
+    const key = new KeyManager(name, 'json');
     key.setterDefinition = value => {
         // If null, set value to null
         if(typeof value === 'undefined' || value === null) 

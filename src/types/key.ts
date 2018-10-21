@@ -1,3 +1,8 @@
 export type KeyOptions = {
-    via: string
+    via?: string,
+    minLength?: number,
+    maxLength?: number,
+    min?: number,
+    max?: number,
+    decimals?: number
 };

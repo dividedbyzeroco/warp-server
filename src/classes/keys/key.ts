@@ -14,13 +14,15 @@ import BooleanKey from './types/boolean';
  */
 export class KeyManager {
 
+    type: string;
     keyName: string;
     isNewFlag: boolean = false;
     setterDefinition: (value: any) => any = value => value;
     getterDefinition: (value: any) => any = value => value;
 
-    constructor(name: string) {
+    constructor(name: string, type?: string) {
         this.keyName = name;
+        this.type = type || 'any';
     }
 
     set isNew(value: boolean) {
@@ -55,20 +57,19 @@ export const keyDecorator = (opts?: KeyOptions) => {
         let keyManager = new KeyManager(keyName);
 
         // Infer type
-        switch(type) {
-            case 'String': keyManager = StringKey(sourceName); break;
-            case 'Date': keyManager = DateKey(sourceName); break;
-            case 'Boolean': keyManager = BooleanKey(sourceName); break;
-            case 'Number': keyManager = NumberKey(sourceName); break;
-            case 'Array':
-            case 'Object': 
-                keyManager = JSONKey(sourceName); 
-                break;
+        if(typeof type !== 'undefined') {
+            const typeName = type.name.toLowerCase();
+            if(typeName === 'string') keyManager = StringKey(sourceName, opts);
+            else if(typeName === 'date') keyManager = DateKey(sourceName);
+            else if(typeName === 'boolean') keyManager = BooleanKey(sourceName);
+            else if(typeName === 'number') keyManager = NumberKey(sourceName, opts);
+            else if(typeName === 'array') keyManager = JSONKey(sourceName);
+            else if(typeName === 'object') keyManager = JSONKey(sourceName);
         }
 
         // Set metadata
         const metadata = classInstance.getMetadata();
-        metadata.keys[keyName] = keyManager;
+        if(!metadata.keys.includes(keyName)) metadata.keys.push(keyName);
         classInstance.setMetadata(metadata);
 
         // Override getter and setter
