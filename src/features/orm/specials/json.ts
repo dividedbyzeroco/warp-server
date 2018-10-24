@@ -1,5 +1,5 @@
-import { KeyValuePair } from '../../utils/key-map';
-import { JsonDefinition } from '../../types/json';
+import { KeyValuePair } from '../../../utils/key-map';
+import { JsonDefinition } from '../../../types/json';
 
 class SetJson {
     

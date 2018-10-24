@@ -1,17 +1,17 @@
 import enforce from 'enforce-js';
-import { IDatabaseAdapter } from '../types/database';
 import Class from './class';
 import Query from './query';
-import Collection from '../utils/collection';
-import Error from '../utils/error';
-import { InternalKeys } from '../utils/constants';
-import { ClassMapType } from '../types/class';
-import { User } from '..';
+import User from '../auth/user';
+import { IDatabaseAdapter } from '../../types/database';
+import Collection from '../../utils/collection';
+import Error from '../../utils/error';
+import { InternalKeys } from '../../utils/constants';
+import { ClassMapType } from '../../types/class';
 
 export default class DataMapper {
 
     _database: IDatabaseAdapter;
-    _classes: ClassMapType = {};
+    _classes: ClassMapType<any> = {};
 
     constructor(database: IDatabaseAdapter) {
         this._database = database;
@@ -28,7 +28,7 @@ export default class DataMapper {
      * Register classes to data mapper
      * @param classMap
      */
-    register(classMap: ClassMapType) {
+    register(classMap: ClassMapType<any>) {
         // Iterate through class map
         for(const [className, classType] of Object.entries(classMap)) {
             // Make a sample instance
@@ -46,9 +46,9 @@ export default class DataMapper {
      * Get class from registry
      * @param className
      */
-    get(className: string) {
+    get<C extends typeof Class>(className: string) {
         // Get class
-        const classType = this._classes[className];
+        const classType: C = this._classes[className];
 
         // Check if class exists
         if(typeof classType === 'undefined')
@@ -62,9 +62,15 @@ export default class DataMapper {
      * Find objects
      * @param Query
      */
-    async find<T extends typeof Class>(query: Query<T>): Promise<Collection<T['prototype']>> {
+    async find<C extends typeof Class, U extends User>(query: Query<C>, user?: U): Promise<Collection<C['prototype']>> {
         // Validate instance
         enforce`${{ QueryToFind: query }} as a ${{ Query }}`;
+
+        // Create classInstance
+        const classInstance = new query.class;
+
+        // Run beforeFind
+        await classInstance.beforeFind(query, user);
 
         // Get query options
         const {
@@ -91,22 +97,28 @@ export default class DataMapper {
         );
 
         // Prepare rows
-        const rows: T['prototype'][] = [];
+        const rows: C['prototype'][] = [];
         for(let row of result) {
             // Push the row
-            rows.push(query.getClassFromKeyMap<T['prototype']>(row));
+            rows.push(query.getClassFromKeyMap<C['prototype']>(row));
         }
         
         // Return the result
         return new Collection(rows);
     }
 
-    async first<T extends typeof Class>(query: Query<T>): Promise<T['prototype'] | null> {
+    async first<C extends typeof Class, U extends User>(query: Query<C>, user?: U): Promise<C['prototype'] | null> {
         // Validate instance
-        enforce`${{ QueryToFind: query }} as a ${{ Query }}`;
+        enforce`${{ QueryToFindFirst: query }} as a ${{ Query }}`;
 
         // Limit to first item
         query.limit(1);
+
+        // Create classInstance
+        const classInstance = new query.class;
+
+        // Run beforeFirst
+        await classInstance.beforeFirst(query, user);
 
         // Get result
         const result = await this.find(query);
@@ -121,12 +133,13 @@ export default class DataMapper {
      * @param classType
      * @param {number} id
      */
-    async getById<T extends typeof Class>(
-        classType: T, 
+    async getById<C extends typeof Class, U extends User>(
+        classType: C, 
         id: number, 
         select?: Array<string>, 
-        include?: Array<string>
-    ): Promise<T['prototype'] | null> {
+        include?: Array<string>,
+        user?: U
+    ): Promise<C['prototype'] | null> {
         // Validate instance
         const classInstance = new classType;
         enforce`${{ ClassToGet: classInstance }} as a ${{ Class }}`;
@@ -137,6 +150,9 @@ export default class DataMapper {
 
         if(typeof select !== 'undefined') query.select(select);
         if(typeof include !== 'undefined') query.include(include);
+
+        // Run beforeGet
+        await classInstance.beforeGet(query, user);
 
         // Get parameters
         const { 
@@ -161,14 +177,14 @@ export default class DataMapper {
         if(!result) return null;
 
         // Return result
-        return query.getClassFromKeyMap<T['prototype']>(result);
+        return query.getClassFromKeyMap<C['prototype']>(result);
     }
 
     /**
      * Save the Object
      * @param classInstance
      */
-    async save<T extends User | undefined>(classInstance: Class, user?: T) {
+    async save<C extends Class, U extends User | undefined>(classInstance: C, user?: U) {
         // Validate instance
         enforce`${{ ClassToSave: classInstance }} as a ${{ Class }}`;
 
@@ -199,7 +215,7 @@ export default class DataMapper {
      * Destroy the Object
      * @param classInstance
      */
-    async destroy<T extends User | undefined>(classInstance: Class, user?: T) {
+    async destroy<C extends Class, U extends User | undefined>(classInstance: C, user?: U) {
         // Validate instance
         enforce`${{ ClassToDestroy: classInstance }} as a ${{ Class }}`;
 

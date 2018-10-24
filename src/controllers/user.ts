@@ -1,5 +1,5 @@
 import WarpServer from '../index';
-import User from '../classes/auth/user';
+import User from '../features/auth/user';
 import Collection from '../utils/collection';
 import { Defaults } from '../utils/constants';
 import ConstraintMap from '../utils/constraint-map';

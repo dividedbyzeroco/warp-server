@@ -1,12 +1,13 @@
+import 'reflect-metadata';
 import { Request as ExpressRequest, Router } from 'express';
 import enforce from 'enforce-js';
-import Class from './classes/class'
-import Query from './classes/query';
-import User from './classes/auth/user';
-import Function from './classes/function';
-import Key from './classes/keys/key';
-import DataMapper from './classes/data-mapper';
-import { BelongsTo } from './classes/pointer';
+import Class from './features/orm/class'
+import Query from './features/orm/query';
+import User from './features/auth/user';
+import Function from './features/functions/function';
+import Key from './features/orm/keys/key';
+import DataMapper from './features/orm/data-mapper';
+import { BelongsTo } from './features/orm/pointer';
 import Database from './adapters/database';
 import Logger from './adapters/logger';
 import { ServerConfigType } from './types/server';
@@ -23,6 +24,8 @@ import chalk from 'chalk';
 import Response from './utils/response';
 import { MiddlewareRequest } from './types/request';
 import { URIConfig } from './types/database';
+
+const { version } = require('./package.json');
 
 enforce.extend(/^equivalent to an array$/i, val => {
     try {
@@ -227,7 +230,7 @@ export default class WarpServer {
             -------------------------------------------
             -------------------------------------------
                                                                                             
-                         Warp Server ${require('./package.json').version}
+                         Warp Server ${version}
 
             +-----------------------------------------+
             |     The server has been initialized     |

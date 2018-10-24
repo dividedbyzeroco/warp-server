@@ -1,5 +1,5 @@
-import DataMapper from '../classes/data-mapper';
-import User from '../classes/auth/user';
+import DataMapper from '../features/orm/data-mapper';
+import User from '../features/auth/user';
 
 /**
  * Middleware interface for additional Warp props

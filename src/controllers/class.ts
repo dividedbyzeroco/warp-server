@@ -1,9 +1,7 @@
 import WarpServer from '../index';
-import Class from '../classes/class';
-import User from '../classes/auth/user';
+import Class from '../features/orm/class';
 import Collection from '../utils/collection';
 import Error from '../utils/error';
-import ConstraintMap from '../utils/constraint-map';
 import { 
     GetOptionsType, 
     FindOptionsType, 
@@ -11,38 +9,19 @@ import {
     UpdateOptionsType, 
     DestroyOptionsType 
 } from '../types/classes';
-import { AccessType } from '../types/scope';
-import Query from '../classes/query';
+import Query from '../features/orm/query';
 
 export default class ClassController {
 
-    _api: WarpServer;
+    private api: WarpServer;
 
     constructor(api: WarpServer) {
-        this._api = api;
+        this.api = api;
     }
-    
-    // async checkAccess(user: User | null, classType: typeof Class, action: AccessType, where: ConstraintMap) {
-    //     // Return the where clause if user is null
-    //     // TODO: Prevent anonymous requests unless explicitly stated
-    //     if(user === null) return where;
-
-    //     // Apply role
-    //     const roleClass = this._api.roles.get(user.role);
-    //     const role = new roleClass;
-
-    //     // Set the current user
-    //     role.setUser(user); 
-
-    //     // Get accessibility
-    //     const accessibility = await role.can(action, classType, where);
-        
-    //     return accessibility;
-    // }
 
     async find({ user, className, select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<Collection<Class>> {
         // Get class
-        const classType = this._api.classes.get(className);
+        const classType = this.api.classes.get(className);
 
         // Prepare query
         const query = new Query(classType);
@@ -50,13 +29,13 @@ export default class ClassController {
         // Set options
         if(typeof select !== 'undefined') query.select(select);
         if(typeof include !== 'undefined') query.include(include);
-        if(typeof sort !== 'undefined') query._sort = sort;
+        if(typeof sort !== 'undefined') query.sortBy(sort);
         if(typeof skip !== 'undefined') query.skip(skip);
         if(typeof limit !== 'undefined') query.limit(limit);
-        if(typeof where !== 'undefined') query._where = new ConstraintMap(where);
+        if(typeof where !== 'undefined') query.where(where);
     
         // Find matching objects
-        const classCollection = await this._api.classes.find(query);
+        const classCollection = await this.api.classes.find(query, user || undefined);
     
         // Return collection
         return classCollection;
@@ -64,10 +43,10 @@ export default class ClassController {
     
     async get({ user, className, id, select, include }: GetOptionsType): Promise<Class> {
         // Get class
-        const classType = this._api.classes.get(className);
+        const classType = this.api.classes.get(className);
     
         // Find matching objects
-        const classInstance = await this._api.classes.getById(classType, id, select, include);
+        const classInstance = await this.api.classes.getById(classType, id, select, include, user || undefined);
     
         // Check if class is found
         if(classInstance === null)
@@ -79,13 +58,13 @@ export default class ClassController {
     
     async create({ user, className, keys }: CreateOptionsType): Promise<Class> {
         // Get class
-        const classType = this._api.classes.get(className);
+        const classType = this.api.classes.get(className);
 
         // Prepare instance
         const classInstance = new classType({ keys });
 
         // Save the instance
-        await this._api.classes.save(classInstance, user || undefined);
+        await this.api.classes.save(classInstance, user || undefined);
     
         // Return the class
         return classInstance;
@@ -93,13 +72,13 @@ export default class ClassController {
     
     async update({ user, className, keys, id }: UpdateOptionsType): Promise<Class> {
         // Get class
-        const classType = this._api.classes.get(className);
+        const classType = this.api.classes.get(className);
 
         // Prepare instance
         const classInstance = new classType({ keys, id });
     
         // Save the instance
-        await this._api.classes.save(classInstance, user || undefined);
+        await this.api.classes.save(classInstance, user || undefined);
     
         // Return the class
         return classInstance;
@@ -107,13 +86,13 @@ export default class ClassController {
     
    async destroy({ user, className, id }: DestroyOptionsType): Promise<Class> {
         // Get class
-        const classType = this._api.classes.get(className);
+        const classType = this.api.classes.get(className);
 
         // Prepare instance
         const classInstance = new classType({ id });
     
         // Destroy the instance
-        await this._api.classes.destroy(classInstance, user || undefined);
+        await this.api.classes.destroy(classInstance, user || undefined);
     
         // Return the class
         return classInstance;

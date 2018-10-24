@@ -1,5 +1,5 @@
 import { KeyManager } from '../key';
-import Error from '../../../utils/error';
+import Error from '../../../../utils/error';
 
 export type StringOptions = {
     minLength?: number,

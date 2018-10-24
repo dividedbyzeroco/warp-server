@@ -2,7 +2,7 @@ import mysql from 'mysql';
 import parseUrl from 'parse-url';
 import enforce from 'enforce-js';
 import Error from '../../../utils/error';
-import { Increment, SetJson, AppendJson } from '../../../classes/specials';
+import { Increment, SetJson, AppendJson } from '../../../features/orm/specials';
 import { DatabaseResult, DatabaseConfig, ConnectionCollection, DatabaseAction } from '../../../types/database';
 import { DatabaseWrite, DatabaseRead } from '../../../utils/constants';
 
@@ -54,8 +54,8 @@ export default class DatabaseClient {
             protocol: parsedURI.protocol,
             host: parsedURI.resource,
             port: parsedURI.port,
-            user: identity[0],
-            password: identity[1],
+            user: decodeURIComponent(identity[0]),
+            password: decodeURIComponent(identity[1]),
             database: parsedURI.pathname.slice(1)
         };
 

@@ -1,16 +1,18 @@
 import { KeyManager } from '../key';
-import Error from '../../../utils/error';
+import Error from '../../../../utils/error';
 import { Increment } from '../../specials';
 
+export type NumberType = 'number' | 'integer' | 'float';
+
 export type NumberKeyOptions = {
-    type?: 'number' | 'integer' | 'float'
+    numType?: NumberType,
     decimals?: number,
     min?: number,
     max?: number
 };
 
 export default function NumberKey(name: string, opts: NumberKeyOptions = {}): KeyManager {
-    const { type = 'number', decimals, min, max } = opts;
+    const { numType = 'number', decimals, min, max } = opts;
     
     
     const key = new KeyManager(name, 'number');
@@ -35,8 +37,8 @@ export default function NumberKey(name: string, opts: NumberKeyOptions = {}): Ke
             throw new Error(Error.Code.InvalidObjectKey, `Key \`${name}\` must be less than or equal to ${max}`);
         }
         
-        if(type === 'integer') return parseInt(value);
-        else if(type === 'float') return Number(Number(value).toFixed(decimals));
+        if(numType === 'integer') return parseInt(value);
+        else if(numType === 'float') return Number(Number(value).toFixed(decimals));
         else return Number(value);
     };
 
@@ -45,8 +47,8 @@ export default function NumberKey(name: string, opts: NumberKeyOptions = {}): Ke
         const number = value;
         if(typeof number === 'undefined' || number === null) return null;
         else {
-            if(type === 'integer') return parseInt(number);
-            else if(type === 'float') return Number(Number(value).toFixed(decimals));
+            if(numType === 'integer') return parseInt(number);
+            else if(numType === 'float') return Number(Number(value).toFixed(decimals));
             else return Number(number);
         }
     };

@@ -1,26 +1,26 @@
 import enforce from 'enforce-js';
 import Class from './class';
 import Pointer from './pointer';
-import ConstraintMap, { Constraints } from '../utils/constraint-map';
-import { toDatabaseDate } from '../utils/format';
-import Error from '../utils/error';
-import { InternalKeys, Defaults } from '../utils/constants';
-import KeyMap from '../utils/key-map';
-import CompoundKey from '../utils/compound-key';
+import ConstraintMap, { Constraints } from '../../utils/constraint-map';
+import { toDatabaseDate } from '../../utils/format';
+import Error from '../../utils/error';
+import { InternalKeys, Defaults } from '../../utils/constants';
+import KeyMap from '../../utils/key-map';
+import CompoundKey from '../../utils/compound-key';
 
 export default class Query<T extends typeof Class> {
 
-    _class: typeof Class;
-    _select: Array<string> = [];
-    _include: Array<string> = [];
-    _where: ConstraintMap = new ConstraintMap();
-    _sort: Array<string> = Defaults.Query.Sort;
-    _skip: number = Defaults.Query.Skip;
-    _limit: number = Defaults.Query.Limit;
-    _isSubquery: boolean = false;
+    private classType: typeof Class;
+    private selection: Array<string> = [];
+    private included: Array<string> = [];
+    private constraints: ConstraintMap = new ConstraintMap();
+    private sorting: Array<string> = Defaults.Query.Sort;
+    private skipped: number = Defaults.Query.Skip;
+    private limitation: number = Defaults.Query.Limit;
+    private isSubquery: boolean = false;
 
     constructor(classType: T) {
-        this._class = classType;
+        this.classType = classType;
     }
 
     /**
@@ -41,7 +41,7 @@ export default class Query<T extends typeof Class> {
         if(value instanceof Date) value = toDatabaseDate(value.toISOString());
 
         // Set the constraint
-        this._where.set(key, constraint, value);
+        this.constraints.set(key, constraint, value);
         return this;
     }
 
@@ -50,7 +50,7 @@ export default class Query<T extends typeof Class> {
     }
 
     get class() {
-        return this._class;
+        return this.classType;
     }
 
     /**
@@ -301,7 +301,7 @@ export default class Query<T extends typeof Class> {
             if(!this.class.has(key))
                 throw new Error(Error.Code.ForbiddenOperation, `The constraint key \`${key}\` does not exist`);
 
-            this._select.push(key);
+            this.selection.push(key);
         }
 
         return this;
@@ -324,7 +324,7 @@ export default class Query<T extends typeof Class> {
             if(!this.class.has(key))
                 throw new Error(Error.Code.ForbiddenOperation, `The constraint key \`${key}\` does not exist`);
 
-            this._include.push(key);
+            this.included.push(key);
         }
         return this;
     }
@@ -342,11 +342,14 @@ export default class Query<T extends typeof Class> {
         for(let key of keyList) {
             enforce`${{key}} as a string`;
 
+            // Get rawKey
+            const rawKey = key[0] === '-' ? key.substr(1) : key;
+
             // Check if the key exists for the class
-            if(!this.class.has(key))
+            if(!this.class.has(rawKey))
                 throw new Error(Error.Code.ForbiddenOperation, `The constraint key \`${key}\` does not exist`);
 
-            this._sort.push(key);
+            this.sorting.push(key);
         }
         return this;
     }
@@ -368,7 +371,7 @@ export default class Query<T extends typeof Class> {
             if(!this.class.has(key))
                 throw new Error(Error.Code.ForbiddenOperation, `The constraint key \`${key}\` does not exist`);
 
-            this._sort.push(`-${key}`);
+            this.sorting.push(`-${key}`);
         }
         return this;
     }
@@ -379,7 +382,7 @@ export default class Query<T extends typeof Class> {
      */
     skip(value: number) {
         enforce`${{ skip: value }} as a number`;
-        this._skip = value;
+        this.skipped = value;
         return this;
     }
 
@@ -389,7 +392,7 @@ export default class Query<T extends typeof Class> {
      */
     limit(value: number) {
         enforce`${{ limit: value }} as a number`;
-        this._limit = value;
+        this.limitation = value;
         return this;
     }
 
@@ -398,19 +401,23 @@ export default class Query<T extends typeof Class> {
      * @param {String} select 
      */
     toSubquery(select: string) {
-        this._select = [];
+        this.selection = [];
         this.select(select);
-        this._isSubquery = true;
+        this.isSubquery = true;
         return this;
+    }
+
+    where(constraints: { [key: string]: { [constraint: string]: any } }) {
+        this.constraints = new ConstraintMap(constraints);
     }
 
     private getKeys() {
         // Get metadata
-        const metadata = this.class.prototype.getMetadata();
+        const metadata = this.class.prototype.getDefinition();
 
         // Prepare selection keys
-        let select = this._select;
-        let include = this._include;
+        let select = this.selection;
+        let include = this.included;
 
         // Get parameters
         const keys: Array<string> = [];
@@ -446,11 +453,11 @@ export default class Query<T extends typeof Class> {
                     // If the pointer is secondary
                     if(pointer.isSecondary) {
                         // Move it to the include list
-                        include.push(pointer.pointerIdKey);
+                        include.push(pointer.idKey);
                     }
                     else {
                         // Use the via key
-                        keys.push(`${pointer.pointerIdKey}${Pointer.IdDelimiter}${pointer.viaKey}`);
+                        keys.push(`${pointer.idKey}${Pointer.IdDelimiter}${pointer.viaKey}`);
                     }
                 }
                 else keys.push(key);
@@ -489,10 +496,10 @@ export default class Query<T extends typeof Class> {
 
     private getConstraints(prefix: string = '') {
         // Create a new instance of where
-        const where = new ConstraintMap(this._where.toJSON());
+        const where = new ConstraintMap(this.constraints.toJSON());
 
         // Iterate through keys
-        for(let key of where.getKeys()) {
+        for(let key of where.keys) {
             // Check if key exists
             if(!this.class.has(key))
                 throw new Error(Error.Code.ForbiddenOperation, `The constraint key \`${key}\` does not exist`);
@@ -510,7 +517,7 @@ export default class Query<T extends typeof Class> {
 
     private getSorting(): Array<string> {
         // Prepare sort key
-        const sort = this._sort;
+        const sort = this.sorting;
 
         // Prepare sorting
         const sorting: Array<string> = [];
@@ -532,22 +539,24 @@ export default class Query<T extends typeof Class> {
         return sorting;
     }
 
-    getClassFromKeyMap<T extends Class>(keys: KeyMap): T {
+    getClassFromKeyMap<C extends Class>(keys: KeyMap): C {
         // Get internal keys
         const id = keys.get(InternalKeys.Id);
-        const createdAt = keys.get(InternalKeys.Timestamps.CreatedAt);
-        const updatedAt = keys.get(InternalKeys.Timestamps.UpdatedAt);
 
         // Remove id from the key map
         keys.remove(InternalKeys.Id);
 
         // Return the new class
-        return <T>(new this.class({ keyMap: keys, id, createdAt, updatedAt }));
+        const classInstance = <C>(new this.class);
+        classInstance._id = id;
+        classInstance._keys = keys;
+
+        return classInstance;
     }
 
     toQueryOptions() {
         // Get prefix
-        const prefix = this._isSubquery? this.SubqueryPrefix : '';
+        const prefix = this.isSubquery? this.SubqueryPrefix : '';
 
         // Get class alias
         const classAlias = prefix + this.class.className;
@@ -568,8 +577,8 @@ export default class Query<T extends typeof Class> {
             joins,
             where,
             sorting,
-            skip: this._skip,
-            limit: this._limit
+            skip: this.skipped,
+            limit: this.limitation
         };
     }
 

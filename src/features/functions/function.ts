@@ -1,19 +1,17 @@
-import { Warp } from 'warp-sdk-js';
-import User from './auth/user';
-import { toCamelCase } from '../utils/format';
-import KeyMap from '../utils/key-map';
-import Error from '../utils/error';
-import { FunctionOptionsType } from '../types/functions';
+import User from '../auth/user';
+import { toCamelCase } from '../../utils/format';
+import KeyMap from '../../utils/key-map';
+import Error from '../../utils/error';
+import { FunctionOptionsType } from '../../types/functions';
 
 export default class FunctionClass {
 
-    _warp: Warp;
-    _currentUser: User;
-    _keyMap: KeyMap = new KeyMap();
+    private user: User;
+    private keys: KeyMap = new KeyMap();
 
     constructor({ user, keys }: FunctionOptionsType) {
         // Check if current user is provided
-        if(typeof user !== 'undefined' && user !== null) this._currentUser = user;
+        if(typeof user !== 'undefined' && user !== null) this.user = user;
         
         // Iterate through each param
         if(typeof keys !== 'undefined') {
@@ -34,7 +32,7 @@ export default class FunctionClass {
         } 
 
         // After setting values, make the key map immutable
-        this._keyMap.setImmutability(true);
+        this.keys.setImmutability(true);
     }
 
     statics<T extends typeof FunctionClass>(): T {
@@ -42,23 +40,15 @@ export default class FunctionClass {
     }
 
     set(key: string, value: any) {
-        this._keyMap.set(key, value);
+        this.keys.set(key, value);
     }
 
     get(key: string) {
-        return this._keyMap.get(key);
-    }
-
-    bindSDK(warp: Warp) {
-        this._warp = warp;
-    }
-
-    get Warp(): Warp {
-        return this._warp;
+        return this.keys.get(key);
     }
 
     get currentUser(): any {
-        return this._currentUser;
+        return this.user;
     }
 
     static get functionName(): string {
@@ -70,7 +60,7 @@ export default class FunctionClass {
         return false;
     }
 
-    async run(): Promise<any> {
+    async run(params?: object, user?: User): Promise<any> {
         return;
     }
 
@@ -80,7 +70,7 @@ export default class FunctionClass {
         // if(this.statics().masterOnly && (typeof this._metadata === 'undefined' || !this.isMaster))
         //     throw new Error(Error.Code.ForbiddenOperation, `This function is only accessible via master`);
 
-        return await this.run();
+        return await this.run(this.keys.toJSON(), this.user);
     }
 
 }

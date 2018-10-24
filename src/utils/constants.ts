@@ -13,7 +13,7 @@ export const InternalKeys = Object.freeze({
         DataMapper: 'classes'
     }),
     Pointers: Object.freeze({
-        LegacyClassName: 'className',
+        Type: 'type',
         ClassName: 'class_name',
         Attributes: 'attributes'
     }),

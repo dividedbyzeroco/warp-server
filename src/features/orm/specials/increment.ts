@@ -1,4 +1,4 @@
-import { KeyValuePair } from '../../utils/key-map';
+import { KeyValuePair } from '../../../utils/key-map';
 
 export default class Increment {
 

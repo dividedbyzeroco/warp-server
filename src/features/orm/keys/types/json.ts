@@ -1,5 +1,5 @@
 import { KeyManager } from '../key';
-import Error from '../../../utils/error';
+import Error from '../../../../utils/error';
 import { SetJson, AppendJson } from '../../specials';
 
 export default function JSONKey(name: string): KeyManager {

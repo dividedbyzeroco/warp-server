@@ -1,21 +1,19 @@
-import 'reflect-metadata';
-import { InternalKeys } from '../utils/constants';
-import { PointerObjectType } from '../types/class';
 import Class from './class';
-import Error from '../utils/error';
-import { toSnakeCase } from '../utils/format';
+import { InternalKeys } from '../../utils/constants';
+import Error from '../../utils/error';
+import { toSnakeCase } from '../../utils/format';
 import PointerKey from './keys/types/pointer';
-import { ClassCaller } from '../types/pointer';
+import { ClassCaller } from '../../types/pointer';
 
 export default class Pointer {
 
-    _class: typeof Class;
-    _aliasKey: string;
-    _viaKey: string;
-    _pointerIdKey: string = InternalKeys.Id;
-    _isSecondary: boolean = false;
-    _parentAliasKey: string;
-    _parentViaKey: string;
+    private classType: typeof Class;
+    private aliasKeyName: string;
+    private viaKeyName: string;
+    private idKeyName: string = InternalKeys.Id;
+    private isSecondaryFlag: boolean = false;
+    private parentAliasKeyName: string;
+    private parentViaKeyName: string;
 
     /**
      * Constructor
@@ -23,9 +21,9 @@ export default class Pointer {
      * @param {String} key 
      */
     constructor(classType: typeof Class, key: string) {
-        this._class = classType;
-        this._aliasKey = key;
-        this._viaKey = `${this._aliasKey}_${InternalKeys.Id}`;
+        this.classType = classType;
+        this.aliasKeyName = key;
+        this.viaKeyName = `${this.aliasKeyName}_${InternalKeys.Id}`;
     }
     
     static get Delimiter(): string {
@@ -56,7 +54,7 @@ export default class Pointer {
         return keyParts[0];
     }
 
-    static getPointerIdKeyFrom(key: string) {
+    static getIdKeyFrom(key: string) {
         // Get key parts
         const keyParts = key.split(this.IdDelimiter);
 
@@ -64,7 +62,7 @@ export default class Pointer {
         return keyParts[0];
     }
 
-    static getKeyFrom(key: string) {
+    static getPointerKeyFrom(key: string) {
         // Get key parts
         const keyParts = key.split(this.Delimiter);
 
@@ -80,62 +78,71 @@ export default class Pointer {
         return keyParts[1];
     }
 
-    static get Pointer(): typeof Pointer {
-        return Pointer;
-    }
-
     get statics() {
         return this.constructor as typeof Pointer;
     }
 
     get class(): typeof Class {
-        return this._class;
+        return this.classType;
     }
 
     get aliasKey(): string {
-        return this._aliasKey;
+        return this.aliasKeyName;
     }
 
     get viaKey(): string {
-        return this._viaKey;
+        return this.viaKeyName;
     }
 
-    get pointerIdKey(): string {
-        return `${this.aliasKey}${this.statics.Delimiter}${this._pointerIdKey}`;
+    get idKey(): string {
+        return `${this.aliasKey}${this.statics.Delimiter}${this.idKeyName}`;
     }
 
     get isSecondary(): boolean {
-        return this._isSecondary;
+        return this.isSecondaryFlag;
     }
 
     get parentAliasKey(): string {
-        return this._parentAliasKey;
+        return this.parentAliasKeyName;
     }
 
     get parentViaKey(): string {
-        return this._parentViaKey;
+        return this.parentViaKeyName;
     }
 
+    /**
+     * The key inside the current class that has the foreign key
+     * @param key
+     */
     via(key: string): this {
-        this._viaKey = key;
+        this.viaKeyName = key;
         return this;
     }
 
+    /**
+     * The key inside the other class that the foreign key matches
+     * @param key
+     */
     to(key: string): this {
-        this._pointerIdKey = key;
+        this.idKeyName = key;
         return this;
     }
 
+    /**
+     * The key inside the other class that the secondary pointer matches
+     * @param key
+     */
     from(key: string): this {
         // Check if key is for a pointer
         if(!this.statics.isUsedBy(key))
             throw new Error(Error.Code.ForbiddenOperation, `Secondary key \`key\` must be a pointer to an existing key`);
 
+        // TODO: Allow parentViaKeys that do not have '_id'
         // Set new via key and set isSecondary to true
-        this._parentAliasKey = this.statics.getAliasFrom(key);
-        this._parentViaKey = this.statics.getKeyFrom(key); 
+        this.parentAliasKeyName = this.statics.getAliasFrom(key);
+        this.parentViaKeyName = this.statics.getPointerKeyFrom(key); 
         this.via(`${this.parentAliasKey}${this.statics.Delimiter}${this.parentViaKey}_${InternalKeys.Id}`);
-        this._isSecondary = true;
+        this.isSecondaryFlag = true;
         
         return this;
     }
@@ -143,48 +150,10 @@ export default class Pointer {
     isImplementedBy(value: object) {
         if(value === null) return true;
         if(typeof value !== 'object') return false;
-        if(value['type'] !== 'Pointer') return false;
+        if(value[InternalKeys.Pointers.Type] !== 'Pointer') return false;
         if(value[InternalKeys.Pointers.ClassName] !== this.class.className) return false;
         if(value[InternalKeys.Id] <= 0) return false;
         return true;
-    }
-
-    toObject(value?: number | object): PointerObjectType | null {
-        // Check if value exists
-        if(!value) return null;
-
-        // Get class type
-        const classType = this.class;
-
-        // If value is a number
-        if(typeof value === 'number') {
-            // Create class instance
-            const id = value;
-            const classInstance = new classType;
-            classInstance._id = id;
-
-            // Otherwise, return a pointer object
-            return classInstance.toJSON() as PointerObjectType;
-        }
-        else if(typeof value === 'object') {    
-            // Get key values
-            const id = value[InternalKeys.Id];
-            const createdAt = value[InternalKeys.Timestamps.CreatedAt];
-            const updatedAt = value[InternalKeys.Timestamps.UpdatedAt];
-            const attributes = value[InternalKeys.Pointers.Attributes];
-
-            // Create class instance
-            const classInstance = new classType;
-            classInstance._id = id;
-            classInstance._keys = attributes;
-            classInstance._keys.set(InternalKeys.Timestamps.CreatedAt, createdAt);
-            classInstance._keys.set(InternalKeys.Timestamps.UpdatedAt, updatedAt);
-            classInstance._isPointer = true;
-
-            // Return a pointer object
-            return classInstance.toJSON() as PointerObjectType;
-        }
-        else return null;
     }
 }
 
@@ -222,11 +191,11 @@ export const BelongsTo = <C extends typeof Class>(classDefinition: ClassCaller<C
         // Prepare key manager
         const keyManager = PointerKey(name, pointerDefinition);
 
-        // Set metadata
-        const metadata = classInstance.getMetadata();
-        if(!metadata.keys.includes(keyName)) metadata.keys.push(keyName);
-        metadata.joins[keyName] = pointerDefinition;
-        classInstance.setMetadata(metadata);
+        // Set definition
+        const definition = classInstance.getDefinition();
+        if(!definition.keys.includes(keyName)) definition.keys.push(keyName);
+        definition.joins[keyName] = pointerDefinition;
+        classInstance.setDefinition(definition);
 
         // Override pointer getter and setter
         return {

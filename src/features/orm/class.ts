@@ -1,17 +1,17 @@
-import 'reflect-metadata';
-import Error from '../utils/error';
-import KeyMap from '../utils/key-map';
-import { toCamelCase, toSnakeCase } from '../utils/format'; 
-import { InternalKeys } from '../utils/constants';
+import Error from '../../utils/error';
+import KeyMap from '../../utils/key-map';
+import { toCamelCase, toSnakeCase } from '../../utils/format'; 
+import { InternalKeys } from '../../utils/constants';
 import Pointer, { PointerDefinition } from './pointer';
-import CompoundKey from '../utils/compound-key';
+import CompoundKey from '../../utils/compound-key';
 import DataMapper from './data-mapper';
-import User from './auth/user';
-import DateKey from './keys/types/date';
+import User from '../auth/user';
+import DateKey from '../orm/keys/types/date';
+import { Query } from '../..';
 
-export const MetadataSymbol = Symbol.for('METADATA');
+export const ClassDefinitionSymbol = Symbol.for('warp-server:definition');
 
-export interface ClassMetadata {
+export interface ClassDefinition {
     keys: string[];
     joins: { [name: string]: PointerDefinition<typeof Class> };
     hidden: string[];
@@ -126,8 +126,8 @@ export default class Class {
             return true;
         }
         else if(key === InternalKeys.Id) return true;
-        else if(this.prototype.getMetadata().timestamps.includes(key)) return true;
-        else if(this.prototype.getMetadata().keys.includes(key)) return true;
+        else if(this.prototype.getDefinition().timestamps.includes(key)) return true;
+        else if(this.prototype.getDefinition().keys.includes(key)) return true;
         else return false;
     }
 
@@ -138,11 +138,11 @@ export default class Class {
 
         // Get alias and key
         const alias = Pointer.getAliasFrom(key);
-        const pointerKey = Pointer.getKeyFrom(key);
+        const pointerKey = Pointer.getPointerKeyFrom(key);
 
         // Get class pointer
-        const metadata = this.prototype.getMetadata();
-        const pointerDefinition = metadata.joins[alias];
+        const definition = this.prototype.getDefinition();
+        const pointerDefinition = definition.joins[alias];
 
         // Check if pointer exists
         if(!(pointerDefinition instanceof PointerDefinition)) {
@@ -151,7 +151,7 @@ export default class Class {
         else {
             // Get pointer
             const pointer = pointerDefinition.toPointer();
-            const pointerMetadata = pointer.class.prototype.getMetadata();
+            const pointerMetadata = pointer.class.prototype.getDefinition();
 
             if((!pointerMetadata.keys.includes(pointerKey)
                     && !pointerMetadata.timestamps.includes(pointerKey)
@@ -171,10 +171,10 @@ export default class Class {
         if(Pointer.isUsedBy(key)) {
             // Get alias and join
             const alias = Pointer.getAliasFrom(key);
-            const join = this.prototype.getMetadata().joins[alias].toPointer();
+            const join = this.prototype.getDefinition().joins[alias].toPointer();
 
             // Check if join exists
-            if(alias !== this.className && key === join.pointerIdKey) {
+            if(alias !== this.className && key === join.idKey) {
                 // If pointer is secondary, use the via key
                 if(join.isSecondary)
                     return join.viaKey;
@@ -197,30 +197,30 @@ export default class Class {
     }
 
     /**
-     * Get class metadata
+     * Get class definition
      */
-    getMetadata(): ClassMetadata {
-        // Get metadata
-        const metadata = Reflect.getMetadata(MetadataSymbol, this) as ClassMetadata;
+    getDefinition(): ClassDefinition {
+        // Get definition
+        const definition = Reflect.getMetadata(ClassDefinitionSymbol, this) as ClassDefinition;
 
-        // Override default metadata
+        // Override default definition
         return  {
             keys: [],
             joins: {},
             hidden: [],
             protected: [],
             timestamps: Object.values(InternalKeys.Timestamps),
-            ...metadata
+            ...definition
         };
     }
 
     /**
-     * Set class metadata
-     * @param metadata
+     * Set class definition
+     * @param definition
      */
-    setMetadata(metadata: {[name: string]: any}) {
-        const classMetadata = this.getMetadata();
-        Reflect.defineMetadata(MetadataSymbol, { ...classMetadata, ...metadata }, this);
+    setDefinition(definition: {[name: string]: any}) {
+        const classDefinition = this.getDefinition();
+        Reflect.defineMetadata(ClassDefinitionSymbol, { ...classDefinition, ...definition }, this);
     }
     
     statics<T extends typeof Class>(): T {
@@ -289,17 +289,24 @@ export default class Class {
         let body = {};
 
         // Iterate through each key in key map
-        for(let key of this.getMetadata().keys) {
+        for(let key of this.getDefinition().keys) {
             // If the key is a timestamp, skip it
-            if(this.getMetadata().timestamps.includes(key))
+            if(this.getDefinition().timestamps.includes(key))
                 continue;
 
             // If the key is hidden, skip it
-            if(this.getMetadata().hidden.includes(key))
+            if(this.getDefinition().hidden.includes(key))
                 continue;
 
-            // Assign key
-            keys[key] = this[toCamelCase(key)];
+            // Get value
+            let value = this[toCamelCase(key)];
+
+            // Check if key is a join
+            if(typeof this.getDefinition().joins[key] !== 'undefined')
+                value = value.toJSON();
+
+            // Set value
+            keys[key] = value;
         }
 
         // If class is a pointer, use attributes
@@ -322,7 +329,15 @@ export default class Class {
         };
     }
 
-    async beforeFind() {
+    async beforeFind<Q extends Query<any>, T extends User | undefined>(query: Q, user: T) {
+        return;
+    }
+
+    async beforeFirst<Q extends Query<any>, T extends User | undefined>(query: Q, user: T) {
+        return;
+    }
+
+    async beforeGet<Q extends Query<any>, T extends User | undefined>(query: Q, user: T) {
         return;
     }
 

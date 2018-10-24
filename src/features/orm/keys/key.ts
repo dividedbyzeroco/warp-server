@@ -1,6 +1,5 @@
-import 'reflect-metadata';
-import { toSnakeCase } from '../../utils/format';
-import { KeyOptions } from '../../types/key';
+import { toSnakeCase } from '../../../utils/format';
+import { KeyOptions } from '../../../types/key';
 import Class from '../class';
 import StringKey from './types/string';
 import DateKey from './types/date';
@@ -14,19 +13,27 @@ import BooleanKey from './types/boolean';
  */
 export class KeyManager {
 
-    type: string;
-    keyName: string;
-    isNewFlag: boolean = false;
+    private keyType: string;
+    private keyName: string;
+    private isNewFlag: boolean = false;
     setterDefinition: (value: any) => any = value => value;
     getterDefinition: (value: any) => any = value => value;
 
     constructor(name: string, type?: string) {
         this.keyName = name;
-        this.type = type || 'any';
+        this.keyType = type || 'any';
+    }
+
+    get type() {
+        return this.keyType;
     }
 
     set isNew(value: boolean) {
         this.isNewFlag = value;
+    }
+
+    get isNew() {
+        return this.isNewFlag;
     }
 
     get name(): string {
@@ -67,10 +74,10 @@ export const keyDecorator = (opts?: KeyOptions) => {
             else if(typeName === 'object') keyManager = JSONKey(sourceName);
         }
 
-        // Set metadata
-        const metadata = classInstance.getMetadata();
-        if(!metadata.keys.includes(keyName)) metadata.keys.push(keyName);
-        classInstance.setMetadata(metadata);
+        // Set definition
+        const definition = classInstance.getDefinition();
+        if(!definition.keys.includes(keyName)) definition.keys.push(keyName);
+        classInstance.setDefinition(definition);
 
         // Override getter and setter
         return {
@@ -101,9 +108,9 @@ export class KeyInstance {
     asString = (minLength?: number, maxLength?: number) => StringKey(this._name, { minLength, maxLength });
     asDate = () => DateKey(this._name);
     asBoolean = () => BooleanKey(this._name);
-    asNumber = (max?: number, min?: number) => NumberKey(this._name, { type: 'number', min, max });
-    asInteger = (min?: number, max?: number) => NumberKey(this._name, { type: 'integer', min, max });
-    asFloat = (decimals: number = 2, min?: number, max?: number) => NumberKey(this._name, { type: 'float', decimals, min, max });
+    asNumber = (max?: number, min?: number) => NumberKey(this._name, { numType: 'number', min, max });
+    asInteger = (min?: number, max?: number) => NumberKey(this._name, { numType: 'integer', min, max });
+    asFloat = (decimals: number = 2, min?: number, max?: number) => NumberKey(this._name, { numType: 'float', decimals, min, max });
     asJSON = () => JSONKey(this._name);
 
 }

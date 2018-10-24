@@ -1,5 +1,5 @@
-import User from '../classes/auth/user';
-import Function from '../classes/function';
+import User from '../features/auth/user';
+import Function from '../features/functions/function';
 
 export type FunctionOptionsType = {
     user?: User | null

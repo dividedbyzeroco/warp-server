@@ -1,11 +1,11 @@
-import Class from '../classes/class';
+import Class from '../features/orm/class';
 import KeyMap from '../utils/key-map';
 import ConstraintMap from '../utils/constraint-map';
 
-export type ClassMapType = { [className: string]: typeof Class };
+export type ClassMapType<C extends typeof Class> = { [className: string]: C };
 
 export type ClassFunctionsType = {
-    add: (map: ClassMapType) => void;
+    add: (map: ClassMapType<any>) => void;
     get: (className: string) => typeof Class;
 };
 

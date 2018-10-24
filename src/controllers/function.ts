@@ -3,10 +3,10 @@ import { RunOptionsType } from '../types/functions';
 
 export default class FunctionController {
 
-    _api: WarpServer;
+    api: WarpServer;
 
     constructor(api: WarpServer) {
-        this._api = api;
+        this.api = api;
     }
     
     async run({ user, functionName, keys }: RunOptionsType): Promise<any> {

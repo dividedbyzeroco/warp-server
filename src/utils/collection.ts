@@ -1,4 +1,4 @@
-import Class from '../classes/class';
+import Class from '../features/orm/class';
 
 export default class Collection<T extends Class> {
 
