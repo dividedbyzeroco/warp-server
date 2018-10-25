@@ -224,7 +224,7 @@ export default class Query<T extends typeof Class> {
      * @param {String} select 
      * @param {Object} value 
      */
-    foundIn<U extends typeof Class>(key: string, select: string, value: Query<U>): this {
+    foundIn<C extends typeof Class>(key: string, select: string, value: Query<C>): this {
         // Set constraint
         this.set(key, Constraints.FoundIn, value.toSubquery(select));
         return this;
@@ -235,7 +235,7 @@ export default class Query<T extends typeof Class> {
      * @param {String} key
      * @param {Array} value 
      */
-    foundInEither<U extends typeof Class>(key: string, value: Array<{[keyMatch: string]: Query<U>}>): this {
+    foundInEither<C extends typeof Class>(key: string, value: Array<{[keyMatch: string]: Query<C>}>): this {
         this.set(key, Constraints.FoundInEither, value.map(item => {
             const select = Object.keys(item)[0];
             const query = item[select];
@@ -249,7 +249,7 @@ export default class Query<T extends typeof Class> {
      * @param {String} key
      * @param {Array} value 
      */
-    foundInAll<U extends typeof Class>(key: string, value: Array<{[keyMatch: string]: Query<U>}>): this {
+    foundInAll<C extends typeof Class>(key: string, value: Array<{[keyMatch: string]: Query<C>}>): this {
         this.set(key, Constraints.FoundInAll, value.map(item => {
             const select = Object.keys(item)[0];
             const query = item[select];
@@ -264,9 +264,23 @@ export default class Query<T extends typeof Class> {
      * @param {String} select 
      * @param {Object} value 
      */
-    notFoundIn<U extends typeof Class>(key: string, select: string, value: Query<U>): this {
+    notFoundIn<C extends typeof Class>(key: string, select: string, value: Query<C>): this {
         // Set constraint
         this.set(key, Constraints.NotFoundIn, value.toSubquery(select));
+        return this;
+    }
+
+    /**
+     * Assert that the key does not match a key in either of the given subqueries
+     * @param {String} key
+     * @param {Array} value 
+     */
+    notFoundInEither<C extends typeof Class>(key: string, value: Array<{[keyMatch: string]: Query<C>}>): this {
+        this.set(key, Constraints.NotFoundInEither, value.map(item => {
+            const select = Object.keys(item)[0];
+            const query = item[select];
+            return query.toSubquery(select);
+        }));
         return this;
     }
 
@@ -275,8 +289,8 @@ export default class Query<T extends typeof Class> {
      * @param {String} key
      * @param {Array} value 
      */
-    notFoundInEither<U extends typeof Class>(key: string, value: Array<{[keyMatch: string]: Query<U>}>): this {
-        this.set(key, Constraints.NotFoundInEither, value.map(item => {
+    notFoundInAll<C extends typeof Class>(key: string, value: Array<{[keyMatch: string]: Query<C>}>): this {
+        this.set(key, Constraints.NotFoundInAll, value.map(item => {
             const select = Object.keys(item)[0];
             const query = item[select];
             return query.toSubquery(select);

@@ -49,7 +49,8 @@ export const Subqueries = Object.freeze({
     FoundInEither: 'fie',
     FoundInAll: 'fia',
     NotFoundIn: 'nfi',
-    NotFoundInEither: 'nfe'
+    NotFoundInEither: 'nfe',
+    NotFoundInAll: 'nfa'
 });
 
 export const Constraints = Object.freeze({
