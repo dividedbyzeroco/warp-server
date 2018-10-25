@@ -10,18 +10,18 @@ import { ClassMapType } from '../../types/class';
 
 export default class DataMapper {
 
-    _database: IDatabaseAdapter;
-    _classes: ClassMapType<any> = {};
+    private database: IDatabaseAdapter;
+    private classes: ClassMapType<any> = {};
 
     constructor(database: IDatabaseAdapter) {
-        this._database = database;
+        this.database = database;
     }
 
     /**
      * Connect to the database
      */
     async initialize() {
-        return await this._database.initialize();
+        return await this.database.initialize();
     }
 
     /**
@@ -30,7 +30,7 @@ export default class DataMapper {
      */
     register(classMap: ClassMapType<any>) {
         // Iterate through class map
-        for(const [className, classType] of Object.entries(classMap)) {
+        for(const [className, classType] of Object.entries<typeof Class>(classMap)) {
             // Make a sample instance
             const sampleInstance = new classType;
 
@@ -38,7 +38,7 @@ export default class DataMapper {
             enforce`${{ [className]: sampleInstance }} as a ${{ Class }}`;
 
             // Add to classes
-            this._classes[classType.className] = classType;
+            this.classes[classType.className] = classType;
         }
     }
 
@@ -48,7 +48,7 @@ export default class DataMapper {
      */
     get<C extends typeof Class>(className: string) {
         // Get class
-        const classType: C = this._classes[className];
+        const classType: C = this.classes[className];
 
         // Check if class exists
         if(typeof classType === 'undefined')
@@ -85,7 +85,7 @@ export default class DataMapper {
         } = query.toQueryOptions();
 
         // Execute find
-        const result = await this._database.find(
+        const result = await this.database.find(
             source, 
             classAlias, 
             select, 
@@ -164,7 +164,7 @@ export default class DataMapper {
         } = query.toQueryOptions();
 
         // Execute first
-        const result = await this._database.get(
+        const result = await this.database.get(
             source, 
             classAlias, 
             keys, 
@@ -197,11 +197,11 @@ export default class DataMapper {
         // If the object is new
         if(classInstance.isNew) {
             // Execute create query and retrieve the new id
-            classInstance._id = await this._database.create(classInstance.statics().className, keys);
+            classInstance._id = await this.database.create(classInstance.statics().className, keys);
         }
         else {
             // Execute update query
-            await this._database.update(classInstance.statics().className, keys, classInstance.id);
+            await this.database.update(classInstance.statics().className, keys, classInstance.id);
         }
 
         // Run the afterSave method in the background as master
@@ -226,7 +226,7 @@ export default class DataMapper {
         const keys = classInstance._keys;
 
         // Execute destroy query
-        await this._database.destroy(classInstance.statics().className, keys, classInstance.id);
+        await this.database.destroy(classInstance.statics().className, keys, classInstance.id);
 
         // Run the afterDestroy method in the background
         try { classInstance.afterDestroy(this, user); } catch(err) { /* Do nothing */ }

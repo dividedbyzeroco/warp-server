@@ -2,14 +2,14 @@ import User from '../auth/user';
 import { toCamelCase } from '../../utils/format';
 import KeyMap from '../../utils/key-map';
 import Error from '../../utils/error';
-import { FunctionOptionsType } from '../../types/functions';
 
 export default class FunctionClass {
 
+    // @deprecated
     private user: User;
     private keys: KeyMap = new KeyMap();
 
-    constructor({ user, keys }: FunctionOptionsType) {
+    constructor(keys: { [name: string]: any } = {}, user?: User) {
         // Check if current user is provided
         if(typeof user !== 'undefined' && user !== null) this.user = user;
         
@@ -39,10 +39,12 @@ export default class FunctionClass {
         return this.constructor as T;
     }
 
+    // @deprecated
     set(key: string, value: any) {
         this.keys.set(key, value);
     }
 
+    // @deprecated
     get(key: string) {
         return this.keys.get(key);
     }

@@ -381,7 +381,7 @@ export default class Query<T extends typeof Class> {
      * @param {String} keys
      */
     skip(value: number) {
-        enforce`${{ skip: value }} as a number`;
+        enforce`${{ skip: value }} as a number, greater than or equal to 0`;
         this.skipped = value;
         return this;
     }
@@ -391,7 +391,7 @@ export default class Query<T extends typeof Class> {
      * @param {String} keys
      */
     limit(value: number) {
-        enforce`${{ limit: value }} as a number`;
+        enforce`${{ limit: value }} as a number, greater than or equal to 0`;
         this.limitation = value;
         return this;
     }

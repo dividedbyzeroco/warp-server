@@ -1,17 +1,7 @@
-import User from '../features/auth/user';
 import Function from '../features/functions/function';
+import { User } from '..';
 
-export type FunctionOptionsType = {
-    user?: User | null
-    keys?: {[name: string]: any}
-};
-
-export type FunctionMethodsType = {
-    add: (functions: FunctionMapType) => void,
-    get: (functionName: string) =>  typeof Function
-};
-
-export type FunctionMapType = {[functionName: string]: typeof Function};
+export type FunctionMapType<F extends typeof Function> = { [functionName: string]: F };
 
 export type RunOptionsType = {
     functionName: string,

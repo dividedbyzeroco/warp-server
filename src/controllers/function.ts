@@ -9,15 +9,14 @@ export default class FunctionController {
         this.api = api;
     }
     
-    async run({ user, functionName, keys }: RunOptionsType): Promise<any> {
-        // // Get function
-        // const functionClass = this._api.functions.get(functionName);
-        // const func = new functionClass({ keys });
+    async run({ user, functionName, keys = {} }: RunOptionsType): Promise<any> {
+        // Get function
+        const functionType = this.api.functions.get(functionName);
 
-        // // Run the function
-        // const result = await func.execute();
+        // Run the function
+        const result = await this.api.functions.run(functionType, keys, user || undefined);
 
-        // // Return the result
-        // return result;
+        // Return the result
+        return result;
     }
 }

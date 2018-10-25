@@ -24,6 +24,7 @@ import chalk from 'chalk';
 import Response from './utils/response';
 import { MiddlewareRequest } from './types/request';
 import { URIConfig } from './types/database';
+import ActionMapper from './features/functions/action-mapper';
 
 const { version } = require('./package.json');
 
@@ -59,14 +60,14 @@ enforce.extend(/^and a valid email address$/i, val => {
  */
 export default class WarpServer {
     
-    private _logger: ILogger;
-    private _security: SecurityConfigType;
-    private _dataMapper: DataMapper;
-    _router: Router;
-    _response: Response;
-    _supportLegacy: boolean = false;
-    _classController: ClassController = new ClassController(this);
-    _functionController: FunctionController = new FunctionController(this);
+    private loggerInstance: ILogger;
+    private security: SecurityConfigType;
+    private dataMapper: DataMapper;
+    private actionMapper: ActionMapper;
+    private routerInstance: Router;
+    private responseInstance: Response;
+    private classController: ClassController = new ClassController(this);
+    private functionController: FunctionController = new FunctionController(this);
 
     /**
      * Constructor
@@ -87,8 +88,11 @@ export default class WarpServer {
         // Set security
         this.setSecurity({ apiKey, masterKey });
 
-        // Set database
+        // Set data mapper
         this.setDataMapper(databaseURI, persistent, charset, timeout);
+
+        // Set action mapper
+        this.setActionMapper();
 
         // Set response format
         this.setResponse(customResponse);
@@ -98,40 +102,57 @@ export default class WarpServer {
      * API Key
      */
     get apiKey(): string {
-        return this._security.apiKey;
+        return this.security.apiKey;
     }
 
     /**
      * Master Key
      */
     get masterKey(): string {
-        return this._security.masterKey;
+        return this.security.masterKey;
     }
 
     get hasDatabase(): boolean {
         // Check if database is defined
-        return typeof this._dataMapper !== 'undefined';
+        return typeof this.dataMapper !== 'undefined';
     }
 
     /**
      * Class operations
      */
     get classes(): DataMapper {
-        return this._dataMapper;
+        return this.dataMapper;
+    }
+
+    /**
+     * Function operations
+     */
+    get functions(): ActionMapper {
+        return this.actionMapper;
     }
 
     /**
      * Logger
      */
     get logger(): ILogger {
-        return this._logger;
+        return this.loggerInstance;
     }
 
     /**
      * Response format
      */
     get response(): ResponseFunctionsType {
-        return this._response;
+        return this.responseInstance;
+    }
+ 
+    /**
+     * Get controllers
+     */
+    get controllers() {
+        return Object.freeze({
+            class: this.classController,
+            function: this.functionController
+        });
     }
 
     /**
@@ -139,7 +160,7 @@ export default class WarpServer {
      * @param customResponse
      */
     private setLogger(channel: string) {
-        this._logger = Logger.use(channel, 'Warp Server', process.env.LOG_LEVEL || 'error');
+        this.loggerInstance = Logger.use(channel, 'Warp Server', process.env.LOG_LEVEL || 'error');
     }
 
     /**
@@ -152,7 +173,7 @@ export default class WarpServer {
         enforce`${{masterKey}} as a string`;
         
         // Set keys
-        this._security = { 
+        this.security = { 
             apiKey, 
             masterKey
         };
@@ -189,7 +210,15 @@ export default class WarpServer {
         const database = Database.use(protocol, { uris, persistent, charset, timeout });
 
         // Set data mapper
-        this._dataMapper = new DataMapper(database);
+        this.dataMapper = new DataMapper(database);
+    }
+    
+    /**
+     * Set action mapper configuration
+     */
+    private setActionMapper() {
+        // Set action mapper
+        this.actionMapper = new ActionMapper();
     }
 
     /**
@@ -197,7 +226,7 @@ export default class WarpServer {
      * @param customResponse
      */
     private setResponse(customize?: boolean) {
-        this._response = new Response(customize);
+        this.responseInstance = new Response(customize);
     }
 
     /**
@@ -205,14 +234,14 @@ export default class WarpServer {
      */
     async initialize() {
         try {
-            this._logger.info('Starting Warp Server...');
+            this.loggerInstance.info('Starting Warp Server...');
             
             // Attempt to connect to the database
-            await this._dataMapper.initialize();
+            await this.dataMapper.initialize();
 
 
             // Display startup screen
-            this._logger.bare(chalk.yellow(`
+            this.loggerInstance.bare(chalk.yellow(`
             -------------------------------------------
             -------------------------------------------
             ------------------------------------=/-----
@@ -236,10 +265,10 @@ export default class WarpServer {
             |     The server has been initialized     |
             +-----------------------------------------+
             `));
-            this._logger.info('Service started');
+            this.loggerInstance.info('Service started');
         }
         catch(err) {
-            this._logger.error(err, err.message);
+            this.loggerInstance.error(err, err.message);
         }
     }
 
@@ -248,7 +277,7 @@ export default class WarpServer {
      */
     get router(): Router {
         // If a router has not yet been defined, prepare the router
-        if(typeof this._router === 'undefined') {
+        if(typeof this.routerInstance === 'undefined') {
             // Prepare routers
             const router = Router();
             router.use(middleware(this));
@@ -257,11 +286,11 @@ export default class WarpServer {
             router.use(functionsRouter(this));
 
             // Set the router value
-            this._router = router;
+            this.routerInstance = router;
         }
 
         // Return the router
-        return this._router;
+        return this.routerInstance;
     }
 }
 
