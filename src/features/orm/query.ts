@@ -302,7 +302,10 @@ export default class Query<T extends typeof Class> {
      * Select specific columns to query
      * @param {String} keys
      */
-    select(...keys: Array<any>): this {
+    select(key: string): this;
+    select(keys: string[]): this;
+    select(...keys: string[]): this;
+    select(...keys: any[]): this {
         // Check if first key is an array
         if(keys.length === 0) throw new Error(Error.Code.MissingConfiguration, 'Select key must be a string or an array of strings');
         const keyList: Array<string> = keys[0] instanceof Array? keys[0] : keys;
@@ -325,7 +328,10 @@ export default class Query<T extends typeof Class> {
      * Include pointer keys for the query
      * @param {String} keys
      */
-    include(...keys: Array<any>): this {
+    include(key: string): this;
+    include(keys: string[]): this;
+    include(...keys: string[]): this;
+    include(...keys: any[]): this {
         // Check if first key is an array
         if(!keys) throw new Error(Error.Code.MissingConfiguration, 'Include key must be a string or an array of strings');
         const keyList: Array<string> = keys[0] instanceof Array? keys[0] : keys;
@@ -553,7 +559,7 @@ export default class Query<T extends typeof Class> {
         return sorting;
     }
 
-    getClassFromKeyMap<C extends Class>(keys: KeyMap): C {
+    getClassFromKeys<C extends Class>(keys: KeyMap): C {
         // Get internal keys
         const id = keys.get(InternalKeys.Id);
 
@@ -575,7 +581,7 @@ export default class Query<T extends typeof Class> {
         // Get class alias
         const classAlias = prefix + this.class.className;
 
-        // Get keys and joins
+        // Get select and joins
         const { select, joins } = this.getKeys();
 
         // Get where constraints

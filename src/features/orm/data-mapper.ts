@@ -100,7 +100,7 @@ export default class DataMapper {
         const rows: C['prototype'][] = [];
         for(let row of result) {
             // Push the row
-            rows.push(query.getClassFromKeyMap<C['prototype']>(row));
+            rows.push(query.getClassFromKeys<C['prototype']>(row));
         }
         
         // Return the result
@@ -177,7 +177,7 @@ export default class DataMapper {
         if(!result) return null;
 
         // Return result
-        return query.getClassFromKeyMap<C['prototype']>(result);
+        return query.getClassFromKeys<C['prototype']>(result);
     }
 
     /**
