@@ -28,7 +28,7 @@ export default class User extends Class {
 
     beforeFind<Q extends Query<any>, U extends User | undefined>(query: Q, opts: ClassOptions<U>) {
         // Get opts
-        const { user, master } = opts;
+        const { master } = opts;
 
         // If user does not have access
         if(!this.isMaster(master))
@@ -87,7 +87,7 @@ export default class User extends Class {
 
         // If user does not have access
         if(!this.hasAccess(user, master)) {
-            throw new Error(Error.Code.ForbiddenOperation, 'You cannot destroy the data of another user unless you are a master');
+            throw new Error(Error.Code.ForbiddenOperation, 'You cannot remove the data of another user unless you are a master');
         }
     }
 

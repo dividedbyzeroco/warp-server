@@ -13,10 +13,12 @@ export type NumberKeyOptions = {
 
 export default function NumberKey(name: string, opts: NumberKeyOptions = {}): KeyManager {
     const { numType = 'number', decimals, min, max } = opts;
-    
-    
-    const key = new KeyManager(name, 'number');
-    key.setterDefinition = value => {
+
+    /**
+     * Define number setter
+     * @param value
+     */
+    const numberSetter = (value: number) => {
         // If null, set value to null
         if(typeof value === 'undefined' || value === null) 
             return null;
@@ -24,7 +26,7 @@ export default function NumberKey(name: string, opts: NumberKeyOptions = {}): Ke
             if(!Increment.isImplementedBy(value))
                 throw new Error(Error.Code.InvalidObjectKey, `Key \`${name}\` is not a valid increment object`);
             else
-                return new Increment(name, value);
+                return new Increment(name, value, min, max);
         }
         else if(isNaN(value)) {
             // If the number is not valid, throw an error
@@ -37,17 +39,29 @@ export default function NumberKey(name: string, opts: NumberKeyOptions = {}): Ke
             throw new Error(Error.Code.InvalidObjectKey, `Key \`${name}\` must be less than or equal to ${max}`);
         }
         
-        if(numType === 'integer') return parseInt(value);
+        if(numType === 'integer') return parseInt(`${value}`);
         else if(numType === 'float') return Number(Number(value).toFixed(decimals));
         else return Number(value);
     };
 
-    key.getterDefinition = value => {
+    /**
+     * Increment key by value
+     */
+    numberSetter.increment = value => {
+        return new Increment(name, { value }, min, max);
+    };
+    
+    /**
+     * Define key manager
+     */
+    const key = new KeyManager(name, 'number');
+    key.setterDefinition = numberSetter;
+    key.getterDefinition = (value: number) => {
         // Get the number
         const number = value;
         if(typeof number === 'undefined' || number === null) return null;
         else {
-            if(numType === 'integer') return parseInt(number);
+            if(numType === 'integer') return parseInt(`${number}`);
             else if(numType === 'float') return Number(Number(value).toFixed(decimals));
             else return Number(number);
         }
