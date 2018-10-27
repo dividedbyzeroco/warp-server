@@ -6,7 +6,7 @@ import { IDatabaseAdapter } from '../../types/database';
 import Collection from '../../utils/collection';
 import Error from '../../utils/error';
 import { InternalKeys } from '../../utils/constants';
-import { ClassMapType } from '../../types/class';
+import { ClassMapType, ClassOptions } from '../../types/class';
 
 export default class DataMapper {
 
@@ -52,7 +52,7 @@ export default class DataMapper {
 
         // Check if class exists
         if(typeof classType === 'undefined')
-            throw new Error(Error.Code.MissingConfiguration, `Class '${className}' has not been registered`);
+            throw new Error(Error.Code.ClassNotFound, `Class '${className}' has not been registered`);
 
         // Return class
         return classType;
@@ -62,7 +62,7 @@ export default class DataMapper {
      * Find objects
      * @param Query
      */
-    async find<C extends typeof Class, U extends User>(query: Query<C>, user?: U): Promise<Collection<C['prototype']>> {
+    async find<C extends typeof Class, U extends User>(query: Query<C>, opts: ClassOptions<U> = {}): Promise<Collection<C['prototype']>> {
         // Validate instance
         enforce`${{ QueryToFind: query }} as a ${{ Query }}`;
 
@@ -70,7 +70,7 @@ export default class DataMapper {
         const classInstance = new query.class;
 
         // Run beforeFind
-        await classInstance.beforeFind(query, user);
+        await classInstance.beforeFind(query, opts);
 
         // Get query options
         const {
@@ -107,7 +107,7 @@ export default class DataMapper {
         return new Collection(rows);
     }
 
-    async first<C extends typeof Class, U extends User>(query: Query<C>, user?: U): Promise<C['prototype'] | null> {
+    async first<C extends typeof Class, U extends User>(query: Query<C>, opts: ClassOptions<U> = {}): Promise<C['prototype'] | null> {
         // Validate instance
         enforce`${{ QueryToFindFirst: query }} as a ${{ Query }}`;
 
@@ -118,7 +118,7 @@ export default class DataMapper {
         const classInstance = new query.class;
 
         // Run beforeFirst
-        await classInstance.beforeFirst(query, user);
+        await classInstance.beforeFirst(query, opts);
 
         // Get result
         const result = await this.find(query);
@@ -136,9 +136,9 @@ export default class DataMapper {
     async getById<C extends typeof Class, U extends User>(
         classType: C, 
         id: number, 
-        select?: Array<string>, 
         include?: Array<string>,
-        user?: U
+        select?: Array<string>, 
+        opts: ClassOptions<U> = {}
     ): Promise<C['prototype'] | null> {
         // Validate instance
         const classInstance = new classType;
@@ -152,7 +152,7 @@ export default class DataMapper {
         if(typeof include !== 'undefined') query.include(include);
 
         // Run beforeGet
-        await classInstance.beforeGet(query, user);
+        await classInstance.beforeGet(query, opts);
 
         // Get parameters
         const { 
@@ -184,12 +184,12 @@ export default class DataMapper {
      * Save the Object
      * @param classInstance
      */
-    async save<C extends Class, U extends User | undefined>(classInstance: C, user?: U) {
+    async save<C extends Class, U extends User | undefined>(classInstance: C, opts: ClassOptions<U> = {}) {
         // Validate instance
         enforce`${{ ClassToSave: classInstance }} as a ${{ Class }}`;
 
         // Run beforeSave as master
-        await classInstance.beforeSave(this, user);
+        await classInstance.beforeSave(this, opts);
 
         // Get keys to save
         const keys = classInstance._keys;
@@ -205,7 +205,7 @@ export default class DataMapper {
         }
 
         // Run the afterSave method in the background as master
-        try { classInstance.afterSave(this, user); } catch(err) { /* Do nothing */ }
+        try { classInstance.afterSave(this, opts); } catch(err) { /* Do nothing */ }
 
         // Return immediately
         return classInstance;
@@ -215,12 +215,12 @@ export default class DataMapper {
      * Destroy the Object
      * @param classInstance
      */
-    async destroy<C extends Class, U extends User | undefined>(classInstance: C, user?: U) {
+    async destroy<C extends Class, U extends User | undefined>(classInstance: C, opts: ClassOptions<U> = {}) {
         // Validate instance
         enforce`${{ ClassToDestroy: classInstance }} as a ${{ Class }}`;
 
         // Run beforeDestroy
-        await classInstance.beforeDestroy(this, user);
+        await classInstance.beforeDestroy(this, opts);
 
         // Get keys
         const keys = classInstance._keys;
@@ -229,7 +229,7 @@ export default class DataMapper {
         await this.database.destroy(classInstance.statics().className, keys, classInstance.id);
 
         // Run the afterDestroy method in the background
-        try { classInstance.afterDestroy(this, user); } catch(err) { /* Do nothing */ }
+        try { classInstance.afterDestroy(this, opts); } catch(err) { /* Do nothing */ }
 
         // Return immediately
         return;

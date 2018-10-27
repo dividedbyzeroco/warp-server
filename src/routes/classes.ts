@@ -4,6 +4,7 @@ import WarpServer from '../index';
 import ClassController from '../controllers/class';
 import { FindOptionsType, GetOptionsType } from '../types/classes';
 import { InternalKeys } from '../utils/constants';
+import Error from '../utils/error';
 
 /**
  * Define router
@@ -56,8 +57,15 @@ const classes = (api: WarpServer): express.Router => {
             api.response.success(req, res, next);
         }
         catch(err) {
-            api.logger.error(err, `Could not find the objects for \`${className}\`: ${err.message}`);
-            api.response.error(err, req, res, next);
+            // Check if class was not found
+            if(err.code === Error.Code.ClassNotFound) {
+                api.logger.warn(err, `Could not find the objects for \`${className}\`: ${err.message}`);
+                next();
+            }
+            else {
+                api.logger.error(err, `Could not find the objects for \`${className}\`: ${err.message}`);
+                api.response.error(err, req, res, next);
+            }
         }
     });
     
@@ -67,20 +75,20 @@ const classes = (api: WarpServer): express.Router => {
    router.get('/classes/:className/:id', async (req, res, next) => {
         // Get parameters
         const { className, id } = req.params;
-        const { select, include } = req.query;
+        const { include, select } = req.query;
         const user = req[InternalKeys.Middleware.User]; 
 
         try {
             // Enforce
-            enforce`${{ select }} as an optional string, equivalent to an array`;
             enforce`${{ include }} as an optional string, equivalent to an array`;
+            enforce`${{ select }} as an optional string, equivalent to an array`;
 
             // Parse parameters
             const params: GetOptionsType = {
                 className,
                 id,
-                select: typeof select !== 'undefined' ? JSON.parse(select) : undefined,
                 include: typeof include !== 'undefined' ? JSON.parse(include) : undefined,
+                select: typeof select !== 'undefined' ? JSON.parse(select) : undefined,
                 user
             };
 
@@ -91,8 +99,15 @@ const classes = (api: WarpServer): express.Router => {
             api.response.success(req, res, next);
         }
         catch(err) {
-            api.logger.error(err, `Could not find the object for \`${className}\`: ${err.message}`);
-            api.response.error(err, req, res, next);
+            // Check if class was not found
+            if(err.code === Error.Code.ClassNotFound) {
+                api.logger.warn(err, `Could not find the object for \`${className}\`: ${err.message}`);
+                next();
+            }
+            else {
+                api.logger.error(err, `Could not find the object for \`${className}\`: ${err.message}`);
+                api.response.error(err, req, res, next);
+            }
         }
     });
 
@@ -114,8 +129,15 @@ const classes = (api: WarpServer): express.Router => {
             api.response.success(req, res, next);
         }
         catch(err) {
-            api.logger.error(err, `Could not create the object for \`${className}\`: ${err.message}`);
-            api.response.error(err, req, res, next);
+            // Check if class was not found
+            if(err.code === Error.Code.ClassNotFound) {
+                api.logger.warn(err, `Could not create the object for \`${className}\`: ${err.message}`);
+                next();
+            }
+            else {
+                api.logger.error(err, `Could not create the object for \`${className}\`: ${err.message}`);
+                api.response.error(err, req, res, next);
+            }
         }
     });
 
@@ -137,8 +159,15 @@ const classes = (api: WarpServer): express.Router => {
             api.response.success(req, res, next);
         }
         catch(err) {
-            api.logger.error(err, `Could not update the object for \`${className}\`: ${err.message}`);
-            api.response.error(err, req, res, next);
+            // Check if class was not found
+            if(err.code === Error.Code.ClassNotFound) {
+                api.logger.warn(err, `Could not update the object for \`${className}\`: ${err.message}`);
+                next();
+            }
+            else {
+                api.logger.error(err, `Could not update the object for \`${className}\`: ${err.message}`);
+                api.response.error(err, req, res, next);
+            }
         }
     });
 
@@ -159,8 +188,15 @@ const classes = (api: WarpServer): express.Router => {
             api.response.success(req, res, next);
         }
         catch(err) {
-            api.logger.error(err, `Could not destroy the object for \`${className}\`: ${err.message}`);
-            api.response.error(err, req, res, next);
+            // Check if class was not found
+            if(err.code === Error.Code.ClassNotFound) {
+                api.logger.warn(err, `Could not destroy the object for \`${className}\`: ${err.message}`);
+                next();
+            }
+            else {
+                api.logger.error(err, `Could not destroy the object for \`${className}\`: ${err.message}`);
+                api.response.error(err, req, res, next);
+            }
         }
     });
 

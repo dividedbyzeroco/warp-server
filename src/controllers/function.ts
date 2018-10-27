@@ -14,7 +14,7 @@ export default class FunctionController {
         const functionType = this.api.functions.get(functionName);
 
         // Run the function
-        const result = await this.api.functions.run(functionType, keys, user || undefined);
+        const result = await this.api.functions.run(functionType, keys, { user: user || undefined });
 
         // Return the result
         return result;

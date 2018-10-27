@@ -1,15 +1,16 @@
 import Error from '../../utils/error';
 import KeyMap from '../../utils/key-map';
 import { toCamelCase, toSnakeCase } from '../../utils/format'; 
-import { InternalKeys } from '../../utils/constants';
+import { InternalKeys, InternalId } from '../../utils/constants';
 import Pointer, { PointerDefinition } from './pointer';
 import CompoundKey from '../../utils/compound-key';
 import DataMapper from './data-mapper';
 import User from '../auth/user';
 import DateKey from '../orm/keys/types/date';
 import { Query } from '../..';
+import { ClassKeys, ClassOptions } from '../../types/class';
 
-export const ClassDefinitionSymbol = Symbol.for('warp-server:definition');
+export const ClassDefinitionSymbol = Symbol.for('warp-server:class-definition');
 
 export interface ClassDefinition {
     keys: string[];
@@ -30,7 +31,7 @@ export default class Class {
      * @param {Object} params 
      * @param {Number} id 
      */
-    constructor(keys: number | { [key: string]: any } = {}) {
+    constructor(keys: number | ClassKeys = {}) {
         // If 'keys' is an id, set the id
         if(typeof keys === 'number') {
             this._id = keys;
@@ -38,16 +39,17 @@ export default class Class {
         // If 'keys' is an object, set values
         else if(typeof keys === 'object') {
             // Iterate through each param
-            for(let key in keys) {
-                // Get value
-                let value = keys[key];
-    
+            for(let [key, value] of Object.entries(keys)) {
                 // Check if key exists
                 if(!this.statics().has(key))
                     throw new Error(Error.Code.ForbiddenOperation, `Key \`${key}\` does not exist in '${this.statics().className}'`);
     
-                // Set value
-                this[toCamelCase(key)] = value;
+                // If the key is an id, set the id
+                // Else, set the value
+                if(key === InternalId)
+                    this._id = value;
+                else
+                    this[toCamelCase(key)] = value;
             }
         }
         else throw new Error(Error.Code.ForbiddenOperation, `'keys' must be an object or an id`);
@@ -329,31 +331,31 @@ export default class Class {
         };
     }
 
-    async beforeFind<Q extends Query<any>, T extends User | undefined>(query: Q, user: T) {
+    beforeFind<Q extends Query<any>, U extends User | undefined>(query: Q, opts: ClassOptions<U>): any {
         return;
     }
 
-    async beforeFirst<Q extends Query<any>, T extends User | undefined>(query: Q, user: T) {
+    beforeFirst<Q extends Query<any>, U extends User | undefined>(query: Q, opts: ClassOptions<U>): any {
         return;
     }
 
-    async beforeGet<Q extends Query<any>, T extends User | undefined>(query: Q, user: T) {
+    beforeGet<Q extends Query<any>, U extends User | undefined>(query: Q, opts: ClassOptions<U>): any {
         return;
     }
 
-    async beforeSave<T extends User | undefined>(classes: DataMapper, user: T) {
+    beforeSave<U extends User | undefined>(classes: DataMapper, opts: ClassOptions<U>): any {
         return;
     }
 
-    async afterSave<T extends User | undefined>(classes: DataMapper, user: T) {
+    afterSave<U extends User | undefined>(classes: DataMapper, opts: ClassOptions<U>): any {
         return;
     }
 
-    async beforeDestroy<T extends User | undefined>(classes: DataMapper, user: T) {
+    beforeDestroy<U extends User | undefined>(classes: DataMapper, opts: ClassOptions<U>): any {
         return;
     }
 
-    async afterDestroy<T extends User | undefined>(classes: DataMapper, user: T) {
+    afterDestroy<U extends User | undefined>(classes: DataMapper, opts: ClassOptions<U>): any {
         return;
     }
 }

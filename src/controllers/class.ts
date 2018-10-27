@@ -10,6 +10,7 @@ import {
     DestroyOptionsType 
 } from '../types/classes';
 import Query from '../features/orm/query';
+import { InternalKeys } from '../utils/constants';
 
 export default class ClassController {
 
@@ -35,18 +36,18 @@ export default class ClassController {
         if(typeof where !== 'undefined') query.where(where);
     
         // Find matching objects
-        const classCollection = await this.api.classes.find(query, user || undefined);
+        const classCollection = await this.api.classes.find(query, { user: user || undefined });
     
         // Return collection
         return classCollection;
     }
     
-    async get({ user, className, id, select, include }: GetOptionsType): Promise<Class> {
+    async get({ user, className, id, include, select }: GetOptionsType): Promise<Class> {
         // Get class
         const classType = this.api.classes.get(className);
     
         // Find matching objects
-        const classInstance = await this.api.classes.getById(classType, id, select, include, user || undefined);
+        const classInstance = await this.api.classes.getById(classType, id, include, select, { user: user || undefined });
     
         // Check if class is found
         if(classInstance === null)
@@ -56,29 +57,33 @@ export default class ClassController {
         return classInstance;
     }
     
-    async create({ user, className, keys }: CreateOptionsType): Promise<Class> {
+    async create({ user, className, keys = {} }: CreateOptionsType): Promise<Class> {
         // Get class
         const classType = this.api.classes.get(className);
 
+        // Check if id was sent in keys
+        if(typeof keys[InternalKeys.Id] === 'undefined')
+            throw new Error(Error.Code.ForbiddenOperation, 'Cannot manually set the `id` key on creation');
+
         // Prepare instance
-        const classInstance = new classType({ keys });
+        const classInstance = new classType(keys);
 
         // Save the instance
-        await this.api.classes.save(classInstance, user || undefined);
+        await this.api.classes.save(classInstance, { user: user || undefined });
     
         // Return the class
         return classInstance;
     }
     
-    async update({ user, className, keys, id }: UpdateOptionsType): Promise<Class> {
+    async update({ user, className, keys = {}, id }: UpdateOptionsType): Promise<Class> {
         // Get class
         const classType = this.api.classes.get(className);
 
         // Prepare instance
-        const classInstance = new classType({ keys, id });
+        const classInstance = new classType({ ...keys, id });
     
         // Save the instance
-        await this.api.classes.save(classInstance, user || undefined);
+        await this.api.classes.save(classInstance, { user: user || undefined });
     
         // Return the class
         return classInstance;
@@ -89,10 +94,10 @@ export default class ClassController {
         const classType = this.api.classes.get(className);
 
         // Prepare instance
-        const classInstance = new classType({ id });
+        const classInstance = new classType(id);
     
         // Destroy the instance
-        await this.api.classes.destroy(classInstance, user || undefined);
+        await this.api.classes.destroy(classInstance, { user: user || undefined });
     
         // Return the class
         return classInstance;

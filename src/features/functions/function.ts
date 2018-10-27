@@ -2,6 +2,7 @@ import User from '../auth/user';
 import { toCamelCase } from '../../utils/format';
 import KeyMap from '../../utils/key-map';
 import Error from '../../utils/error';
+import { FunctionOptions } from '../../types/functions';
 
 export default class FunctionClass {
 
@@ -62,17 +63,8 @@ export default class FunctionClass {
         return false;
     }
 
-    async run(params?: object, user?: User): Promise<any> {
+    run<U extends User | undefined>(params?: object, opts?: FunctionOptions<U>): any {
         return;
-    }
-
-    async execute() {
-        // Check if master is required
-        // TODO: Change implementation
-        // if(this.statics().masterOnly && (typeof this._metadata === 'undefined' || !this.isMaster))
-        //     throw new Error(Error.Code.ForbiddenOperation, `This function is only accessible via master`);
-
-        return await this.run(this.keys.toJSON(), this.user);
     }
 
 }

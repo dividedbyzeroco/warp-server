@@ -35,9 +35,7 @@ export declare const IDatabaseAdapter: {
 
 export type DatabaseConfig = {
     uris: URIConfig[],
-    persistent: boolean,
-    charset: string,
-    timeout: number
+    persistent: boolean
 }
 
 export type URIConfig = {
@@ -50,7 +48,8 @@ export type ConnectionConfig = {
     port: number,
     user: string,
     password: string,
-    database: string
+    database: string,
+    [config: string]: any
 };
 
 export type ConnectionCollection = {

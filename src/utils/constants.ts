@@ -1,5 +1,7 @@
+export const InternalId = 'id';
+
 export const InternalKeys = Object.freeze({
-    Id: 'id',
+    Id: InternalId,
     Timestamps: Object.freeze({
         CreatedAt: 'created_at',
         UpdatedAt: 'updated_at',

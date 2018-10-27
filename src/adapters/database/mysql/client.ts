@@ -14,14 +14,12 @@ export default class DatabaseClient {
     _connectionConfigs: ConnectionCollection = { write: [], read: [] };
     _poolCluster: mysql.PoolCluster;
     _persistent: boolean;
-    _charset: string;
-    _timeout: number;
 
     /**
      * Constructor
      * @param {Object} config 
      */
-    constructor({ uris, persistent, charset, timeout }: DatabaseConfig) {
+    constructor({ uris, persistent }: DatabaseConfig) {
         // Get connection configs
         for(const uriConfig of uris) {
             // Check if action is write
@@ -37,8 +35,6 @@ export default class DatabaseClient {
 
         // Set connection settings
         this._persistent = persistent;
-        this._charset = charset;
-        this._timeout = timeout;
 
     }
 
@@ -50,13 +46,17 @@ export default class DatabaseClient {
         const parsedURI = parseUrl(uri);
         const identity = parsedURI.user.split(':');
 
+        // Get params
+        const params = parsedURI.query;
+
         const config = {
             protocol: parsedURI.protocol,
             host: parsedURI.resource,
             port: parsedURI.port,
             user: decodeURIComponent(identity[0]),
             password: decodeURIComponent(identity[1]),
-            database: parsedURI.pathname.slice(1)
+            database: parsedURI.pathname.slice(1),
+            ...params
         };
 
         // Enforce
@@ -112,19 +112,16 @@ export default class DatabaseClient {
         // Prepare pool cluster
         this._poolCluster = mysql.createPoolCluster();
 
-        // Get connection settings
-        const { _charset: charset, _timeout: timeout } = this;
-
         // Loop through write connections
         let index = 0;
         for(const writeConfig of this._connectionConfigs.write) {
-            this._poolCluster.add(`${DatabaseWrite.toUpperCase()}${++index}`, { ...writeConfig, charset, timeout });
+            this._poolCluster.add(`${DatabaseWrite.toUpperCase()}${++index}`, writeConfig);
         }
 
         // Loop through read connections
         index = 0;
         for(const readConfig of this._connectionConfigs.read) {
-            this._poolCluster.add(`${DatabaseRead.toUpperCase()}${++index}`, { ...readConfig, charset, timeout });
+            this._poolCluster.add(`${DatabaseRead.toUpperCase()}${++index}`, readConfig);
         }
 
         // Test connection

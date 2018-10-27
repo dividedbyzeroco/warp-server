@@ -16,7 +16,6 @@ import { ResponseFunctionsType } from './types/response';
 import { ILogger } from './types/logger';
 import middleware from './routes/middleware';
 import classesRouter from './routes/classes';
-import usersRouter from './routes/users';
 import functionsRouter from './routes/functions';
 import ClassController from './controllers/class';
 import FunctionController from './controllers/function';
@@ -78,9 +77,8 @@ export default class WarpServer {
         masterKey,
         databaseURI,
         persistent = false,
-        charset = 'utf8mb4_unicode_ci',
-        timeout = 30 * 1000,
-        customResponse
+        customResponse,
+        restful
     }: ServerConfigType) {
         // Set logger
         this.setLogger('console');
@@ -89,13 +87,16 @@ export default class WarpServer {
         this.setSecurity({ apiKey, masterKey });
 
         // Set data mapper
-        this.setDataMapper(databaseURI, persistent, charset, timeout);
+        this.setDataMapper(databaseURI, persistent);
 
         // Set action mapper
         this.setActionMapper();
 
         // Set response format
         this.setResponse(customResponse);
+
+        // Set router
+        this.setRouter(restful);
     }
 
     /**
@@ -110,11 +111,6 @@ export default class WarpServer {
      */
     get masterKey(): string {
         return this.security.masterKey;
-    }
-
-    get hasDatabase(): boolean {
-        // Check if database is defined
-        return typeof this.dataMapper !== 'undefined';
     }
 
     /**
@@ -155,6 +151,24 @@ export default class WarpServer {
         });
     }
 
+    // @deprecated - backwards compatibility
+    get _classController() {
+        return this.classController;
+    }
+
+    // @deprecated - backwards compatibility
+    get _functionController() {
+        return this.functionController;
+    }
+
+    /**
+     * Get express router
+     */
+    get router(): Router {
+        // Return the router
+        return this.routerInstance;
+    }
+
     /**
      * Set logger
      * @param customResponse
@@ -179,12 +193,11 @@ export default class WarpServer {
         };
     }
 
-
     /**
      * Set data mapper configuration
      * @param {Object} config
      */
-    private setDataMapper(databaseURI: string | URIConfig[], persistent: boolean, charset: string, timeout: number) {
+    private setDataMapper(databaseURI: string | URIConfig[], persistent: boolean) {
         // Get uris
         let uris: URIConfig[] = [];
 
@@ -207,7 +220,7 @@ export default class WarpServer {
         const protocol = uris[0].uri.split(':')[0];
 
         // Prepare database
-        const database = Database.use(protocol, { uris, persistent, charset, timeout });
+        const database = Database.use(protocol, { uris, persistent });
 
         // Set data mapper
         this.dataMapper = new DataMapper(database);
@@ -227,6 +240,23 @@ export default class WarpServer {
      */
     private setResponse(customize?: boolean) {
         this.responseInstance = new Response(customize);
+    }
+
+    /**
+     * Set router
+     * @param restful 
+     */
+    private setRouter(restful: boolean = false) {
+        // Prepare routers
+        const router = Router();
+        router.use(middleware(this));
+        router.use(functionsRouter(this));
+
+        // Only use class routers when restful
+        if(restful) router.use(classesRouter(this));
+
+        // Set the router instance
+        this.routerInstance = router;
     }
 
     /**
@@ -270,27 +300,6 @@ export default class WarpServer {
         catch(err) {
             this.loggerInstance.error(err, err.message);
         }
-    }
-
-    /**
-     * Get express router
-     */
-    get router(): Router {
-        // If a router has not yet been defined, prepare the router
-        if(typeof this.routerInstance === 'undefined') {
-            // Prepare routers
-            const router = Router();
-            router.use(middleware(this));
-            router.use(classesRouter(this));
-            router.use(usersRouter(this));
-            router.use(functionsRouter(this));
-
-            // Set the router value
-            this.routerInstance = router;
-        }
-
-        // Return the router
-        return this.routerInstance;
     }
 }
 

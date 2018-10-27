@@ -5,7 +5,6 @@ export type ServerConfigType = {
     masterKey: string,
     databaseURI: string | URIConfig[],
     persistent?: boolean,
-    charset?: string,
-    timeout?: number,
-    customResponse?: boolean
+    customResponse?: boolean,
+    restful?: boolean
 }

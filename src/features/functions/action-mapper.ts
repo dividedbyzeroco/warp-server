@@ -1,9 +1,8 @@
 import enforce from 'enforce-js';
-import { FunctionMapType } from '../../types/functions';
+import { FunctionMapType, FunctionOptions } from '../../types/functions';
 import Function from './function';
 import Error from '../../utils/error';
 import User from '../auth/user';
-import KeyMap from '../../utils/key-map';
 
 export default class ActionMapper {
 
@@ -37,7 +36,7 @@ export default class ActionMapper {
 
         // Check if class exists
         if(typeof functionType === 'undefined')
-            throw new Error(Error.Code.MissingConfiguration, `Function '${functionName}' has not been registered`);
+            throw new Error(Error.Code.FunctionNotFound, `Function '${functionName}' has not been registered`);
 
         // Return class
         return functionType;
@@ -47,12 +46,20 @@ export default class ActionMapper {
      * Run the function
      * @param functionType 
      */
-    async run<F extends typeof Function, U extends User>(functionType: F, keys: { [name: string]: any }, user?: U) {
-        // Preepare instance
-        const functionInstance = new functionType(keys, user);
+    async run<F extends typeof Function, U extends User | undefined>(
+        functionType: F, 
+        keys: { [name: string]: any }, 
+        opts?: FunctionOptions<U>
+    ) {
+        // Prepare instance
+        const functionInstance = new functionType(keys, opts && opts.user);
+
+        // Check if user has access
+        if(functionInstance.statics().masterOnly && !(opts && opts.master))
+            throw new Error(Error.Code.ForbiddenOperation, 'This function can only be accessed by a master');
 
         // Run function
-        return await functionInstance.run(keys, user);
+        return await functionInstance.run(keys, opts);
     }
 
 }

@@ -2,6 +2,7 @@ import express from 'express';
 import WarpServer from '../index';
 import FunctionController from '../controllers/function';
 import { InternalKeys } from '../utils/constants';
+import Error from '../utils/error';
 
 /**
  * Define router
@@ -35,8 +36,15 @@ const functions = (api: WarpServer): express.Router => {
             api.response.success(req, res, next);
         }
         catch(err) {
-            api.logger.error(err, `Could not run the function \`${functionName}\`: ${err.message}`);
-            api.response.error(err, req, res, next);
+            // Check if function was not found
+            if(err.code === Error.Code.FunctionNotFound) {
+                api.logger.warn(err, `Could not run the function \`${functionName}\`: ${err.message}`);
+                next();
+            }
+            else {
+                api.logger.error(err, `Could not run the function \`${functionName}\`: ${err.message}`);
+                api.response.error(err, req, res, next);
+            }
         }
     });
 
