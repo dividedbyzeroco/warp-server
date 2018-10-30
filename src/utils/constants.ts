@@ -1,11 +1,14 @@
 export const InternalId = 'id';
+export const CreatedAt = 'created_at';
+export const UpdatedAt = 'updated_at';
+export const DeletedAt = 'deleted_at';
 
 export const InternalKeys = Object.freeze({
     Id: InternalId,
     Timestamps: Object.freeze({
-        CreatedAt: 'created_at',
-        UpdatedAt: 'updated_at',
-        DeletedAt: 'deleted_at'
+        CreatedAt,
+        UpdatedAt,
+        DeletedAt
     }),
     Middleware: Object.freeze({
         ApiKey: 'X-Warp-API-Key',

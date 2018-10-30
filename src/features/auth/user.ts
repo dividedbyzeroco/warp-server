@@ -13,6 +13,7 @@ export default class User extends Class {
     @Key email: string;
     @Key password: string;
     @Key role: string;
+    @Key counter: number;
 
     private isCurrentUser(user: User | undefined) {
         return typeof user !== 'undefined' && user.id === this.id;

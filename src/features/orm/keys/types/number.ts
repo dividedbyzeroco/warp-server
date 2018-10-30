@@ -13,12 +13,9 @@ export type NumberKeyOptions = {
 
 export default function NumberKey(name: string, opts: NumberKeyOptions = {}): KeyManager {
     const { numType = 'number', decimals, min, max } = opts;
-
-    /**
-     * Define number setter
-     * @param value
-     */
-    const numberSetter = (value: number) => {
+    
+    const key = new KeyManager(name, 'number');
+    key.setterDefinition = value => {
         // If null, set value to null
         if(typeof value === 'undefined' || value === null) 
             return null;
@@ -39,29 +36,17 @@ export default function NumberKey(name: string, opts: NumberKeyOptions = {}): Ke
             throw new Error(Error.Code.InvalidObjectKey, `Key \`${name}\` must be less than or equal to ${max}`);
         }
         
-        if(numType === 'integer') return parseInt(`${value}`);
+        if(numType === 'integer') return parseInt(value);
         else if(numType === 'float') return Number(Number(value).toFixed(decimals));
         else return Number(value);
     };
 
-    /**
-     * Increment key by value
-     */
-    numberSetter.increment = value => {
-        return new Increment(name, { value }, min, max);
-    };
-    
-    /**
-     * Define key manager
-     */
-    const key = new KeyManager(name, 'number');
-    key.setterDefinition = numberSetter;
-    key.getterDefinition = (value: number) => {
+    key.getterDefinition = value => {
         // Get the number
         const number = value;
         if(typeof number === 'undefined' || number === null) return null;
         else {
-            if(numType === 'integer') return parseInt(`${number}`);
+            if(numType === 'integer') return parseInt(number);
             else if(numType === 'float') return Number(Number(value).toFixed(decimals));
             else return Number(number);
         }

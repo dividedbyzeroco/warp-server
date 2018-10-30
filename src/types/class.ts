@@ -13,3 +13,5 @@ export type ClassKeys = {
     [InternalId]?: number, 
     [key: string]: any 
 };
+
+export type ClassJSON<C extends Class> = { [K in keyof C]?: C[K] };

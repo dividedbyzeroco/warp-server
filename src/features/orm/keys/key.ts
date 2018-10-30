@@ -54,7 +54,7 @@ export class KeyManager {
  * @param opts
  */
 export const keyDecorator = (opts?: KeyOptions) => {
-    return <T extends Class>(classInstance: T, name: string): any => {
+    return <C extends Class>(classInstance: C, name: string): any => {
         // Infer data type
         const type = Reflect.getMetadata('design:type', classInstance, name);
 
@@ -118,12 +118,12 @@ export class KeyInstance {
 /**
  * Key definition
  */
-function Key<T extends Class>(): (classInstance: T, name: string) => any;
-function Key<T extends Class>(opts: KeyOptions): (classInstance: T, name: string) => any;
-function Key<T extends Class>(classInstance: T, name: string): any;
-function Key<T extends Class>(classInstance: T, name: string, descriptor: any): any;
+function Key<C extends Class>(): (classInstance: C, name: string) => any;
+function Key<C extends Class>(opts: KeyOptions): (classInstance: C, name: string) => any;
+function Key<C extends Class>(classInstance: C, name: string): any;
+function Key<C extends Class>(classInstance: C, name: string, descriptor: any): any;
 function Key(name: string): KeyInstance;
-function Key<T extends Class>(...args: [] | [KeyOptions] | [T, string] | [T, string, any] | [string]) {
+function Key<C extends Class>(...args: [] | [KeyOptions] | [C, string] | [C, string, any] | [string]) {
     // As property decorator
     if(args.length === 2 || args.length === 3) {
         return keyDecorator()(args[0], args[1]);

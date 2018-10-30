@@ -6,18 +6,17 @@ import Pointer, { PointerDefinition } from './pointer';
 import CompoundKey from '../../utils/compound-key';
 import DataMapper from './data-mapper';
 import User from '../auth/user';
-import DateKey from '../orm/keys/types/date';
 import { Query } from '../..';
-import { ClassKeys, ClassOptions } from '../../types/class';
+import { ClassKeys, ClassOptions, ClassJSON } from '../../types/class';
+import DateKey from './keys/types/date';
 
 export const ClassDefinitionSymbol = Symbol.for('warp-server:class-definition');
 
 export interface ClassDefinition {
     keys: string[];
+    timestamps: string[];
     joins: { [name: string]: PointerDefinition<typeof Class> };
     hidden: string[];
-    protected: string[];
-    timestamps: string[];
 }
 
 export default class Class {
@@ -69,6 +68,14 @@ export default class Class {
 
             return DefinedClass;
         };
+    }
+
+    /**
+     * Iterables
+     */
+    private get iterables() {
+        const { keys, hidden } = this.getDefinition();
+        return keys.filter(key => !hidden.includes(key));
     }
 
     /**
@@ -124,16 +131,19 @@ export default class Class {
         // Check if the key is for a pointer
         else if(Pointer.isUsedBy(key)) {
             // Validate pointer key
-            this.hasPointer(key);
+            this.hasPointerKey(key);
             return true;
         }
         else if(key === InternalKeys.Id) return true;
-        else if(this.prototype.getDefinition().timestamps.includes(key)) return true;
         else if(this.prototype.getDefinition().keys.includes(key)) return true;
         else return false;
     }
 
-    static hasPointer(key: string) {
+    private hasPointer(key: string) {
+        return this.getDefinition().joins[key];
+    }
+
+    static hasPointerKey(key: string) {
         // Check if key parts are valid
         if(!Pointer.isValid(key))
             throw new Error(Error.Code.ForbiddenOperation, `The pointer key \`${key}\` is invalid`);
@@ -153,12 +163,11 @@ export default class Class {
         else {
             // Get pointer
             const pointer = pointerDefinition.toPointer();
-            const pointerMetadata = pointer.class.prototype.getDefinition();
+            const pointerClassDefinition = pointer.class.prototype.getDefinition();
 
-            if((!pointerMetadata.keys.includes(pointerKey)
-                    && !pointerMetadata.timestamps.includes(pointerKey)
+            if((!pointerClassDefinition.keys.includes(pointerKey)
                     && InternalKeys.Id !== pointerKey)
-                    || pointerMetadata.hidden.includes(pointerKey)) {
+                    || pointerClassDefinition.hidden.includes(pointerKey)) {
                 throw new Error(Error.Code.ForbiddenOperation, `The pointer key for \`${key}\` does not exist or is hidden`);
             }
         }
@@ -208,10 +217,9 @@ export default class Class {
         // Override default definition
         return  {
             keys: [],
+            timestamps: Object.values(InternalKeys.Timestamps),
             joins: {},
             hidden: [],
-            protected: [],
-            timestamps: Object.values(InternalKeys.Timestamps),
             ...definition
         };
     }
@@ -237,10 +245,18 @@ export default class Class {
         return this._id;
     }
 
+    set id(value: number) {
+        throw new Error(Error.Code.ForbiddenOperation, 'Cannot manually set the `id` key');
+    }
+
     get createdAt(): string {
         const keyManager = DateKey(InternalKeys.Timestamps.CreatedAt);
         const getter = keyManager.getter.bind(this);
         return getter();
+    }
+
+    set createdAt(value: string) {
+        throw new Error(Error.Code.ForbiddenOperation, 'Cannot manually set the `createdAt` key');
     }
 
     get updatedAt(): string {
@@ -249,26 +265,8 @@ export default class Class {
         return getter();
     }
 
-    get deletedAt(): string {
-        const keyManager = DateKey(InternalKeys.Timestamps.CreatedAt);
-        const getter = keyManager.getter.bind(this);
-        return getter();
-    }
-
-    set id(value: number) {
-        throw new Error(Error.Code.ForbiddenOperation, 'Cannot manually set the `id` key');
-    }
-
-    set createdAt(value: string) {
-        throw new Error(Error.Code.ForbiddenOperation, 'Cannot manually set the `createdAt` key');
-    }
-
     set updatedAt(value: string) {
         throw new Error(Error.Code.ForbiddenOperation, 'Cannot manually set the `updatedAt` key');
-    }
-
-    set deletedAt(value: string) {
-        throw new Error(Error.Code.ForbiddenOperation, 'Cannot manually set the `deletedAt` key');
     }
 
     /**
@@ -284,28 +282,19 @@ export default class Class {
      * toJSON
      * @description Executed every time the object is stringified
      */
-    toJSON(): object {
+    toJSON<C extends this>(): ClassJSON<C> {
         // Get keys
-        const { id, createdAt, updatedAt, deletedAt } = this;
+        const { id, createdAt, updatedAt } = this;
         let keys = {};
         let body = {};
 
         // Iterate through each key in key map
-        for(let key of this.getDefinition().keys) {
-            // If the key is a timestamp, skip it
-            if(this.getDefinition().timestamps.includes(key))
-                continue;
-
-            // If the key is hidden, skip it
-            if(this.getDefinition().hidden.includes(key))
-                continue;
-
+        for(let key of this.iterables) {
             // Get value
-            let value = this[toCamelCase(key)];
+            let value = this[key];
 
             // Check if key is a join
-            if(typeof this.getDefinition().joins[key] !== 'undefined')
-                value = value.toJSON();
+            if(this.hasPointer(key)) value = value.toJSON();
 
             // Set value
             keys[key] = value;
@@ -326,9 +315,16 @@ export default class Class {
             [InternalKeys.Id]: id,
             ...body,
             [InternalKeys.Timestamps.CreatedAt]: createdAt,
-            [InternalKeys.Timestamps.UpdatedAt]: updatedAt,
-            [InternalKeys.Timestamps.DeletedAt]: deletedAt
+            [InternalKeys.Timestamps.UpdatedAt]: updatedAt
         };
+    }
+
+    increment(key: string, value: number) {
+        // Check if key exists
+        this.statics().has(key);
+
+        // Set key to an increment value
+        this[key] = { type: 'Increment', value };
     }
 
     beforeFind<Q extends Query<any>, U extends User | undefined>(query: Q, opts: ClassOptions<U>): any {

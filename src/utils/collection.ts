@@ -124,12 +124,12 @@ export default class Collection<T extends Class> {
 
     [Symbol.iterator](): Iterator<T> {
         // Set index to 0
-        let _index = 0;
+        let index = 0;
 
         return {
             next: () => {
                 // Return iterator result
-                return { value: this._collection[_index++], done: _index >= this._collection.length };
+                return { value: this._collection[index++], done: index >= this._collection.length };
             }
         };
     }

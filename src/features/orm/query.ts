@@ -432,8 +432,8 @@ export default class Query<T extends typeof Class> {
     }
 
     private getKeys() {
-        // Get metadata
-        const metadata = this.class.prototype.getDefinition();
+        // Get definition
+        const definition = this.class.prototype.getDefinition();
 
         // Prepare selection keys
         let select = this.selection;
@@ -445,13 +445,13 @@ export default class Query<T extends typeof Class> {
 
         // If select is empty, use the default keys
         if(select.length === 0) {
-            select = [InternalKeys.Id, ...metadata.keys, ...metadata.timestamps];
+            select = [InternalKeys.Id, ...definition.keys, ...definition.timestamps];
         }
 
         // Iterate through the selected keys
         for(let key of select) {
             // If the key is an internal key
-            if(key === InternalKeys.Id || metadata.timestamps.includes(key)) {
+            if(key === InternalKeys.Id || definition.timestamps.includes(key)) {
                 // Push the key
                 keys.push(key);
             }
@@ -461,9 +461,9 @@ export default class Query<T extends typeof Class> {
                 include.push(key);
             }
             // If it is a regular key and it exists
-            else if(metadata.keys.includes(key)) {
+            else if(definition.keys.includes(key)) {
                 // Check if pointer exists
-                const pointerDefinition = metadata.joins[key];
+                const pointerDefinition = definition.joins[key];
 
                 // If they key provided is a pointer (foreign key without '.')
                 if(typeof pointerDefinition !== 'undefined') {
@@ -496,7 +496,7 @@ export default class Query<T extends typeof Class> {
             includedJoins[Pointer.getAliasFrom(key)] = true;
 
             // If the key is from a secondary join, add the parent join
-            const pointerDefinition = metadata.joins[Pointer.getAliasFrom(key)];
+            const pointerDefinition = definition.joins[Pointer.getAliasFrom(key)];
             const join = pointerDefinition.toPointer();
             if(join.isSecondary) {
                 includedJoins[join.parentAliasKey] = true;
@@ -504,9 +504,9 @@ export default class Query<T extends typeof Class> {
         }
 
         // Create joins
-        const joins = Object.keys(metadata.joins).reduce((map, key) => {
+        const joins = Object.keys(definition.joins).reduce((map, key) => {
             // Get join 
-            const join = metadata.joins[key];
+            const join = definition.joins[key];
             map[key] = { join, included: includedJoins[key] };
             return map;
         }, {});
