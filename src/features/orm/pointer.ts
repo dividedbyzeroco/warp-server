@@ -171,7 +171,16 @@ export class PointerDefinition<C extends typeof Class> {
 
     toPointer() {
         const pointer = this._classCaller().as(this._keyName);
-        if(typeof this._via === 'string') pointer.via(this._via);
+        // If via key is provided
+        if(typeof this._via === 'string') {
+            // And it is a pointer
+            if(Pointer.isUsedBy(this._via)) {
+                // Use it as a secondary pointer
+                return pointer.from(this._via);
+            }
+            // Use it as a regular pointer
+            else pointer.via(this._via);
+        }
         return pointer;
     }
 }
@@ -184,12 +193,13 @@ export const BelongsTo = <C extends typeof Class>(classDefinition: ClassCaller<C
     return <T extends Class>(classInstance: T, name: string): any => {
         // Get pointer name
         const keyName = toSnakeCase(name);
+        const sourceName = via && !Pointer.isUsedBy(via) && via || keyName;
 
         // Prepare pointer definition
         const pointerDefinition = new PointerDefinition(classDefinition, keyName, via);
 
         // Prepare key manager
-        const keyManager = PointerKey(name, pointerDefinition);
+        const keyManager = PointerKey(sourceName, pointerDefinition);
 
         // Set definition
         const definition = classInstance.getDefinition();

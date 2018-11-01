@@ -1,6 +1,7 @@
 import Pointer from '../features/orm/pointer';
 import KeyMap from '../utils/key-map';
 import ConstraintMap from '../utils/constraint-map';
+import { ILogger } from './logger';
 
 export type DatabaseAction = 'read' | 'write';
 
@@ -35,7 +36,8 @@ export declare const IDatabaseAdapter: {
 
 export type DatabaseConfig = {
     uris: URIConfig[],
-    persistent: boolean
+    persistent: boolean,
+    logger: ILogger
 }
 
 export type URIConfig = {

@@ -5,6 +5,8 @@ import Error from '../../../utils/error';
 import { Increment, SetJson, AppendJson } from '../../../features/orm/specials';
 import { DatabaseResult, DatabaseConfig, ConnectionCollection, DatabaseAction } from '../../../types/database';
 import { DatabaseWrite, DatabaseRead } from '../../../utils/constants';
+import { ILogger } from '../../../types/logger';
+import chalk from 'chalk';
 
 export default class DatabaseClient {
 
@@ -13,13 +15,14 @@ export default class DatabaseClient {
      */
     _connectionConfigs: ConnectionCollection = { write: [], read: [] };
     _poolCluster: mysql.PoolCluster;
+    _logger: ILogger;
     _persistent: boolean;
 
     /**
      * Constructor
      * @param {Object} config 
      */
-    constructor({ uris, persistent }: DatabaseConfig) {
+    constructor({ uris, persistent, logger }: DatabaseConfig) {
         // Get connection configs
         for(const uriConfig of uris) {
             // Check if action is write
@@ -35,7 +38,7 @@ export default class DatabaseClient {
 
         // Set connection settings
         this._persistent = persistent;
-
+        this._logger = logger;
     }
 
     /**
@@ -158,6 +161,10 @@ export default class DatabaseClient {
         // Create promise query method
         const connection = await this.connect(action);
         const onQuery = new Promise((resolve, reject) => {
+            // Display query
+            this._logger.info(chalk.green(queryString)); 
+
+            // Run the query
             connection.query(queryString, (err, result) => {
                 if(err) return reject(err);
                 resolve(result);

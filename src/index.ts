@@ -24,6 +24,18 @@ import Response from './utils/response';
 import { MiddlewareRequest } from './types/request';
 import { URIConfig } from './types/database';
 import ActionMapper from './features/functions/action-mapper';
+import { ClassOptions } from './types/class';
+import { Hidden } from './features/orm/keys/modifiers/hidden';
+import { Protected } from './features/orm/keys/modifiers/protected';
+import {
+    BeforeFind,
+    BeforeFirst,
+    BeforeGet,
+    BeforeSave,
+    AfterSave,
+    BeforeDestroy,
+    AfterDestroy
+} from './features/orm/keys/modifiers/triggers';
 
 const { version } = require('./package.json');
 
@@ -174,7 +186,7 @@ export default class WarpServer {
      * @param customResponse
      */
     private setLogger(channel: string) {
-        this.loggerInstance = Logger.use(channel, 'Warp Server', process.env.LOG_LEVEL || 'error');
+        this.loggerInstance = Logger.use(channel, 'Warp Server', process.env.WARP_LOG_LEVEL || 'error');
     }
 
     /**
@@ -220,7 +232,7 @@ export default class WarpServer {
         const protocol = uris[0].uri.split(':')[0];
 
         // Prepare database
-        const database = Database.use(protocol, { uris, persistent });
+        const database = Database.use(protocol, { uris, persistent, logger: this.logger });
 
         // Set data mapper
         this.dataMapper = new DataMapper(database);
@@ -309,6 +321,11 @@ export default class WarpServer {
 export type Request<U extends User | undefined> = ExpressRequest & MiddlewareRequest<U>;
 
 /**
+ * Class options
+ */
+export type ClassOptions<U extends User | undefined> = ClassOptions<U>;
+
+/**
  * Export features
  */
 export {
@@ -319,5 +336,14 @@ export {
     Key,
     WarpServer,
     DataMapper,
-    BelongsTo
+    BelongsTo,
+    Hidden,
+    Protected,
+    BeforeFind,
+    BeforeFirst,
+    BeforeGet,
+    BeforeSave,
+    AfterSave,
+    BeforeDestroy,
+    AfterDestroy
 };

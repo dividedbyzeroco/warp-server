@@ -5,7 +5,7 @@ import User from '../auth/user';
 import { IDatabaseAdapter } from '../../types/database';
 import Collection from '../../utils/collection';
 import Error from '../../utils/error';
-import { InternalKeys } from '../../utils/constants';
+import { InternalKeys, TriggerBeforeSave, TriggerAfterSave, TriggerBeforeDestroy, TriggerAfterDestroy, TriggerBeforeFind, TriggerBeforeFirst, TriggerBeforeGet } from '../../utils/constants';
 import { ClassMapType, ClassOptions } from '../../types/class';
 
 export default class DataMapper {
@@ -69,8 +69,12 @@ export default class DataMapper {
         // Create classInstance
         const classInstance = new query.class;
 
-        // Run beforeFind
-        await classInstance.beforeFind(query, opts);
+        // Get definition
+        const definition = classInstance.getDefinition();
+
+        // Run all beforeFind triggers
+        const beforeFindTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeFind);
+        for(const trigger of beforeFindTriggers) await trigger.action.apply(classInstance, [query, opts]);
 
         // Get query options
         const {
@@ -117,8 +121,12 @@ export default class DataMapper {
         // Create classInstance
         const classInstance = new query.class;
 
-        // Run beforeFirst
-        await classInstance.beforeFirst(query, opts);
+        // Get definition
+        const definition = classInstance.getDefinition();
+
+        // Run all beforeFirst triggers
+        const beforeFirstTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeFirst);
+        for(const trigger of beforeFirstTriggers) await trigger.action.apply(classInstance, [query, opts]);
 
         // Get result
         const result = await this.find(query);
@@ -151,8 +159,12 @@ export default class DataMapper {
         if(typeof select !== 'undefined') query.select(select);
         if(typeof include !== 'undefined') query.include(include);
 
-        // Run beforeGet
-        await classInstance.beforeGet(query, opts);
+        // Get definition
+        const definition = classInstance.getDefinition();
+
+        // Run all beforeGet triggers
+        const beforeGetTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeGet);
+        for(const trigger of beforeGetTriggers) await trigger.action.apply(classInstance, [query, opts]);
 
         // Get parameters
         const { 
@@ -188,8 +200,12 @@ export default class DataMapper {
         // Validate instance
         enforce`${{ ClassToSave: classInstance }} as a ${{ Class }}`;
 
-        // Run beforeSave as master
-        await classInstance.beforeSave(this, opts);
+        // Get definition
+        const definition = classInstance.getDefinition();
+
+        // Run all beforeSave triggers
+        const beforeSaveTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeSave);
+        for(const trigger of beforeSaveTriggers) await trigger.action.apply(classInstance, [this, opts]);
 
         // Get keys to save
         const keys = classInstance._keys;
@@ -204,8 +220,12 @@ export default class DataMapper {
             await this.database.update(classInstance.statics().className, keys, classInstance.id);
         }
 
-        // Run the afterSave method in the background as master
-        try { classInstance.afterSave(this, opts); } catch(err) { /* Do nothing */ }
+        try { 
+            // Run all afterSave triggers in the background
+            const afterSaveTriggers = definition.triggers.filter(trigger => trigger.type === TriggerAfterSave);
+            for(const trigger of afterSaveTriggers) await trigger.action.apply(classInstance, [this, opts]);
+        } 
+        catch(err) { /* do nothing */ }
 
         // Return immediately
         return classInstance;
@@ -219,8 +239,12 @@ export default class DataMapper {
         // Validate instance
         enforce`${{ ClassToDestroy: classInstance }} as a ${{ Class }}`;
 
-        // Run beforeDestroy
-        await classInstance.beforeDestroy(this, opts);
+        // Get definition
+        const definition = classInstance.getDefinition();
+
+        // Run all beforeDestroy triggers
+        const beforeDestroyTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeDestroy);
+        for(const trigger of beforeDestroyTriggers) await trigger.action.apply(classInstance, [this, opts]);
 
         // Get keys
         const keys = classInstance._keys;
@@ -228,8 +252,12 @@ export default class DataMapper {
         // Execute destroy query
         await this.database.destroy(classInstance.statics().className, keys, classInstance.id);
 
-        // Run the afterDestroy method in the background
-        try { classInstance.afterDestroy(this, opts); } catch(err) { /* Do nothing */ }
+        try { 
+            // Run all afterDestroy triggers in the background
+            const afterDestroyTriggers = definition.triggers.filter(trigger => trigger.type === TriggerAfterDestroy);
+            for(const trigger of afterDestroyTriggers) await trigger.action.apply(classInstance, [this, opts]);
+         } 
+         catch(err) { /* Do nothing */ }
 
         // Return immediately
         return;

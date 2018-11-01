@@ -5,6 +5,7 @@ import Query from '../orm/query';
 import { InternalKeys } from '../../utils/constants';
 import { DataMapper } from '../..';
 import { ClassOptions } from '../../types/class';
+import { BeforeFind, BeforeGet, BeforeSave, BeforeDestroy } from '../orm/keys/modifiers/triggers';
 
 @Class.definition
 export default class User extends Class {
@@ -27,7 +28,8 @@ export default class User extends Class {
         return this.isCurrentUser(user) || this.isMaster(master);
     }
 
-    beforeFind<Q extends Query<any>, U extends User | undefined>(query: Q, opts: ClassOptions<U>) {
+    @BeforeFind
+    verifyFindAccess<Q extends Query<any>, U extends User | undefined>(query: Q, opts: ClassOptions<U>) {
         // Get opts
         const { master } = opts;
 
@@ -36,7 +38,8 @@ export default class User extends Class {
             throw new Error(Error.Code.ForbiddenOperation, 'Finding users can only be done by the master');
     }
 
-    beforeGet<Q extends Query<any>, U extends User | undefined>(query: Q, opts: ClassOptions<U>): any {
+    @BeforeGet
+    verifyGetAccess<Q extends Query<any>, U extends User | undefined>(query: Q, opts: ClassOptions<U>): any {
         // Get opts
         const { user, master } = opts;
 
@@ -46,7 +49,8 @@ export default class User extends Class {
             throw new Error(Error.Code.ForbiddenOperation, 'You cannot get the data of another user unless you are a master');
     }
 
-    async beforeSave<U extends User | undefined>(classes: DataMapper, opts: ClassOptions<U>) {
+    @BeforeSave
+    async validate<U extends User | undefined>(classes: DataMapper, opts: ClassOptions<U>) {
         // Get opts
         const { user, master } = opts;
 
@@ -82,7 +86,8 @@ export default class User extends Class {
         }
     }
 
-    beforeDestroy<U extends User | undefined>(classes, opts: ClassOptions<U>) {
+    @BeforeDestroy
+    verifyDestroyAccess<U extends User | undefined>(classes, opts: ClassOptions<U>) {
         // Get opts
         const { user, master } = opts;
 

@@ -44,7 +44,7 @@ export default function NumberKey(name: string, opts: NumberKeyOptions = {}): Ke
     key.getterDefinition = value => {
         // Get the number
         const number = value;
-        if(typeof number === 'undefined' || number === null) return null;
+        if(typeof number === 'undefined' || number === null) return number;
         else {
             if(numType === 'integer') return parseInt(number);
             else if(numType === 'float') return Number(Number(value).toFixed(decimals));

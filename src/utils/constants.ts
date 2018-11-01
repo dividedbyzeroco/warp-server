@@ -3,6 +3,14 @@ export const CreatedAt = 'created_at';
 export const UpdatedAt = 'updated_at';
 export const DeletedAt = 'deleted_at';
 
+export const TriggerBeforeFind = 'before-find';
+export const TriggerBeforeFirst = 'before-first';
+export const TriggerBeforeGet = 'before-get';
+export const TriggerBeforeSave = 'before-save';
+export const TriggerAfterSave = 'after-save';
+export const TriggerBeforeDestroy = 'before-destroy';
+export const TriggerAfterDestroy = 'after-destroy';
+
 export const InternalKeys = Object.freeze({
     Id: InternalId,
     Timestamps: Object.freeze({

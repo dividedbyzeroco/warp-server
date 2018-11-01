@@ -506,7 +506,7 @@ export default class Query<T extends typeof Class> {
         // Create joins
         const joins = Object.keys(definition.joins).reduce((map, key) => {
             // Get join 
-            const join = definition.joins[key];
+            const join = definition.joins[key].toPointer();
             map[key] = { join, included: includedJoins[key] };
             return map;
         }, {});

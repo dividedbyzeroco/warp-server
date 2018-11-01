@@ -4,11 +4,9 @@ import { toCamelCase, toSnakeCase } from '../../utils/format';
 import { InternalKeys, InternalId } from '../../utils/constants';
 import Pointer, { PointerDefinition } from './pointer';
 import CompoundKey from '../../utils/compound-key';
-import DataMapper from './data-mapper';
-import User from '../auth/user';
-import { Query } from '../..';
-import { ClassKeys, ClassOptions, ClassJSON } from '../../types/class';
+import { ClassKeys, ClassJSON } from '../../types/class';
 import DateKey from './keys/types/date';
+import { TriggerType, TriggerAction } from '../../types/triggers';
 
 export const ClassDefinitionSymbol = Symbol.for('warp-server:class-definition');
 
@@ -16,6 +14,7 @@ export interface ClassDefinition {
     keys: string[];
     timestamps: string[];
     joins: { [name: string]: PointerDefinition<typeof Class> };
+    triggers: { type: TriggerType, action: TriggerAction }[];
     hidden: string[];
 }
 
@@ -135,6 +134,7 @@ export default class Class {
             return true;
         }
         else if(key === InternalKeys.Id) return true;
+        else if(this.prototype.getDefinition().timestamps.includes(key)) return true;
         else if(this.prototype.getDefinition().keys.includes(key)) return true;
         else return false;
     }
@@ -219,6 +219,7 @@ export default class Class {
             keys: [],
             timestamps: Object.values(InternalKeys.Timestamps),
             joins: {},
+            triggers: [],
             hidden: [],
             ...definition
         };
@@ -251,8 +252,7 @@ export default class Class {
 
     get createdAt(): string {
         const keyManager = DateKey(InternalKeys.Timestamps.CreatedAt);
-        const getter = keyManager.getter.bind(this);
-        return getter();
+        return keyManager.getter(this._keys.get(keyManager.name));
     }
 
     set createdAt(value: string) {
@@ -261,8 +261,7 @@ export default class Class {
 
     get updatedAt(): string {
         const keyManager = DateKey(InternalKeys.Timestamps.UpdatedAt);
-        const getter = keyManager.getter.bind(this);
-        return getter();
+        return keyManager.getter(this._keys.get(keyManager.name));
     }
 
     set updatedAt(value: string) {
@@ -291,10 +290,10 @@ export default class Class {
         // Iterate through each key in key map
         for(let key of this.iterables) {
             // Get value
-            let value = this[key];
+            let value = this[toCamelCase(key)];
 
-            // Check if key is a join
-            if(this.hasPointer(key)) value = value.toJSON();
+            // Check if key is a join and has a value
+            if(this.hasPointer(key) && value) value = value.toJSON();
 
             // Set value
             keys[key] = value;
@@ -325,33 +324,5 @@ export default class Class {
 
         // Set key to an increment value
         this[key] = { type: 'Increment', value };
-    }
-
-    beforeFind<Q extends Query<any>, U extends User | undefined>(query: Q, opts: ClassOptions<U>): any {
-        return;
-    }
-
-    beforeFirst<Q extends Query<any>, U extends User | undefined>(query: Q, opts: ClassOptions<U>): any {
-        return;
-    }
-
-    beforeGet<Q extends Query<any>, U extends User | undefined>(query: Q, opts: ClassOptions<U>): any {
-        return;
-    }
-
-    beforeSave<U extends User | undefined>(classes: DataMapper, opts: ClassOptions<U>): any {
-        return;
-    }
-
-    afterSave<U extends User | undefined>(classes: DataMapper, opts: ClassOptions<U>): any {
-        return;
-    }
-
-    beforeDestroy<U extends User | undefined>(classes: DataMapper, opts: ClassOptions<U>): any {
-        return;
-    }
-
-    afterDestroy<U extends User | undefined>(classes: DataMapper, opts: ClassOptions<U>): any {
-        return;
     }
 }

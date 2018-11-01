@@ -6,7 +6,7 @@ import { toSnakeCase } from '../../../../utils/format';
  * @param classInstance 
  * @param name 
  */
-const HiddenDecorator = <C extends Class>(classInstance: C, name: string) => {
+export const Hidden = <C extends Class>(classInstance: C, name: string) => {
     // Get key name
     const keyName = toSnakeCase(name);
 
@@ -15,5 +15,3 @@ const HiddenDecorator = <C extends Class>(classInstance: C, name: string) => {
     if(!definition.hidden.includes(keyName)) definition.hidden.push(keyName);
     classInstance.setDefinition(definition);
 };
-
-export const Hidden = HiddenDecorator;

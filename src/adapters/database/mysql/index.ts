@@ -157,7 +157,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         });
         
         // Remove deleted rows
-        where.set(InternalKeys.Timestamps.DeletedAt, Constraints.Exists, false);
+        where.set(`${classAlias}${Pointer.Delimiter}${InternalKeys.Timestamps.DeletedAt}`, Constraints.Exists, false);
 
         // Get constraints
         const constraints = where.toArray()
@@ -235,8 +235,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
                 joinMap[alias] = joinKeys;
 
                 // Set the pointer value
-                keyMap.set(pointer.viaKey, joinKeys);
-                keyMap.setAlias(pointer.viaKey, pointer.aliasKey);
+                keyMap.set(pointer.aliasKey, joinKeys);
             }
             else {
                 // Set the key value
@@ -268,8 +267,9 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         const selectScript = `
             ${findClause}
             ORDER BY ${sortingClause}
-            LIMIT ${skip}, ${limit}
-            -- Warp Server ${version}`;
+            LIMIT ${skip}, ${limit};
+            -- Warp Server ${version}
+        `;
 
         // Get result
         const result = await this._client.query(selectScript, DatabaseRead);
@@ -293,9 +293,8 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         where: ConstraintMap,
         id: number
     ): Promise<KeyMap | null> {
-        // Prepare where 
-        where.set(InternalKeys.Timestamps.DeletedAt, Constraints.Exists, false);
-        where.set(InternalKeys.Id, Constraints.EqualTo, id);
+        // Add id matching
+        where.set(`${className}${Pointer.Delimiter}${InternalKeys.Id}`, Constraints.EqualTo, id);
 
         // Generate get script
         const getScript = this.generateFindClause({ source, classAlias: className, select, joins, where });
@@ -332,8 +331,9 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
             INSERT INTO ${this._client.escapeKey(source)}
             (${sqlInput.columns.join(', ')})
             VALUES
-            (${sqlInput.values.join(', ')})
-            -- Warp Server ${version}`;
+            (${sqlInput.values.join(', ')});
+            -- Warp Server ${version}
+        `;
 
         // Create the item and get id
         const result = await this._client.query(createScript, DatabaseWrite);
@@ -366,8 +366,9 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         const updateScript = `
             UPDATE ${this._client.escapeKey(source)}
             SET ${sqlInput.keyPairs.join(', ')}
-            WHERE ${idKey} = ${id}
-            -- Warp Server ${version}`;
+            WHERE ${idKey} = ${id};
+            -- Warp Server ${version}
+        `;
 
         // Update the item
         await this._client.query(updateScript, DatabaseWrite);
@@ -388,8 +389,9 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         const destroyScript = `
             UPDATE ${this._client.escapeKey(source)}
             SET ${updateKey} = ${this._client.escape(now)}, ${deleteKey} = ${this._client.escape(now)}
-            WHERE ${idKey} = ${id}
-            -- Warp Server ${version}`;
+            WHERE ${idKey} = ${id};
+            -- Warp Server ${version}
+        `;
 
         // Update the item
         await this._client.query(destroyScript, DatabaseWrite);

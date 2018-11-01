@@ -19,7 +19,7 @@ export default function DateKey(name: string): KeyManager {
 
     key.getterDefinition = value => {
         // Get the date
-        if(typeof value === 'undefined' || value === null) return null;
+        if(typeof value === 'undefined' || value === null) return value;
         else return toISODate(value);
     };
 

@@ -7,7 +7,7 @@ import Error from '../../../../utils/error';
  * @param classInstance 
  * @param name 
  */
-const ProtectedDecorator = <C extends Class>(classInstance: C, name: string): any => {
+export const Protected = <C extends Class>(classInstance: C, name: string): any => {
     // Get key name
     const keyName = toSnakeCase(name);
 
@@ -25,5 +25,3 @@ const ProtectedDecorator = <C extends Class>(classInstance: C, name: string): an
         configurable: true
     };
 };
-
-export const Protected = ProtectedDecorator;

@@ -2,6 +2,7 @@ import { KeyManager } from '../key';
 import Error from '../../../../utils/error';
 import Class from '../../class';
 import { PointerDefinition } from '../../pointer';
+import { InternalKeys } from '../../../../utils/constants';
 
 export default function PointerKey<C extends typeof Class>(name: string, pointerDefinition: PointerDefinition<C>): KeyManager {
     const key = new KeyManager(name, 'pointer');
@@ -28,11 +29,13 @@ export default function PointerKey<C extends typeof Class>(name: string, pointer
         const classType = pointer.class;
 
         // If value is null, return null
-        if(value === null) return null;
-        if(typeof value === 'object' && value.id === null) return null;
+        if(typeof value === 'undefined' || value === null) return value;
+
+        // Get keys
+        const keys = { [InternalKeys.Id]: value[InternalKeys.Id], ...value[InternalKeys.Pointers.Attributes] };
 
         // Get the class instance
-        const classInstance = new classType(value);
+        const classInstance = new classType(keys);
         classInstance.toPointer();
 
         // Return class intance
