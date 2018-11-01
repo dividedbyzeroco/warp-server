@@ -45,15 +45,14 @@ export default class User extends Class {
 
         // If user is master
         if(this.isMaster) return query;
-        else if(!this.hasAccess(user, master)) 
-            throw new Error(Error.Code.ForbiddenOperation, 'You cannot get the data of another user unless you are a master');
+        else if(!this.hasAccess(user, master)) {
+            if(user) query.equalTo(InternalKeys.Id, user.id);
+            else throw new Error(Error.Code.ForbiddenOperation, 'You cannot anonymously fetch user data unless you are a master');
+        }
     }
 
     @BeforeSave
-    async validate<U extends User | undefined>(classes: DataMapper, opts: ClassOptions<U>) {
-        // Get opts
-        const { user, master } = opts;
-
+    async validateCredentials<U extends User | undefined>(classes: DataMapper, opts: ClassOptions<U>) {
         // If creating a user, make sure it is unique
         if(this.isNew) {
             // Check if user exists
@@ -78,11 +77,16 @@ export default class User extends Class {
                     throw new Error(Error.Code.EmailTaken, 'Email already taken');
             }
         }
-        else {
-            // If user does not have access
-            if(!this.hasAccess(user, master)) {
-                throw new Error(Error.Code.ForbiddenOperation, 'You cannot edit the data of another user unless you are a master');
-            }
+    }
+
+    @BeforeSave
+    verifyUpdateAccess<U extends User | undefined>(classes: DataMapper, opts: ClassOptions<U>) {
+        // Get opts
+        const { user, master } = opts;
+
+        // If user does not have access
+        if(!this.isNew && !this.hasAccess(user, master)) {
+            throw new Error(Error.Code.ForbiddenOperation, 'You cannot edit the data of another user unless you are a master');
         }
     }
 

@@ -12,7 +12,7 @@ export const ClassDefinitionSymbol = Symbol.for('warp-server:class-definition');
 
 export interface ClassDefinition {
     keys: string[];
-    timestamps: string[];
+    timestamps: { [key: string]: string };
     joins: { [name: string]: PointerDefinition<typeof Class> };
     triggers: { type: TriggerType, action: TriggerAction }[];
     hidden: string[];
@@ -128,13 +128,9 @@ export default class Class {
             return CompoundKey.from(key).every(k => this.has(k));
         }
         // Check if the key is for a pointer
-        else if(Pointer.isUsedBy(key)) {
-            // Validate pointer key
-            this.hasPointerKey(key);
-            return true;
-        }
+        else if(Pointer.isUsedBy(key) && this.hasPointerKey(key)) return true;
         else if(key === InternalKeys.Id) return true;
-        else if(this.prototype.getDefinition().timestamps.includes(key)) return true;
+        else if(this.prototype.getDefinition().timestamps[key]) return true;
         else if(this.prototype.getDefinition().keys.includes(key)) return true;
         else return false;
     }
@@ -145,8 +141,7 @@ export default class Class {
 
     static hasPointerKey(key: string) {
         // Check if key parts are valid
-        if(!Pointer.isValid(key))
-            throw new Error(Error.Code.ForbiddenOperation, `The pointer key \`${key}\` is invalid`);
+        if(!Pointer.isValid(key)) return false;
 
         // Get alias and key
         const alias = Pointer.getAliasFrom(key);
@@ -158,7 +153,7 @@ export default class Class {
 
         // Check if pointer exists
         if(!(pointerDefinition instanceof PointerDefinition)) {
-            throw new Error(Error.Code.MissingConfiguration, `The pointer for \`${key}\` does not exist`);
+            return false;
         }
         else {
             // Get pointer
@@ -168,9 +163,10 @@ export default class Class {
             if((!pointerClassDefinition.keys.includes(pointerKey)
                     && InternalKeys.Id !== pointerKey)
                     || pointerClassDefinition.hidden.includes(pointerKey)) {
-                throw new Error(Error.Code.ForbiddenOperation, `The pointer key for \`${key}\` does not exist or is hidden`);
+                return false;
             }
         }
+        return true;
     }
 
     /**
@@ -197,15 +193,6 @@ export default class Class {
         }
         else return `${this.className}${Pointer.Delimiter}${key}`;
     }
-    
-    /**
-     * @description Create a pointer
-     * @param {string} key 
-     * @returns {WarpServer.Pointer}
-     */
-    static as(key: string): Pointer {
-        return new Pointer(this, key);
-    }
 
     /**
      * Get class definition
@@ -217,7 +204,7 @@ export default class Class {
         // Override default definition
         return  {
             keys: [],
-            timestamps: Object.values(InternalKeys.Timestamps),
+            timestamps: InternalKeys.Timestamps,
             joins: {},
             triggers: [],
             hidden: [],
@@ -320,7 +307,8 @@ export default class Class {
 
     increment(key: string, value: number) {
         // Check if key exists
-        this.statics().has(key);
+        if(!this.statics().has(key))
+            throw new Error(Error.Code.ForbiddenOperation, `Key to be incremented \`${key}\` does not exist in \`${this.statics().className}\``);
 
         // Set key to an increment value
         this[key] = { type: 'Increment', value };

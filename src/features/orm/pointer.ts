@@ -159,27 +159,27 @@ export default class Pointer {
 
 export class PointerDefinition<C extends typeof Class> {
 
-    _classCaller: ClassCaller<C>;
-    _keyName: string;
-    _via?: string;
+    private classCaller: ClassCaller<C>;
+    private keyName: string;
+    private via?: string;
 
     constructor(classDefinition: ClassCaller<C>, keyName: string, via?: string) {
-        this._classCaller = classDefinition;
-        this._keyName = keyName;
-        this._via = via;
+        this.classCaller = classDefinition;
+        this.keyName = keyName;
+        this.via = via;
     }
 
     toPointer() {
-        const pointer = this._classCaller().as(this._keyName);
+        const pointer = new Pointer(this.classCaller(), this.keyName);
         // If via key is provided
-        if(typeof this._via === 'string') {
+        if(typeof this.via === 'string') {
             // And it is a pointer
-            if(Pointer.isUsedBy(this._via)) {
+            if(Pointer.isUsedBy(this.via)) {
                 // Use it as a secondary pointer
-                return pointer.from(this._via);
+                return pointer.from(this.via);
             }
             // Use it as a regular pointer
-            else pointer.via(this._via);
+            else pointer.via(this.via);
         }
         return pointer;
     }

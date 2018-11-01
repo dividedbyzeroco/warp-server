@@ -445,13 +445,13 @@ export default class Query<T extends typeof Class> {
 
         // If select is empty, use the default keys
         if(select.length === 0) {
-            select = [InternalKeys.Id, ...definition.keys, ...definition.timestamps];
+            select = [InternalKeys.Id, ...definition.keys, ...Object.values(definition.timestamps)];
         }
 
         // Iterate through the selected keys
         for(let key of select) {
             // If the key is an internal key
-            if(key === InternalKeys.Id || definition.timestamps.includes(key)) {
+            if(key === InternalKeys.Id || definition.timestamps[key]) {
                 // Push the key
                 keys.push(key);
             }
