@@ -21,11 +21,11 @@ const functions = (api: WarpServer): express.Router => {
     /**
      * Running functions
      */
-    router.post('/functions/:functionName', async (req, res, next) => {
+    router.use('/functions/:functionName', async (req, res, next) => {
         // Get parameters
         const { functionName } = req.params;
         const user = req[InternalKeys.Middleware.User];
-        const keys = req.body;
+        const keys = req.method.toLowerCase() === 'get' ? req.query : req.body;
 
         try {
             // Run function

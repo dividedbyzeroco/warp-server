@@ -10,7 +10,7 @@ import {
 import Query from '../features/orm/query';
 import Class from '../features/orm/class';
 import User from '../features/auth/user';
-import { DataMapper } from '..';
+import { ClassManager } from '..';
 
 export type TriggerType = typeof TriggerBeforeFind 
     | typeof TriggerBeforeFirst 
@@ -21,5 +21,5 @@ export type TriggerType = typeof TriggerBeforeFind
     | typeof TriggerAfterDestroy;
 
 export type TriggerQueryAction = <C extends typeof Class, U extends User>(query: Query<C>, user: U) => any;
-export type TriggerMutationAction = <U extends User>(classes: DataMapper, user: U) => any;
+export type TriggerMutationAction = <U extends User>(classes: ClassManager, user: U) => any;
 export type TriggerAction = TriggerQueryAction | TriggerMutationAction;

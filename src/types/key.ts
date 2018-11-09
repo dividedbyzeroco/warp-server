@@ -1,8 +1,10 @@
-import { NumberType } from "../features/orm/keys/types/number";
+export type NumberType = 'number' | 'integer' | 'float';
+
+export type KeyType = NumberType | 'boolean' | 'date' | 'string' | 'array' | 'object' | 'json';
 
 export type KeyOptions = {
     via?: string,
-    numType?: NumberType,
+    type?: KeyType,
     minLength?: number,
     maxLength?: number,
     min?: number,

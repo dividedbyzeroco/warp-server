@@ -4,7 +4,7 @@ import Function from './function';
 import Error from '../../utils/error';
 import User from '../auth/user';
 
-export default class ActionMapper {
+export default class FunctionManager {
 
     private functions: FunctionMapType<any> = {};
 

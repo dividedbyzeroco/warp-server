@@ -1,4 +1,6 @@
 import Class from '../features/orm/class';
+import { toCamelCase } from './format';
+import { InternalId } from './constants';
 
 export default class Collection<T extends Class> {
 
@@ -87,6 +89,19 @@ export default class Collection<T extends Class> {
      */
     toArray() {
         return this._collection.map(object => object);
+    }
+
+    /**
+     * Convert the collection into a Map, based on the given iterator
+     * @param iterator 
+     */
+    toMap(iterator: string | ((object: T) => any) = InternalId) {
+        // Get key
+        const getKey = typeof iterator === 'function' ? iterator : object => object[toCamelCase(iterator)];
+
+        // Return a map
+        const entries = this._collection.map<[ any, T ]>(object => [ getKey(object), object ] );
+        return new Map(entries);
     }
 
     /**

@@ -23,7 +23,7 @@ export const InternalKeys = Object.freeze({
         MasterKey: 'X-Warp-Master-Key',
         User: 'user',
         Result: 'result',
-        DataMapper: 'classes'
+        ClassManager: 'classes'
     }),
     Pointers: Object.freeze({
         Type: 'type',

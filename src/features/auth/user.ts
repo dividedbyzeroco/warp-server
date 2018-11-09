@@ -3,7 +3,7 @@ import Key from '../orm/keys/key';
 import Error from '../../utils/error';
 import Query from '../orm/query';
 import { InternalKeys } from '../../utils/constants';
-import { DataMapper } from '../..';
+import { ClassManager } from '../..';
 import { ClassOptions } from '../../types/class';
 import { BeforeFind, BeforeGet, BeforeSave, BeforeDestroy } from '../orm/keys/modifiers/triggers';
 
@@ -52,7 +52,7 @@ export default class User extends Class {
     }
 
     @BeforeSave
-    async validateCredentials<U extends User | undefined>(classes: DataMapper, opts: ClassOptions<U>) {
+    async validateCredentials<U extends User | undefined>(classes: ClassManager, opts: ClassOptions<U>) {
         // If creating a user, make sure it is unique
         if(this.isNew) {
             // Check if user exists
@@ -80,7 +80,7 @@ export default class User extends Class {
     }
 
     @BeforeSave
-    verifyUpdateAccess<U extends User | undefined>(classes: DataMapper, opts: ClassOptions<U>) {
+    verifyUpdateAccess<U extends User | undefined>(classes: ClassManager, opts: ClassOptions<U>) {
         // Get opts
         const { user, master } = opts;
 

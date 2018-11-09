@@ -53,26 +53,30 @@ export class KeyManager {
  * Key Decorator
  * @param opts
  */
-export const keyDecorator = (opts?: KeyOptions) => {
+export const keyDecorator = (opts: KeyOptions = {}) => {
     return <C extends Class>(classInstance: C, name: string): any => {
+        // Get type name
+        let { type, via } = opts;
+
         // Infer data type
-        const type = Reflect.getMetadata('design:type', classInstance, name);
+        const inferredType = Reflect.getMetadata('design:type', classInstance, name);
 
         // Convert key name to snake case, then add to the key map
         const keyName = toSnakeCase(name);
-        const sourceName = opts && opts.via || keyName;
+        const sourceName = via || keyName;
         let keyManager = new KeyManager(keyName);
 
-        // Infer type
-        if(typeof type !== 'undefined') {
-            const typeName = type.name.toLowerCase();
-            if(typeName === 'string') keyManager = StringKey(sourceName, opts);
-            else if(typeName === 'date') keyManager = DateKey(sourceName);
-            else if(typeName === 'boolean') keyManager = BooleanKey(sourceName);
-            else if(typeName === 'number') keyManager = NumberKey(sourceName, opts);
-            else if(typeName === 'array') keyManager = JSONKey(sourceName);
-            else if(typeName === 'object') keyManager = JSONKey(sourceName);
-        }
+        // Get type from metadata
+        if(typeof inferredType !== 'undefined') type = inferredType.name.toLowerCase();
+
+        // Determine key manager
+        if(type === 'string') keyManager = StringKey(sourceName, opts);
+        else if(type === 'date') keyManager = DateKey(sourceName);
+        else if(type === 'boolean') keyManager = BooleanKey(sourceName);
+        else if(type === 'number') keyManager = NumberKey(sourceName, opts);
+        else if(type === 'array') keyManager = JSONKey(sourceName);
+        else if(type === 'object') keyManager = JSONKey(sourceName);
+        else if(type === 'json') keyManager = JSONKey(sourceName);
 
         // Set definition
         const definition = classInstance.getDefinition();
@@ -108,9 +112,9 @@ export class KeyInstance {
     asString = (minLength?: number, maxLength?: number) => StringKey(this._name, { minLength, maxLength });
     asDate = () => DateKey(this._name);
     asBoolean = () => BooleanKey(this._name);
-    asNumber = (max?: number, min?: number) => NumberKey(this._name, { numType: 'number', min, max });
-    asInteger = (min?: number, max?: number) => NumberKey(this._name, { numType: 'integer', min, max });
-    asFloat = (decimals: number = 2, min?: number, max?: number) => NumberKey(this._name, { numType: 'float', decimals, min, max });
+    asNumber = (max?: number, min?: number) => NumberKey(this._name, { type: 'number', min, max });
+    asInteger = (min?: number, max?: number) => NumberKey(this._name, { type: 'integer', min, max });
+    asFloat = (decimals: number = 2, min?: number, max?: number) => NumberKey(this._name, { type: 'float', decimals, min, max });
     asJSON = () => JSONKey(this._name);
 
 }

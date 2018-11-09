@@ -40,7 +40,7 @@ const middleware = (api: WarpServer) => {
      */
     router.use((req, res, next) => {
         // Add the data mapper to the request
-        req[InternalKeys.Middleware.DataMapper] = api.classes;
+        req[InternalKeys.Middleware.ClassManager] = api.classes;
         next();
     });
 

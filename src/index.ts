@@ -1,12 +1,14 @@
 import 'reflect-metadata';
 import { Request as ExpressRequest, Router } from 'express';
 import enforce from 'enforce-js';
+import chalk from 'chalk';
 import Class from './features/orm/class'
 import Query from './features/orm/query';
 import User from './features/auth/user';
 import Function from './features/functions/function';
 import Key from './features/orm/keys/key';
-import DataMapper from './features/orm/data-mapper';
+import ClassManager from './features/orm/class-manager';
+import FunctionManager from './features/functions/function-manager';
 import { BelongsTo } from './features/orm/pointer';
 import Database from './adapters/database';
 import Logger from './adapters/logger';
@@ -19,11 +21,11 @@ import classesRouter from './routes/classes';
 import functionsRouter from './routes/functions';
 import ClassController from './controllers/class';
 import FunctionController from './controllers/function';
-import chalk from 'chalk';
+import Collection from './utils/collection';
 import Response from './utils/response';
+import Validation from './utils/validation';
 import { MiddlewareRequest } from './types/request';
 import { URIConfig } from './types/database';
-import ActionMapper from './features/functions/action-mapper';
 import { ClassOptions } from './types/class';
 import { Hidden } from './features/orm/keys/modifiers/hidden';
 import { Protected } from './features/orm/keys/modifiers/protected';
@@ -39,31 +41,10 @@ import {
 
 const { version } = require('./package.json');
 
-enforce.extend(/^equivalent to an array$/i, val => {
-    try {
-        const parsedValue = JSON.parse(val);
-        if(parsedValue instanceof Array) return true;
-        else return false;
-    }
-    catch(err) {
-        return false;
-    }
-});
-
-enforce.extend(/^equivalent to an object$/i, val => {
-    try {
-        const parsedValue = JSON.parse(val);
-        if(typeof parsedValue === 'object') return true;
-        else return false;
-    }
-    catch(err) {
-        return false;
-    }
-});
-
-enforce.extend(/^and a valid email address$/i, val => {
-    return /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i.test(val);
-});
+/**
+ * Initialize validation
+ */
+Validation.initialize();
 
 /**
  * @class WarpServer
@@ -73,8 +54,8 @@ export default class WarpServer {
     
     private loggerInstance: ILogger;
     private security: SecurityConfigType;
-    private dataMapper: DataMapper;
-    private actionMapper: ActionMapper;
+    private dataMapper: ClassManager;
+    private actionMapper: FunctionManager;
     private routerInstance: Router;
     private responseInstance: Response;
     private classController: ClassController = new ClassController(this);
@@ -98,8 +79,8 @@ export default class WarpServer {
         // Set security
         this.setSecurity({ apiKey, masterKey });
 
-        // Set data mapper
-        this.setDataMapper(databaseURI, persistent);
+        // Set class manager
+        this.setClassManager(databaseURI, persistent);
 
         // Set action mapper
         this.setActionMapper();
@@ -128,14 +109,14 @@ export default class WarpServer {
     /**
      * Class operations
      */
-    get classes(): DataMapper {
+    get classes(): ClassManager {
         return this.dataMapper;
     }
 
     /**
      * Function operations
      */
-    get functions(): ActionMapper {
+    get functions(): FunctionManager {
         return this.actionMapper;
     }
 
@@ -209,7 +190,7 @@ export default class WarpServer {
      * Set data mapper configuration
      * @param {Object} config
      */
-    private setDataMapper(databaseURI: string | URIConfig[], persistent: boolean) {
+    private setClassManager(databaseURI: string | URIConfig[], persistent: boolean) {
         // Get uris
         let uris: URIConfig[] = [];
 
@@ -235,7 +216,7 @@ export default class WarpServer {
         const database = Database.use(protocol, { uris, persistent, logger: this.logger });
 
         // Set data mapper
-        this.dataMapper = new DataMapper(database);
+        this.dataMapper = new ClassManager(database);
     }
     
     /**
@@ -243,7 +224,7 @@ export default class WarpServer {
      */
     private setActionMapper() {
         // Set action mapper
-        this.actionMapper = new ActionMapper();
+        this.actionMapper = new FunctionManager();
     }
 
     /**
@@ -331,11 +312,12 @@ export type ClassOptions<U extends User | undefined> = ClassOptions<U>;
 export {
     Class,
     Query,
+    Collection,
     User,
     Function,
     Key,
     WarpServer,
-    DataMapper,
+    ClassManager,
     BelongsTo,
     Hidden,
     Protected,

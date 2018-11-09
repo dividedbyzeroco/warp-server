@@ -53,6 +53,9 @@ export default class Class {
         else throw new Error(Error.Code.ForbiddenOperation, `'keys' must be an object or an id`);
     }
 
+    /**
+     * Extend Class with className and source
+     */
     private static decorator = (className: string, source?: string) => {
         return <T extends { new(...args: any[]): Class }>(constructor: T) => {
             class DefinedClass extends constructor {

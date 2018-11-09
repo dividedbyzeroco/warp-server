@@ -1,4 +1,4 @@
-import DataMapper from '../features/orm/data-mapper';
+import ClassManager from '../features/orm/class-manager';
 import User from '../features/auth/user';
 
 /**
@@ -6,5 +6,5 @@ import User from '../features/auth/user';
  */
 export interface MiddlewareRequest<U extends User | undefined> {
     user: U,
-    classes: DataMapper
+    classes: ClassManager
 }

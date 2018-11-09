@@ -8,7 +8,7 @@ import Error from '../../utils/error';
 import { InternalKeys, TriggerBeforeSave, TriggerAfterSave, TriggerBeforeDestroy, TriggerAfterDestroy, TriggerBeforeFind, TriggerBeforeFirst, TriggerBeforeGet } from '../../utils/constants';
 import { ClassMapType, ClassOptions } from '../../types/class';
 
-export default class DataMapper {
+export default class ClassManager {
 
     private database: IDatabaseAdapter;
     private classes: ClassMapType<any> = {};
