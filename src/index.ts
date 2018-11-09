@@ -55,7 +55,7 @@ export default class WarpServer {
     private loggerInstance: ILogger;
     private security: SecurityConfigType;
     private classManager: ClassManager;
-    private actionMapper: FunctionManager;
+    private functionManager: FunctionManager;
     private routerInstance: Router;
     private responseInstance: Response;
     private classController: ClassController = new ClassController(this);
@@ -117,7 +117,7 @@ export default class WarpServer {
      * Function operations
      */
     get functions(): FunctionManager {
-        return this.actionMapper;
+        return this.functionManager;
     }
 
     /**
@@ -224,7 +224,7 @@ export default class WarpServer {
      */
     private setActionMapper() {
         // Set action mapper
-        this.actionMapper = new FunctionManager();
+        this.functionManager = new FunctionManager();
     }
 
     /**
