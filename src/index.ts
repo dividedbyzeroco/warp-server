@@ -54,7 +54,7 @@ export default class WarpServer {
     
     private loggerInstance: ILogger;
     private security: SecurityConfigType;
-    private dataMapper: ClassManager;
+    private classManager: ClassManager;
     private actionMapper: FunctionManager;
     private routerInstance: Router;
     private responseInstance: Response;
@@ -110,7 +110,7 @@ export default class WarpServer {
      * Class operations
      */
     get classes(): ClassManager {
-        return this.dataMapper;
+        return this.classManager;
     }
 
     /**
@@ -216,7 +216,7 @@ export default class WarpServer {
         const database = Database.use(protocol, { uris, persistent, logger: this.logger });
 
         // Set data mapper
-        this.dataMapper = new ClassManager(database);
+        this.classManager = new ClassManager(database);
     }
     
     /**
@@ -260,33 +260,33 @@ export default class WarpServer {
             this.loggerInstance.info('Starting Warp Server...');
             
             // Attempt to connect to the database
-            await this.dataMapper.initialize();
+            await this.classManager.initialize();
 
 
             // Display startup screen
             this.loggerInstance.bare(chalk.yellow(`
-            -------------------------------------------
-            -------------------------------------------
-            ------------------------------------=/-----
-            ---------------------------------==/ ------
-            -------------------------------==/  -------
-            ----====|__    --====/   ----==/   --------
-            ------=====|   --===/    ---==/   ---------
-            -------====|   --==/     --==/   ----------
-            --------===|   --=/  |   -==/   -----------
-            ---------==|   --/  =|   ==/   ------------
-            ----------=|   -/  ==|   =/   -------------
-            ----------=|   /  -==|   /   --------------
-            ----------=|     --==|      ---------------
-            -------------------------------------------
-            -------------------------------------------
-            -------------------------------------------
-                                                                                            
-                         Warp Server ${version}
+                -------------------------------------------
+                -------------------------------------------
+                ------------------------------------=/-----
+                ---------------------------------==/ ------
+                -------------------------------==/  -------
+                ----====|__    --====/   ----==/   --------
+                ------=====|   --===/    ---==/   ---------
+                -------====|   --==/     --==/   ----------
+                --------===|   --=/  |   -==/   -----------
+                ---------==|   --/  =|   ==/   ------------
+                ----------=|   -/  ==|   =/   -------------
+                ----------=|   /  -==|   /   --------------
+                ----------=|     --==|      ---------------
+                -------------------------------------------
+                -------------------------------------------
+                -------------------------------------------
+                                                                                                
+                            Warp Server ${version}
 
-            +-----------------------------------------+
-            |     The server has been initialized     |
-            +-----------------------------------------+
+                +-----------------------------------------+
+                |     The server has been initialized     |
+                +-----------------------------------------+
             `));
             this.loggerInstance.info('Service started');
         }
