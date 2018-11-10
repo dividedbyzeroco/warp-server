@@ -7,6 +7,7 @@ import Collection from '../../utils/collection';
 import Error from '../../utils/error';
 import { InternalKeys, TriggerBeforeSave, TriggerAfterSave, TriggerBeforeDestroy, TriggerAfterDestroy, TriggerBeforeFind, TriggerBeforeFirst, TriggerBeforeGet } from '../../utils/constants';
 import { ClassMapType, ClassOptions } from '../../types/class';
+import { Increment } from './specials';
 
 export default class ClassManager {
 
@@ -56,6 +57,22 @@ export default class ClassManager {
 
         // Return class
         return classType;
+    }
+ 
+    /**
+     * Increment the value of a numeric key
+     * @param classInstance
+     * @param key 
+     * @param value 
+     */
+    increment<C extends Class>(classInstance: C, key: string, value: number) {
+        // Check if key exists
+        if(!classInstance.statics().has(key))
+            throw new Error(Error.Code.ForbiddenOperation, 
+                `Key to be incremented \`${key}\` does not exist in \`${classInstance.statics().className}\``);
+
+        // Set key to an increment value
+        this[key] = Increment.by(value);
     }
 
     /**
@@ -208,12 +225,12 @@ export default class ClassManager {
         for(const trigger of beforeSaveTriggers) await trigger.action.apply(classInstance, [this, opts]);
 
         // Get keys to save
-        const keys = classInstance._keys;
+        const keys = classInstance.keys;
 
         // If the object is new
         if(classInstance.isNew) {
             // Execute create query and retrieve the new id
-            classInstance._id = await this.database.create(classInstance.statics().className, keys);
+            classInstance.identifier = await this.database.create(classInstance.statics().className, keys);
         }
         else {
             // Execute update query
@@ -247,7 +264,7 @@ export default class ClassManager {
         for(const trigger of beforeDestroyTriggers) await trigger.action.apply(classInstance, [this, opts]);
 
         // Get keys
-        const keys = classInstance._keys;
+        const keys = classInstance.keys;
 
         // Execute destroy query
         await this.database.destroy(classInstance.statics().className, keys, classInstance.id);

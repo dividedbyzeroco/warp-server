@@ -122,12 +122,12 @@ export class KeyInstance {
 /**
  * Key definition
  */
-function Key<C extends Class>(): (classInstance: C, name: string) => any;
-function Key<C extends Class>(opts: KeyOptions): (classInstance: C, name: string) => any;
-function Key<C extends Class>(classInstance: C, name: string): any;
-function Key<C extends Class>(classInstance: C, name: string, descriptor: any): any;
-function Key(name: string): KeyInstance;
-function Key<C extends Class>(...args: [] | [KeyOptions] | [C, string] | [C, string, any] | [string]) {
+function key<C extends Class>(): (classInstance: C, name: string) => any;
+function key<C extends Class>(opts: KeyOptions): (classInstance: C, name: string) => any;
+function key<C extends Class>(classInstance: C, name: string): any;
+function key<C extends Class>(classInstance: C, name: string, descriptor: any): any;
+function key(name: string): KeyInstance;
+function key<C extends Class>(...args: [] | [KeyOptions] | [C, string] | [C, string, any] | [string]) {
     // As property decorator
     if(args.length === 2 || args.length === 3) {
         return keyDecorator()(args[0], args[1]);
@@ -152,4 +152,4 @@ function Key<C extends Class>(...args: [] | [KeyOptions] | [C, string] | [C, str
     }
 }
 
-export default Key;
+export default key;

@@ -2,10 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import Error from '../utils/error';
-import { WarpServer } from '../index';
+import { Warp } from '../index';
 import { InternalKeys } from '../utils/constants';
 
-const middleware = (api: WarpServer) => {
+const middleware = (api: Warp) => {
     /**
      * Define router
      */

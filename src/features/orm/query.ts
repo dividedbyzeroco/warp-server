@@ -427,10 +427,17 @@ export default class Query<T extends typeof Class> {
         return this;
     }
 
+    /**
+     * Generic where clause
+     * @param constraints 
+     */
     where(constraints: { [key: string]: { [constraint: string]: any } }) {
         this.constraints = new ConstraintMap(constraints);
     }
 
+    /**
+     * Get select keys
+     */
     private getKeys() {
         // Get definition
         const definition = this.class.prototype.getDefinition();
@@ -445,13 +452,13 @@ export default class Query<T extends typeof Class> {
 
         // If select is empty, use the default keys
         if(select.length === 0) {
-            select = [InternalKeys.Id, ...definition.keys, ...Object.values(definition.timestamps)];
+            select = [InternalKeys.Id, ...definition.keys, ...definition.timestamps];
         }
 
         // Iterate through the selected keys
         for(let key of select) {
             // If the key is an internal key
-            if(key === InternalKeys.Id || definition.timestamps[key]) {
+            if(key === InternalKeys.Id || definition.timestamps.includes(key)) {
                 // Push the key
                 keys.push(key);
             }
@@ -514,6 +521,35 @@ export default class Query<T extends typeof Class> {
         return { select: keys, joins };
     }
 
+    /**
+     * Get the constraint key format of the supplied key
+     * @param {String} key
+     */
+    private getConstraintKey(key: string) {
+        // Check if the key is for a pointer
+        if(Pointer.isUsedBy(key)) {
+            // Get alias and join
+            const alias = Pointer.getAliasFrom(key);
+            const join = this.class.prototype.getDefinition().joins[alias].toPointer();
+
+            // Check if join exists
+            if(alias !== this.class.className && key === join.idKey) {
+                // If pointer is secondary, use the via key
+                if(join.isSecondary)
+                    return join.viaKey;
+                else 
+                    // If alias is not the main class and key is a pointer id, add the via key
+                    return `${this.class.className}${Pointer.Delimiter}${join.viaKey}`;
+            }
+            else return key;
+        }
+        else return `${this.class.className}${Pointer.Delimiter}${key}`;
+    }
+
+    /**
+     * Determine constraints
+     * @param prefix 
+     */
     private getConstraints(prefix: string = '') {
         // Create a new instance of where
         const where = new ConstraintMap(this.constraints.toJSON());
@@ -526,15 +562,18 @@ export default class Query<T extends typeof Class> {
 
             // Check if key is compound
             if(CompoundKey.isUsedBy(key)) {
-                const keys = CompoundKey.from(key).map(k => prefix + this.class.getConstraintKey(k));
+                const keys = CompoundKey.from(key).map(k => prefix + this.getConstraintKey(k));
                 where.changeKey(key, keys.join(CompoundKey.Delimiter));
             }
-            else where.changeKey(key, prefix + this.class.getConstraintKey(key));
+            else where.changeKey(key, prefix + this.getConstraintKey(key));
         }
 
         return where;
     }
 
+    /**
+     * Get sorting
+     */
     private getSorting(): Array<string> {
         // Prepare sort key
         const sort = this.sorting;
@@ -559,6 +598,10 @@ export default class Query<T extends typeof Class> {
         return sorting;
     }
 
+    /**
+     * Create class from keyMap
+     * @param keys 
+     */
     getClassFromKeys<C extends Class>(keys: KeyMap): C {
         // Get internal keys
         const id = keys.get(InternalKeys.Id);
@@ -568,12 +611,15 @@ export default class Query<T extends typeof Class> {
 
         // Return the new class
         const classInstance = <C>(new this.class);
-        classInstance._id = id;
-        classInstance._keys = keys;
+        classInstance.identifier = id;
+        classInstance.keys = keys;
 
         return classInstance;
     }
 
+    /**
+     * Convert query into options for database
+     */
     toQueryOptions() {
         // Get prefix
         const prefix = this.isSubquery? this.SubqueryPrefix : '';

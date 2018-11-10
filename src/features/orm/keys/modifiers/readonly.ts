@@ -7,7 +7,7 @@ import Error from '../../../../utils/error';
  * @param classInstance 
  * @param name 
  */
-export const Protected = <C extends Class>(classInstance: C, name: string): any => {
+export const readonly = <C extends Class>(classInstance: C, name: string): any => {
     // Get key name
     const keyName = toSnakeCase(name);
 

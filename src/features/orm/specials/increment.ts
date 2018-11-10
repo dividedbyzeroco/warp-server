@@ -20,6 +20,10 @@ export default class Increment {
         return true;
     }
 
+    static by(value: number) {
+        return { type: 'Increment', value };
+    }
+
     get key() {
         return this._keyValue.key;
     }

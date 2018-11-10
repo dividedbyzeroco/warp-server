@@ -36,7 +36,7 @@ export default function NumberKey(name: string, opts: NumberKeyOptions = {}): Ke
         }
         
         if(type === 'integer') return parseInt(value);
-        else if(type === 'float') return Number(Number(value).toFixed(decimals));
+        else if(type === 'float' || typeof decimals !== 'undefined') return Number(Number(value).toFixed(decimals));
         else return Number(value);
     };
 

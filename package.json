@@ -5,7 +5,7 @@
   "main": "./index.js",
   "types": "./index.d.ts",
   "scripts": {
-    "build": "tsc && cp package.json ./dist/package.json",
+    "build": "tsc && cp package.json ./dist/package.json && cp readme.md ./dist/readme.md",
     "clean": "node ./node_modules/rimraf/bin dist",
     "test": "mocha"
   },

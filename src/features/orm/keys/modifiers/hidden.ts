@@ -6,7 +6,7 @@ import { toSnakeCase } from '../../../../utils/format';
  * @param classInstance 
  * @param name 
  */
-export const Hidden = <C extends Class>(classInstance: C, name: string) => {
+export const hidden = <C extends Class>(classInstance: C, name: string) => {
     // Get key name
     const keyName = toSnakeCase(name);
 

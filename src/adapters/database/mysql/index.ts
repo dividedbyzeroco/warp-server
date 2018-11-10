@@ -383,12 +383,24 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         // Add timestamps
         const now = this.currentTimestamp;
         keys.set(InternalKeys.Timestamps.UpdatedAt, now);
-        keys.set(InternalKeys.Timestamps.DeletedAt, now);      
+        keys.set(InternalKeys.Timestamps.DeletedAt, now);
+
+        // Get sql input
+        const keyPairs: Array<string> = [];
+        const sqlInput = keys.toList().reduce((map, keyValuePair) => {
+            // Push the vlues
+            const key = this._client.escapeKey(keyValuePair.key);
+            const value = this._client.escape(keyValuePair.value);
+            map.keyPairs.push(`${key} = ${value}`);
+
+            // Return the map
+            return map;
+        }, { keyPairs });
 
         // Prepare script
         const destroyScript = `
             UPDATE ${this._client.escapeKey(source)}
-            SET ${updateKey} = ${this._client.escape(now)}, ${deleteKey} = ${this._client.escape(now)}
+            SET ${sqlInput.keyPairs.join(', ')}
             WHERE ${idKey} = ${id};
             -- Warp Server ${version}
         `;

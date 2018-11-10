@@ -1,6 +1,6 @@
 import express from 'express';
 import enforce from 'enforce-js';
-import WarpServer from '../index';
+import Warp from '../index';
 import ClassController from '../controllers/class';
 import { FindOptionsType, GetOptionsType } from '../types/classes';
 import { InternalKeys } from '../utils/constants';
@@ -9,7 +9,7 @@ import Error from '../utils/error';
 /**
  * Define router
  */
-const classes = (api: WarpServer): express.Router => {
+const classes = (api: Warp): express.Router => {
     /**
      * Define controller
      */

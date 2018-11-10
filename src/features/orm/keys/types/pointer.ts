@@ -36,9 +36,8 @@ export default function PointerKey<C extends typeof Class>(name: string, pointer
 
         // Get the class instance
         const classInstance = new classType(keys);
-        classInstance.toPointer();
 
-        // Return class intance
+        // Return class intancex
         return classInstance;
     };
 

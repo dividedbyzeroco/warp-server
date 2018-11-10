@@ -2,11 +2,11 @@ import 'reflect-metadata';
 import { Request as ExpressRequest, Router } from 'express';
 import enforce from 'enforce-js';
 import chalk from 'chalk';
-import Class from './features/orm/class'
+import Class, { define } from './features/orm/class'
 import Query from './features/orm/query';
 import User from './features/auth/user';
 import Function from './features/functions/function';
-import Key from './features/orm/keys/key';
+import key from './features/orm/keys/key';
 import ClassManager from './features/orm/class-manager';
 import FunctionManager from './features/functions/function-manager';
 import { BelongsTo } from './features/orm/pointer';
@@ -27,8 +27,8 @@ import Validation from './utils/validation';
 import { MiddlewareRequest } from './types/request';
 import { URIConfig } from './types/database';
 import { ClassOptions } from './types/class';
-import { Hidden } from './features/orm/keys/modifiers/hidden';
-import { Protected } from './features/orm/keys/modifiers/protected';
+import { hidden } from './features/orm/keys/modifiers/hidden';
+import { readonly } from './features/orm/keys/modifiers/readonly';
 import {
     BeforeFind,
     BeforeFirst,
@@ -47,10 +47,10 @@ const { version } = require('./package.json');
 Validation.initialize();
 
 /**
- * @class WarpServer
- * @description WarpServer definition
+ * @class Warp
+ * @description Warp definition
  */
-export default class WarpServer {
+export default class Warp {
     
     private loggerInstance: ILogger;
     private security: SecurityConfigType;
@@ -83,7 +83,7 @@ export default class WarpServer {
         this.setClassManager(databaseURI, persistent);
 
         // Set action mapper
-        this.setActionMapper();
+        this.setFunctionManager();
 
         // Set response format
         this.setResponse(customResponse);
@@ -222,7 +222,7 @@ export default class WarpServer {
     /**
      * Set action mapper configuration
      */
-    private setActionMapper() {
+    private setFunctionManager() {
         // Set action mapper
         this.functionManager = new FunctionManager();
     }
@@ -261,7 +261,6 @@ export default class WarpServer {
             
             // Attempt to connect to the database
             await this.classManager.initialize();
-
 
             // Display startup screen
             this.loggerInstance.bare(chalk.yellow(`
@@ -311,16 +310,17 @@ export type ClassOptions<U extends User | undefined> = ClassOptions<U>;
  */
 export {
     Class,
+    define,
     Query,
     Collection,
     User,
     Function,
-    Key,
-    WarpServer,
+    key,
+    hidden,
+    readonly,
+    Warp,
     ClassManager,
     BelongsTo,
-    Hidden,
-    Protected,
     BeforeFind,
     BeforeFirst,
     BeforeGet,

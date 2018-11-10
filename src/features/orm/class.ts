@@ -7,22 +7,87 @@ import CompoundKey from '../../utils/compound-key';
 import { ClassKeys, ClassJSON } from '../../types/class';
 import DateKey from './keys/types/date';
 import { TriggerType, TriggerAction } from '../../types/triggers';
+import enforce from 'enforce-js';
 
 export const ClassDefinitionSymbol = Symbol.for('warp-server:class-definition');
 
 export interface ClassDefinition {
     keys: string[];
-    timestamps: { [key: string]: string };
+    timestamps: string[];
     joins: { [name: string]: PointerDefinition<typeof Class> };
     triggers: { type: TriggerType, action: TriggerAction }[];
     hidden: string[];
 }
 
+export interface ClassDefinitionOptions {
+    className?: string;
+    source?: string;
+}
+
+/**
+ * Extend Class with className and source
+ */
+const ClassDecorator = (opts: ClassDefinitionOptions) => {
+    // Get options
+    const { className, source } = opts;
+
+    // Return decorator
+    return <T extends { new(...args: any[]): Class }>(constructor: T) => {
+        // Define class
+        class DefinedClass extends constructor {
+
+            static get className() {
+                return className || toSnakeCase(constructor.name);
+            }
+
+            static get source() {
+                return source || this.className;
+            }
+
+        };
+
+        // Set class definition
+        const definition: ClassDefinition = {
+            keys: [],
+            timestamps: Object.values(InternalKeys.Timestamps),
+            joins: {},
+            triggers: [],
+            hidden: []
+        };
+
+        // Set metadata
+        Reflect.defineMetadata(ClassDefinitionSymbol, DefinedClass.prototype, definition);
+
+        // Return defined class
+        return DefinedClass;
+    };
+};
+
+/**
+ * Class definition decorator
+ * @description Defines and initializes the class
+ * @param {String} className 
+ * @param {String} source
+ */
+export function define<C extends { new(...args: any[]): Class }>(constructor: C): C;
+export function define<C extends { new(...args: any[]): Class }>(opts: ClassDefinitionOptions): C;
+export function define<C extends { new(...args: any[]): Class }>(...args: [ClassDefinitionOptions] | [C]) {
+    if(typeof args[0] !== 'object') {
+        const className = toSnakeCase(args[0].name);
+        return ClassDecorator({ className })(args[0]);
+    }
+    else {
+        return ClassDecorator(args[0]);
+    }
+}
+
+/**
+ * Class
+ */
 export default class Class {
 
-    _id: number;
-    _keys: KeyMap = new KeyMap;
-    _isPointer: boolean = false;
+    identifier: number;
+    keys: KeyMap = new KeyMap;
 
     /**
      * Constructor
@@ -32,7 +97,7 @@ export default class Class {
     constructor(keys: number | ClassKeys = {}) {
         // If 'keys' is an id, set the id
         if(typeof keys === 'number') {
-            this._id = keys;
+            this.identifier = keys;
         }
         // If 'keys' is an object, set values
         else if(typeof keys === 'object') {
@@ -45,71 +110,12 @@ export default class Class {
                 // If the key is an id, set the id
                 // Else, set the value
                 if(key === InternalId)
-                    this._id = value;
+                    this.identifier = value;
                 else
                     this[toCamelCase(key)] = value;
             }
         }
-        else throw new Error(Error.Code.ForbiddenOperation, `'keys' must be an object or an id`);
-    }
-
-    /**
-     * Extend Class with className and source
-     */
-    private static decorator = (className: string, source?: string) => {
-        return <T extends { new(...args: any[]): Class }>(constructor: T) => {
-            class DefinedClass extends constructor {
-                static get className() {
-                    return className;
-                }
-
-                static get source() {
-                    return source || this.className;
-                }
-            };
-
-            return DefinedClass;
-        };
-    }
-
-    /**
-     * Iterables
-     */
-    private get iterables() {
-        const { keys, hidden } = this.getDefinition();
-        return keys.filter(key => !hidden.includes(key));
-    }
-
-    /**
-     * Class definition decorator
-     * @description Defines and initializes the class
-     * @param {String} className 
-     * @param {String} source
-     */
-    static definition<C extends { new(...args: any[]): Class }>(constructor: C): any;
-    static definition(className: string, source?: string): any;
-    static definition<C extends { new(...args: any[]): Class }>(...args: [string, string?] | [C]) {
-        if(args.length === 1) {
-            if(typeof args[0] !== 'string') {
-                const className = toSnakeCase(args[0].name);
-                return Class.decorator(className)(args[0]);
-            }
-            else {
-                return Class.decorator(args[0]);
-            }
-        }
-        else {
-            return Class.decorator(args[0], args[1]);
-        }
-    }
-
-    /**
-     * Alias of Class.definition
-     * @param className
-     * @param source
-     */
-    static of(className: string, source?: string) {
-        return this.definition(className, source);
+        else throw new Error(Error.Code.ForbiddenOperation, `\`keys\` must be an object or an id`);
     }
 
     static get className(): string {
@@ -126,6 +132,9 @@ export default class Class {
      * @param {String} key
      */
     static has(key: string): boolean {
+        // Class definition
+        const definition = this.prototype.getDefinition();
+
         // Check if the key is compound
         if(CompoundKey.isUsedBy(key)) {
             return CompoundKey.from(key).every(k => this.has(k));
@@ -133,8 +142,8 @@ export default class Class {
         // Check if the key is for a pointer
         else if(Pointer.isUsedBy(key) && this.hasPointerKey(key)) return true;
         else if(key === InternalKeys.Id) return true;
-        else if(this.prototype.getDefinition().timestamps[key]) return true;
-        else if(this.prototype.getDefinition().keys.includes(key)) return true;
+        else if(definition.timestamps.includes(key)) return true;
+        else if(definition.keys.includes(key)) return true;
         else return false;
     }
 
@@ -159,42 +168,13 @@ export default class Class {
             return false;
         }
         else {
-            // Get pointer
+            // Check if pointer has the key
             const pointer = pointerDefinition.toPointer();
-            const pointerClassDefinition = pointer.class.prototype.getDefinition();
-
-            if((!pointerClassDefinition.keys.includes(pointerKey)
-                    && InternalKeys.Id !== pointerKey)
-                    || pointerClassDefinition.hidden.includes(pointerKey)) {
+            if(!pointer.class.has(pointerKey)) {
                 return false;
             }
         }
         return true;
-    }
-
-    /**
-     * Get the constraint key format of the supplied key
-     * @param {String} key
-     */
-    static getConstraintKey(key: string) {
-        // Check if the key is for a pointer
-        if(Pointer.isUsedBy(key)) {
-            // Get alias and join
-            const alias = Pointer.getAliasFrom(key);
-            const join = this.prototype.getDefinition().joins[alias].toPointer();
-
-            // Check if join exists
-            if(alias !== this.className && key === join.idKey) {
-                // If pointer is secondary, use the via key
-                if(join.isSecondary)
-                    return join.viaKey;
-                else 
-                    // If alias is not the main class and key is a pointer id, add the via key
-                    return `${this.className}${Pointer.Delimiter}${join.viaKey}`;
-            }
-            else return key;
-        }
-        else return `${this.className}${Pointer.Delimiter}${key}`;
     }
 
     /**
@@ -205,21 +185,14 @@ export default class Class {
         const definition = Reflect.getMetadata(ClassDefinitionSymbol, this) as ClassDefinition;
 
         // Override default definition
-        return  {
-            keys: [],
-            timestamps: InternalKeys.Timestamps,
-            joins: {},
-            triggers: [],
-            hidden: [],
-            ...definition
-        };
+        return  { ...definition };
     }
 
     /**
      * Set class definition
      * @param definition
      */
-    setDefinition(definition: {[name: string]: any}) {
+    setDefinition(definition: { [name: string]: any }) {
         const classDefinition = this.getDefinition();
         Reflect.defineMetadata(ClassDefinitionSymbol, { ...classDefinition, ...definition }, this);
     }
@@ -229,11 +202,11 @@ export default class Class {
     }
 
     get isNew(): boolean {
-        return typeof this._id !== 'undefined';
+        return typeof this.identifier !== 'undefined';
     }
 
     get id(): number {
-        return this._id;
+        return this.identifier;
     }
 
     set id(value: number) {
@@ -242,7 +215,7 @@ export default class Class {
 
     get createdAt(): string {
         const keyManager = DateKey(InternalKeys.Timestamps.CreatedAt);
-        return keyManager.getter(this._keys.get(keyManager.name));
+        return keyManager.getter(this.keys.get(keyManager.name));
     }
 
     set createdAt(value: string) {
@@ -251,7 +224,7 @@ export default class Class {
 
     get updatedAt(): string {
         const keyManager = DateKey(InternalKeys.Timestamps.UpdatedAt);
-        return keyManager.getter(this._keys.get(keyManager.name));
+        return keyManager.getter(this.keys.get(keyManager.name));
     }
 
     set updatedAt(value: string) {
@@ -259,38 +232,33 @@ export default class Class {
     }
 
     /**
-     * toPointer
-     * @description Convert the class object into a pointer
-     */
-    toPointer() {
-        // Convert the class object into a pointer
-        this._isPointer = true;
-    }
-
-    /**
      * toJSON
      * @description Executed every time the object is stringified
      */
-    toJSON<C extends this>(): ClassJSON<C> {
+    toJSON<C extends this>(isPointer: boolean = false): ClassJSON<C> {
         // Get keys
         const { id, createdAt, updatedAt } = this;
         let keys = {};
         let body = {};
 
+        // Class definition
+        const classDefinition = this.getDefinition();
+        const iterables = classDefinition.keys.filter(key => !classDefinition.hidden.includes(key));
+
         // Iterate through each key in key map
-        for(let key of this.iterables) {
+        for(let key of iterables) {
             // Get value
             let value = this[toCamelCase(key)];
 
-            // Check if key is a join and has a value
-            if(this.hasPointer(key) && value) value = value.toJSON();
+            // Check if key is a pointer and has a value
+            if(this.hasPointer(key) && value) value = value.toJSON(true);
 
             // Set value
             keys[key] = value;
         }
 
         // If class is a pointer, use attributes
-        if(this._isPointer) {
+        if(isPointer) {
             body = { 
                 type: 'Pointer',
                 [InternalKeys.Pointers.ClassName]: this.statics().className,
@@ -306,14 +274,5 @@ export default class Class {
             [InternalKeys.Timestamps.CreatedAt]: createdAt,
             [InternalKeys.Timestamps.UpdatedAt]: updatedAt
         };
-    }
-
-    increment(key: string, value: number) {
-        // Check if key exists
-        if(!this.statics().has(key))
-            throw new Error(Error.Code.ForbiddenOperation, `Key to be incremented \`${key}\` does not exist in \`${this.statics().className}\``);
-
-        // Set key to an increment value
-        this[key] = { type: 'Increment', value };
     }
 }

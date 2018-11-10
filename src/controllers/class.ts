@@ -1,4 +1,4 @@
-import WarpServer from '../index';
+import Warp from '../index';
 import Class from '../features/orm/class';
 import Collection from '../utils/collection';
 import Error from '../utils/error';
@@ -14,9 +14,9 @@ import { InternalKeys } from '../utils/constants';
 
 export default class ClassController {
 
-    private api: WarpServer;
+    private api: Warp;
 
-    constructor(api: WarpServer) {
+    constructor(api: Warp) {
         this.api = api;
     }
 

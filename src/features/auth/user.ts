@@ -1,20 +1,19 @@
-import Class from '../orm/class';
-import Key from '../orm/keys/key';
+import Class, { define } from '../orm/class';
+import key from '../orm/keys/key';
 import Error from '../../utils/error';
 import Query from '../orm/query';
 import { InternalKeys } from '../../utils/constants';
 import { ClassManager } from '../..';
 import { ClassOptions } from '../../types/class';
 import { BeforeFind, BeforeGet, BeforeSave, BeforeDestroy } from '../orm/keys/modifiers/triggers';
+import { hidden } from '../orm/keys/modifiers/hidden';
 
-@Class.definition
-export default class User extends Class {
+@define export default class User extends Class {
 
-    @Key username: string;
-    @Key email: string;
-    @Key password: string;
-    @Key role: string;
-    @Key counter: number;
+    @key username: string;
+    @key email: string;
+    @hidden @key password: string;
+    @key role: string;
 
     private isCurrentUser(user: User | undefined) {
         return typeof user !== 'undefined' && user.id === this.id;

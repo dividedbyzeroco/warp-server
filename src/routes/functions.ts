@@ -1,5 +1,5 @@
 import express from 'express';
-import WarpServer from '../index';
+import Warp from '../index';
 import FunctionController from '../controllers/function';
 import { InternalKeys } from '../utils/constants';
 import Error from '../utils/error';
@@ -7,7 +7,7 @@ import Error from '../utils/error';
 /**
  * Define router
  */
-const functions = (api: WarpServer): express.Router => {
+const functions = (api: Warp): express.Router => {
     /**
      * Define controller
      */

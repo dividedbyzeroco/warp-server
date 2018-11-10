@@ -1,11 +1,11 @@
-import WarpServer from '../index';
+import Warp from '../index';
 import { RunOptionsType } from '../types/functions';
 
 export default class FunctionController {
 
-    api: WarpServer;
+    api: Warp;
 
-    constructor(api: WarpServer) {
+    constructor(api: Warp) {
         this.api = api;
     }
     
