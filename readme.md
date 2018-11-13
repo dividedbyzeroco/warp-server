@@ -32,7 +32,6 @@ With `Warp`, you can:
 - **[Objects](#objects)**
     - **[Creating an Object](#creating-an-object)**
     - **[Updating an Object](#updating-an-object)**
-    - **[Assigning Relations](#assigning-relations)**
     - **[Incrementing Numeric Keys](#incrementing-numeric-keys)**
     - **[Using JSON Keys](#updating-json-keys)**
     - **[Destroying an Object](#destroying-an-object)**
@@ -81,6 +80,8 @@ import Warp from 'warp-server';
 const databaseURI = 'mysql://youruser:password@yourserver.com:3306/yourdatabase?charset=utf8';
 
 const service = new Warp({ databaseURI });
+
+service.initialize();
 ```
 
 In the example above, we created a new `Warp` service. We also defined how we would connect to our database by setting the `databaseURI` configuration. 
@@ -335,7 +336,7 @@ import { Class, key, belongsTo } from 'warp-server';
 
     @key name: string;
 
-    @belongsTo(() => Department, { from: 'department.deparment_code', to: 'department.code' }) 
+    @belongsTo(() => Department, { from: 'employee.deparment_code', to: 'department.code' }) 
     department: Department;
 
 }
@@ -372,3 +373,194 @@ await service.classes.save(employee);
 
 # Objects
 
+An `Object` is the representation of a single `row` inside a table.
+
+For example, a `Dog` class can have an instance of an `Object` called __corgi__, that has different properties such as __name__, __age__, and __weight__.
+
+### Creating an Object
+
+To create an `Object`, simply instantiate the `Class`.
+
+```javascript
+// Define the class
+@define class Dog extends Class {
+
+    @key name: string;
+    @key age: number;
+    @key height: number;
+    @key weight: number;
+    @key awardsWon: number;
+
+    @belongsTo(() => Person) owner: Person;
+
+    get bmi(): number {
+        return this.weight / (this.height * this.height);
+    }
+
+}
+
+// Instantiate the class
+const corgi = new Dog;
+```
+
+You can set the values of its `keys` using the properties you defined.
+
+```javascript
+corgi.name = 'Bingo';
+corgi.age = 5;
+corgi.weight = 32.5;
+corgi.owner = new Person(5); // person with id `5`
+```
+
+It also validates if you provide wrong data types.
+
+```javascript
+corgi.weight = 'heavy'; // This will cause a validation error
+```
+
+Alternatively, you can define the values of `keys` inside the object constructor.
+
+```javascript
+const corgi = new Dog({ name: 'Bingo', age: 5, weight: 32.5 });
+```
+
+> NOTE: The validation of data types still works when using the object constructor approach
+
+Once you've finished setting your `keys`, you can now save the `Object` using the `classes.save()` method.
+
+```javascript
+import Warp from 'warp-server';
+
+// Instantiate Warp
+const service = new Warp({ /** some configuration */ });
+
+(async () => {
+    // Make sure to initialize the service
+    await service.initialize();
+
+    // The save method is a promise, so you can await it
+    await service.classes.save(corgi);
+})();
+```
+
+> NOTE: We wrapped the code around an anonymous async function because the `initialize()` and `classes.save()` methods are asynchronous.
+
+### Updating Objects
+
+The `classes.save()` method inserts a new row if the object was just newly created. If, however, the object already exists (i.e. has an `id`), then it will update instead the values inside the row.
+
+```javascript
+// Prepare the object
+const corgi = new Dog;
+corgi.name = 'Bingo';
+corgi.age = 5;
+corgi.weight = 32.5;
+
+// Save the object
+await classes.save(corgi);
+
+// Change a Key
+corgi.weight = 35;
+
+// Update the object
+await corgi.save();
+```
+
+Alternatively, if you know the `id` of the row you want to update, then simply pass the id inside the `Class` constructor.
+
+```javascript
+const daschund = new Dog(25); // id is 25
+daschund.name = 'Brownie';
+
+// Save the object
+classes.save(daschund);
+```
+
+Or pass the `id` along with other `keys` inside the constructor.
+
+```javascript
+const beagle = new Dog({ id: 32, name: 'River' });
+
+// Save the object
+classes.save(daschund);
+```
+
+## Incrementing Numeric Keys
+
+If the key you are trying to update is defined as a `number` and you want to atomically increase or decrease its value without knowing the original value, you can opt to use the `classes.increment()` method.
+
+For example, if you want to increase the age by 1, you would use the following code.
+
+```javascript
+// Increase awardsWon by 1
+classes.increment(corgi, 'awards_won', 1);
+```
+
+Conversely, if you want to decrease a `number` key, you would use a negative value.
+
+```javascript
+// Decrease the weight by 5.2
+classes.increment(corgi, 'weight', -5.2);
+```
+
+## Updating JSON Keys
+
+Recently, relational databases have slowly introducted JSON data structures into their systems. This allows for more complex use cases which might have originally needed a NoSQL database to implement.
+
+> NOTE: JSON data types are still in its early stages and performance has not yet been thoroughly investigated yet. Hence, only place mid to shallow JSON structures inside your databases for the time being.
+
+### JSON Objects
+
+If the node of the JSON data you want to modify is an object, you can use the `json().set()` method to update its value.
+
+```javascript
+// Define class
+@define class Dog extends Class {
+
+    /** other keys **/
+    @key preferences: object;
+
+}
+
+// Create a new object
+const labrador = new Dog;
+labrador.preferences = { food: 'meat' };
+
+// Save the object
+await classes.save(labrador);
+
+// Change preferences
+classes.json(labrador, 'preferences').set('$.food', 'vegetables');
+
+// Update the object
+await classes.save(labrador);
+```
+
+Notice the first argument of the `set()` method. This represents the `path` of the JSON column that we want to modify. For more information, see the documentation of [path syntax](https://dev.mysql.com/doc/refman/8.0/en/json-path-syntax.html) on the MySQL website.
+
+### JSON Arrays
+
+If the node of the JSON data you want to edit is an array, you can use the `json().append()` method to add to its value.
+
+```javascript
+labrador.preferences = { toys: ['plushie', 'ball'] };
+
+// Save the object
+await classes.save(labrador);
+
+// Append a new toy
+classes.json(labrador, 'preferences').append('$.toys', 'bone');
+
+// Update the object
+await classes.save(labrador);
+```
+
+## Destroying an Object
+
+If you want to delete an `Object`, you can use the `classes.destroy()` method.
+
+```javascript
+await classes.destroy(labrador);
+```
+
+> NOTE: In `Warp`, there is no hard delete, only soft deletes. Whenever an object is destroyed, it is preserved, but its `deleted_at` column is set to the current timestamp. During queries, the "deleted" objects are omitted from the results automatically. You do not need to filter them out.
