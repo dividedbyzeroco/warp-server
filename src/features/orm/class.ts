@@ -98,6 +98,9 @@ export default class Class {
      * @param {Number} id 
      */
     constructor(keys: number | ClassKeys = {}) {
+        // Get definition
+        const definition = this.getDefinition();
+
         // If 'keys' is an id, set the id
         if(typeof keys === 'number') {
             this.identifier = keys;
@@ -114,6 +117,8 @@ export default class Class {
                 // Else, set the value
                 if(key === InternalId)
                     this.identifier = value;
+                else if(definition.guarded.includes(key))
+                    throw new Error(Error.Code.ForbiddenOperation, `Key \`${key}\` of \`${this.statics().className}\` cannot be mass assigned because it is guarded`);
                 else
                     this[toCamelCase(key)] = value;
             }
@@ -173,6 +178,10 @@ export default class Class {
             }
         }
         return true;
+    }
+
+    static withId<C extends Class>(id: number): C {
+        return new this(id) as C;
     }
 
     /**
