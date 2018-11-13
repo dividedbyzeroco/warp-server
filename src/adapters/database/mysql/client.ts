@@ -2,11 +2,15 @@ import mysql from 'mysql';
 import parseUrl from 'parse-url';
 import enforce from 'enforce-js';
 import Error from '../../../utils/error';
-import { Increment, SetJson, AppendJson } from '../../../features/orm/specials';
-import { DatabaseResult, DatabaseConfig, ConnectionCollection, DatabaseAction } from '../../../types/database';
 import { DatabaseWrite, DatabaseRead } from '../../../utils/constants';
 import { ILogger } from '../../../types/logger';
+import { DatabaseConfig, ConnectionCollection, DatabaseAction } from '../../../types/database';
 import chalk from 'chalk';
+
+export type DatabaseResult = {
+    id: number,
+    rows: Array<object>
+};
 
 export default class DatabaseClient {
 
@@ -78,26 +82,8 @@ export default class DatabaseClient {
     }
 
     escape(value: any) {
-        // Handle specials
-        if(value instanceof Increment) {
-            let escaped = `GREATEST(IFNULL(${this.escapeKey(value.key)}, 0) + (${value.value}), ${value.min})`;
-            if(typeof value.max !== 'undefined') escaped = `LEAST(${escaped}, ${value.max})`;
-            return escaped;
-        }
-        else if(value instanceof SetJson) {
-            const key = value.isNew? 'JSON_OBJECT()' : `IFNULL(${this.escapeKey(value.key)}, JSON_OBJECT())`;
-            const path = value.isNew? '$' : mysql.escape(value.path);
-            const val = typeof value.value === 'object'? `CAST(${JSON.stringify(value.value)} AS JSON)` : mysql.escape(value.value);
-            const escaped = `JSON_SET(${key}, ${path}, ${val})`;
-            return escaped;
-        }
-        else if(value instanceof AppendJson) {
-            const key = value.isNew? 'JSON_ARRAY()' : `IFNULL(${this.escapeKey(value.key)}, JSON_ARRAY())`;
-            const path = value.isNew? '$' : mysql.escape(value.path);
-            const val = typeof value.value === 'object'? `CAST(${JSON.stringify(value.value)} AS JSON)` : mysql.escape(value.value);
-            return `JSON_ARRAY_APPEND(${key}, ${path}, ${val})`;
-        }
-        else return mysql.escape(value);
+        // Escape keys
+        return mysql.escape(value);
     }
 
     escapeKey(value: string, useRaw: boolean = false) {

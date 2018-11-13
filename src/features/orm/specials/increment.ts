@@ -1,42 +1,50 @@
-import { KeyValuePair } from '../../../utils/key-map';
+import { IncrementTypeName } from '../../../utils/constants';
 
 export default class Increment {
 
-    _min: number;
-    _max?: number;
-    _keyValue: KeyValuePair;
+    private minimum: number;
+    private maximum?: number;
+    private keyValue: [ string, any ];
+    escapeKey: (value: any) => string = value => value;
+    escape: (value: any) => string = value => value;
 
-    constructor(key: string, definition: object, min: number = 0, max?: number) {
-        this._keyValue = new KeyValuePair(key, definition['value']);
-        this._min = min;
-        this._max = max;
+    constructor(key: string, value: number, min: number = 0, max?: number) {
+        this.keyValue = [ key, value ];
+        this.minimum = min;
+        this.maximum = max;
     }
 
     static isImplementedBy(value) {
         if(value === null) return false;
         if(typeof value !== 'object') return false;
-        if(value.type !== 'Increment') return false;
+        if(value.type !== IncrementTypeName) return false;
         if(isNaN(value.value)) return false;
         return true;
     }
 
     static by(value: number) {
-        return { type: 'Increment', value };
+        return { type: IncrementTypeName, value };
     }
 
     get key() {
-        return this._keyValue.key;
+        return this.keyValue[0];
     }
 
     get value() {
-        return parseInt(this._keyValue.value);
+        return Number(this.keyValue[1]);
     }
 
     get min() {
-        return this._min;
+        return this.minimum;
     }
 
     get max() {
-        return this._max;
+        return this.maximum;
+    }
+    
+    toSqlString() {
+        let escaped = `GREATEST(IFNULL(${this.escapeKey(this.key)}, 0) + (${this.escape(this.value)}), ${this.min})`;
+        if(typeof this.max !== 'undefined') escaped = `LEAST(${escaped}, ${this.max})`;
+        return escaped;
     }
 }

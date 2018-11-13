@@ -33,7 +33,7 @@ export default class FunctionClass {
         } 
 
         // After setting values, make the key map immutable
-        this.keys.setImmutability(true);
+        this.keys.freeze();
     }
 
     statics<T extends typeof FunctionClass>(): T {

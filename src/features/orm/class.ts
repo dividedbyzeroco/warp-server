@@ -1,22 +1,23 @@
 import Error from '../../utils/error';
 import KeyMap from '../../utils/key-map';
 import { toCamelCase, toSnakeCase } from '../../utils/format'; 
-import { InternalKeys, InternalId } from '../../utils/constants';
+import { InternalKeys, InternalId, PointerTypeName } from '../../utils/constants';
 import Pointer, { PointerDefinition } from './pointer';
 import CompoundKey from '../../utils/compound-key';
 import { ClassKeys, ClassJSON } from '../../types/class';
 import DateKey from './keys/types/date';
-import { TriggerType, TriggerAction } from '../../types/triggers';
-import enforce from 'enforce-js';
+import { RelationsMap } from '../../types/relations';
+import { TriggersList } from '../../types/triggers';
 
 export const ClassDefinitionSymbol = Symbol.for('warp-server:class-definition');
 
 export interface ClassDefinition {
     keys: string[];
     timestamps: string[];
-    joins: { [name: string]: PointerDefinition<typeof Class> };
-    triggers: { type: TriggerType, action: TriggerAction }[];
+    relations: RelationsMap;
+    triggers: TriggersList;
     hidden: string[];
+    guarded: string[];
 }
 
 export interface ClassDefinitionOptions {
@@ -50,13 +51,15 @@ const ClassDecorator = (opts: ClassDefinitionOptions) => {
         const definition: ClassDefinition = {
             keys: [],
             timestamps: Object.values(InternalKeys.Timestamps),
-            joins: {},
+            relations: {},
             triggers: [],
-            hidden: []
+            hidden: [],
+            guarded: []
         };
 
         // Set metadata
-        Reflect.defineMetadata(ClassDefinitionSymbol, DefinedClass.prototype, definition);
+        const existingDefinition = Reflect.getMetadata(ClassDefinitionSymbol, DefinedClass.prototype);
+        Reflect.defineMetadata(ClassDefinitionSymbol, DefinedClass.prototype, { ...definition, ...existingDefinition });
 
         // Return defined class
         return DefinedClass;
@@ -147,21 +150,16 @@ export default class Class {
         else return false;
     }
 
-    private hasPointer(key: string) {
-        return this.getDefinition().joins[key];
-    }
-
     static hasPointerKey(key: string) {
         // Check if key parts are valid
         if(!Pointer.isValid(key)) return false;
 
-        // Get alias and key
-        const alias = Pointer.getAliasFrom(key);
-        const pointerKey = Pointer.getPointerKeyFrom(key);
+        // Get source
+        const [ sourceClassName, sourceKey ] = Pointer.parseKey(key);
 
         // Get class pointer
         const definition = this.prototype.getDefinition();
-        const pointerDefinition = definition.joins[alias];
+        const pointerDefinition = definition.relations[sourceClassName];
 
         // Check if pointer exists
         if(!(pointerDefinition instanceof PointerDefinition)) {
@@ -170,11 +168,15 @@ export default class Class {
         else {
             // Check if pointer has the key
             const pointer = pointerDefinition.toPointer();
-            if(!pointer.class.has(pointerKey)) {
+            if(!pointer.class.has(sourceKey)) {
                 return false;
             }
         }
         return true;
+    }
+
+    private hasPointer(key: string) {
+        return this.getDefinition().relations[key];
     }
 
     /**
@@ -186,15 +188,6 @@ export default class Class {
 
         // Override default definition
         return  { ...definition };
-    }
-
-    /**
-     * Set class definition
-     * @param definition
-     */
-    setDefinition(definition: { [name: string]: any }) {
-        const classDefinition = this.getDefinition();
-        Reflect.defineMetadata(ClassDefinitionSymbol, { ...classDefinition, ...definition }, this);
     }
     
     statics<T extends typeof Class>(): T {
@@ -231,9 +224,21 @@ export default class Class {
         throw new Error(Error.Code.ForbiddenOperation, 'Cannot manually set the `updatedAt` key');
     }
 
+    set deletedAt(value: string) {
+        throw new Error(Error.Code.ForbiddenOperation, 'Cannot manually set the `deletedAt` key');
+    }
+
+    /**
+     * toSqlString
+     * @description Executed every time the object is being saved to the database
+     */
+    toSqlString() {
+        return this.id;
+    }
+
     /**
      * toJSON
-     * @description Executed every time the object is stringified
+     * @description Executed every time the object is being stringified to an object literal
      */
     toJSON<C extends this>(isPointer: boolean = false): ClassJSON<C> {
         // Get keys
@@ -251,7 +256,7 @@ export default class Class {
             let value = this[toCamelCase(key)];
 
             // Check if key is a pointer and has a value
-            if(this.hasPointer(key) && value) value = value.toJSON(true);
+            if(typeof classDefinition.relations[key] !== 'undefined' && value instanceof Class) value = value.toJSON(true);
 
             // Set value
             keys[key] = value;
@@ -260,7 +265,7 @@ export default class Class {
         // If class is a pointer, use attributes
         if(isPointer) {
             body = { 
-                type: 'Pointer',
+                type: PointerTypeName,
                 [InternalKeys.Pointers.ClassName]: this.statics().className,
                 [InternalKeys.Pointers.Attributes]: Object.keys(keys).length > 0 ? keys : undefined
             };

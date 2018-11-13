@@ -28,7 +28,7 @@ import { MiddlewareRequest } from './types/request';
 import { URIConfig } from './types/database';
 import { ClassOptions } from './types/class';
 import { hidden } from './features/orm/keys/modifiers/hidden';
-import { readonly } from './features/orm/keys/modifiers/readonly';
+import { guarded } from './features/orm/keys/modifiers/guarded';
 import {
     BeforeFind,
     BeforeFirst,
@@ -317,7 +317,7 @@ export {
     Function,
     key,
     hidden,
-    readonly,
+    guarded,
     Warp,
     ClassManager,
     BelongsTo,

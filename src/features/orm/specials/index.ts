@@ -1,8 +1,7 @@
 import Increment from './increment';
-import { AppendJson, SetJson } from './json';
+import { JsonAction } from './json';
 
 export {
     Increment,
-    AppendJson,
-    SetJson
+    JsonAction
 };

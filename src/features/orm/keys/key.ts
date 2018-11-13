@@ -4,7 +4,7 @@ import Class from '../class';
 import StringKey from './types/string';
 import DateKey from './types/date';
 import NumberKey from './types/number';
-import JSONKey from './types/json';
+import JsonKey from './types/json';
 import BooleanKey from './types/boolean';
 
 /**
@@ -74,14 +74,15 @@ export const keyDecorator = (opts: KeyOptions = {}) => {
         else if(type === 'date') keyManager = DateKey(sourceName);
         else if(type === 'boolean') keyManager = BooleanKey(sourceName);
         else if(type === 'number') keyManager = NumberKey(sourceName, opts);
-        else if(type === 'array') keyManager = JSONKey(sourceName);
-        else if(type === 'object') keyManager = JSONKey(sourceName);
-        else if(type === 'json') keyManager = JSONKey(sourceName);
+        else if(type === 'array') keyManager = JsonKey(sourceName);
+        else if(type === 'object') keyManager = JsonKey(sourceName);
+        else if(type === 'json') keyManager = JsonKey(sourceName);
 
         // Set definition
         const definition = classInstance.getDefinition();
-        if(!definition.keys.includes(keyName)) definition.keys.push(keyName);
-        classInstance.setDefinition(definition);
+        if(!definition.keys.includes(keyName) && !definition.timestamps.includes(keyName)) {
+            definition.keys.push(keyName);
+        }
 
         // Override getter and setter
         return {
@@ -115,7 +116,7 @@ export class KeyInstance {
     asNumber = (max?: number, min?: number) => NumberKey(this._name, { type: 'number', min, max });
     asInteger = (min?: number, max?: number) => NumberKey(this._name, { type: 'integer', min, max });
     asFloat = (decimals: number = 2, min?: number, max?: number) => NumberKey(this._name, { type: 'float', decimals, min, max });
-    asJSON = () => JSONKey(this._name);
+    asJSON = () => JsonKey(this._name);
 
 }
 

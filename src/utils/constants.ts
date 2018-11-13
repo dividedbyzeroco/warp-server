@@ -11,6 +11,19 @@ export const TriggerAfterSave = 'after-save';
 export const TriggerBeforeDestroy = 'before-destroy';
 export const TriggerAfterDestroy = 'after-destroy';
 
+export const SortSymbol = '-';
+export const SortAscending = 'ascending';
+export const SortDescending = 'descending';
+
+export const PointerDelimiter = '.';
+export const PointerTypeName = 'Pointer';
+
+export const CompoundDelimiter = '|';
+
+export const IncrementTypeName = 'Increment';
+export const SetJsonTypeName = 'SetJson';
+export const AppendJsonTypeName = 'AppendJson';
+
 export const InternalKeys = Object.freeze({
     Id: InternalId,
     Timestamps: Object.freeze({

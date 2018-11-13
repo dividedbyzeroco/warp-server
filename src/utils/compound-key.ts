@@ -1,15 +1,17 @@
+import { CompoundDelimiter } from './constants';
+
 export default class CompoundKey {
 
-    static get Delimiter(): string {
-        return '|';
-    }
-
     static isUsedBy(key: string): boolean {
-        return key.indexOf(this.Delimiter) >= 0;
+        return key.indexOf(CompoundDelimiter) >= 0;
     }
 
     static from(key: string): string[] {
-        return key.split(this.Delimiter);
+        return key.split(CompoundDelimiter);
+    }
+
+    static toString(keys: string[]) {
+        return keys.join(CompoundDelimiter);
     }
 
 }

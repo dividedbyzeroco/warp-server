@@ -5,9 +5,20 @@ import User from '../auth/user';
 import { IDatabaseAdapter } from '../../types/database';
 import Collection from '../../utils/collection';
 import Error from '../../utils/error';
-import { InternalKeys, TriggerBeforeSave, TriggerAfterSave, TriggerBeforeDestroy, TriggerAfterDestroy, TriggerBeforeFind, TriggerBeforeFirst, TriggerBeforeGet } from '../../utils/constants';
+import { 
+    InternalKeys, 
+    TriggerBeforeSave, 
+    TriggerAfterSave, 
+    TriggerBeforeDestroy, 
+    TriggerAfterDestroy, 
+    TriggerBeforeFind, 
+    TriggerBeforeFirst, 
+    TriggerBeforeGet, 
+    SetJsonTypeName,
+    AppendJsonTypeName
+} from '../../utils/constants';
 import { ClassMapType, ClassOptions } from '../../types/class';
-import { Increment } from './specials';
+import { Increment, JsonAction } from './specials';
 
 export default class ClassManager {
 
@@ -31,7 +42,7 @@ export default class ClassManager {
      */
     register(classMap: ClassMapType<any>) {
         // Iterate through class map
-        for(const [className, classType] of Object.entries<typeof Class>(classMap)) {
+        for(const [ className, classType ] of Object.entries<typeof Class>(classMap)) {
             // Make a sample instance
             const sampleInstance = new classType;
 
@@ -72,12 +83,35 @@ export default class ClassManager {
                 `Key to be incremented \`${key}\` does not exist in \`${classInstance.statics().className}\``);
 
         // Set key to an increment value
-        this[key] = Increment.by(value);
+        classInstance[key] = Increment.by(value);
+    }
+
+    /**
+     * Set json values
+     * @param classInstance 
+     * @param key 
+     * @param path 
+     */
+    json<C extends Class>(classInstance: C, key: string) {
+        // Check if key exists
+        if(!classInstance.statics().has(key))
+            throw new Error(Error.Code.ForbiddenOperation, 
+                `Key to be incremented \`${key}\` does not exist in \`${classInstance.statics().className}\``);
+
+        return {
+            set(path: string, value: any) {
+                classInstance[key] = new JsonAction(SetJsonTypeName, key, path, value);
+            },
+            append(path: string, value: any) {
+                classInstance[key] = new JsonAction(AppendJsonTypeName, key, path, value);
+            }
+        };
     }
 
     /**
      * Find objects
-     * @param Query
+     * @param query 
+     * @param opts 
      */
     async find<C extends typeof Class, U extends User>(query: Query<C>, opts: ClassOptions<U> = {}): Promise<Collection<C['prototype']>> {
         // Validate instance
@@ -91,30 +125,28 @@ export default class ClassManager {
 
         // Run all beforeFind triggers
         const beforeFindTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeFind);
-        for(const trigger of beforeFindTriggers) await trigger.action.apply(classInstance, [query, opts]);
+        for(const trigger of beforeFindTriggers) await trigger.action.apply(classInstance, [ query, opts ]);
 
         // Get query options
         const {
             source,
-            classAlias,
-            select,
-            joins,
-            where,
+            columns,
+            relations,
+            constraints,
             sorting,
-            skip,
-            limit,
+            skipped,
+            limitation,
         } = query.toQueryOptions();
 
         // Execute find
         const result = await this.database.find(
             source, 
-            classAlias, 
-            select, 
-            joins,
-            where,
+            columns, 
+            relations,
+            constraints,
             sorting, 
-            skip, 
-            limit
+            skipped, 
+            limitation
         );
 
         // Prepare rows
@@ -128,6 +160,11 @@ export default class ClassManager {
         return new Collection(rows);
     }
 
+    /**
+     * Find the first object that matches
+     * @param query 
+     * @param opts 
+     */
     async first<C extends typeof Class, U extends User>(query: Query<C>, opts: ClassOptions<U> = {}): Promise<C['prototype'] | null> {
         // Validate instance
         enforce`${{ QueryToFindFirst: query }} as a ${{ Query }}`;
@@ -143,7 +180,7 @@ export default class ClassManager {
 
         // Run all beforeFirst triggers
         const beforeFirstTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeFirst);
-        for(const trigger of beforeFirstTriggers) await trigger.action.apply(classInstance, [query, opts]);
+        for(const trigger of beforeFirstTriggers) await trigger.action.apply(classInstance, [ query, opts ]);
 
         // Get result
         const result = await this.find(query);
@@ -171,7 +208,9 @@ export default class ClassManager {
         
         // Prepare query
         const query = new Query(classType)
-            .equalTo(InternalKeys.Id, id);
+            .equalTo(InternalKeys.Id, id)
+            .skip(0)
+            .limit(1);
 
         if(typeof select !== 'undefined') query.select(select);
         if(typeof include !== 'undefined') query.include(include);
@@ -181,36 +220,39 @@ export default class ClassManager {
 
         // Run all beforeGet triggers
         const beforeGetTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeGet);
-        for(const trigger of beforeGetTriggers) await trigger.action.apply(classInstance, [query, opts]);
+        for(const trigger of beforeGetTriggers) await trigger.action.apply(classInstance, [ query, opts ]);
 
         // Get parameters
         const { 
             source,
-            classAlias,
-            select: keys, 
-            joins,
-            where
+            columns, 
+            relations,
+            constraints,
+            sorting, 
+            skipped, 
+            limitation
         } = query.toQueryOptions();
 
         // Execute first
-        const result = await this.database.get(
-            source, 
-            classAlias, 
-            keys, 
-            joins,
-            where,
-            id
+        const result = await this.database.find(
+            source,
+            columns, 
+            relations,
+            constraints,
+            sorting,
+            skipped,
+            limitation
         );
 
         // Return empty result if null
         if(!result) return null;
 
         // Return result
-        return query.getClassFromKeys<C['prototype']>(result);
+        return query.getClassFromKeys<C['prototype']>(result[0]);
     }
 
     /**
-     * Save the Object
+     * Save the object
      * @param classInstance
      */
     async save<C extends Class, U extends User | undefined>(classInstance: C, opts: ClassOptions<U> = {}) {
@@ -222,7 +264,7 @@ export default class ClassManager {
 
         // Run all beforeSave triggers
         const beforeSaveTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeSave);
-        for(const trigger of beforeSaveTriggers) await trigger.action.apply(classInstance, [this, opts]);
+        for(const trigger of beforeSaveTriggers) await trigger.action.apply(classInstance, [ this, opts ]);
 
         // Get keys to save
         const keys = classInstance.keys;
@@ -237,19 +279,21 @@ export default class ClassManager {
             await this.database.update(classInstance.statics().className, keys, classInstance.id);
         }
 
-        try { 
-            // Run all afterSave triggers in the background
-            const afterSaveTriggers = definition.triggers.filter(trigger => trigger.type === TriggerAfterSave);
-            for(const trigger of afterSaveTriggers) await trigger.action.apply(classInstance, [this, opts]);
-        } 
-        catch(err) { /* do nothing */ }
+        // Run all afterSave triggers in the background
+        const afterSaveTriggers = definition.triggers.filter(trigger => trigger.type === TriggerAfterSave);
+        (async () => {
+            try {
+                for(const trigger of afterSaveTriggers) await trigger.action.apply(classInstance, [ this, opts ]);
+            }
+            catch(err) { /* do nothing */ }
+        })();
 
         // Return immediately
         return classInstance;
     }
 
     /**
-     * Destroy the Object
+     * Destroy the object
      * @param classInstance
      */
     async destroy<C extends Class, U extends User | undefined>(classInstance: C, opts: ClassOptions<U> = {}) {
@@ -269,12 +313,14 @@ export default class ClassManager {
         // Execute destroy query
         await this.database.destroy(classInstance.statics().className, keys, classInstance.id);
 
-        try { 
-            // Run all afterDestroy triggers in the background
-            const afterDestroyTriggers = definition.triggers.filter(trigger => trigger.type === TriggerAfterDestroy);
-            for(const trigger of afterDestroyTriggers) await trigger.action.apply(classInstance, [this, opts]);
-         } 
-         catch(err) { /* Do nothing */ }
+        // Run all afterDestroy triggers in the background
+        const afterDestroyTriggers = definition.triggers.filter(trigger => trigger.type === TriggerAfterDestroy);
+        (async () => {
+            try { 
+                for(const trigger of afterDestroyTriggers) await trigger.action.apply(classInstance, [this, opts]);
+            } 
+            catch(err) { /* do nothing */ }
+        })();
 
         // Return immediately
         return;

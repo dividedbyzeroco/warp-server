@@ -1,150 +1,87 @@
 import Class from './class';
-import { InternalKeys } from '../../utils/constants';
-import Error from '../../utils/error';
+import { InternalKeys, PointerDelimiter } from '../../utils/constants';
 import { toSnakeCase } from '../../utils/format';
+import Error from '../../utils/error';
 import PointerKey from './keys/types/pointer';
 import { ClassCaller } from '../../types/pointer';
 
 export default class Pointer {
 
-    private classType: typeof Class;
-    private aliasKeyName: string;
-    private viaKeyName: string;
-    private idKeyName: string = InternalKeys.Id;
-    private isSecondaryFlag: boolean = false;
-    private parentAliasKeyName: string;
-    private parentViaKeyName: string;
+    sourceClassName: string;
+    sourceKey: string;
+    classType: typeof Class;
+    parentClassName: string;
+    parentKey: string;
+    private secondaryFlag: boolean;
 
     /**
      * Constructor
      * @param {Class} classType 
-     * @param {String} key 
+     * @param {String} aliasKey 
      */
-    constructor(classType: typeof Class, key: string) {
+    constructor(
+        classType: typeof Class,
+        sourceClassName: string, 
+        sourceKey: string,
+        parentClassName: string,
+        parentKey: string,
+        secondary: boolean = false
+    ) {
         this.classType = classType;
-        this.aliasKeyName = key;
-        this.viaKeyName = `${this.aliasKeyName}_${InternalKeys.Id}`;
-    }
-    
-    static get Delimiter(): string {
-        return '.';
-    }
-
-    static get IdDelimiter(): string {
-        return ':';
+        this.sourceClassName = sourceClassName;
+        this.sourceKey = sourceKey;
+        this.parentClassName = parentClassName;
+        this.parentKey = parentKey;
+        this.secondaryFlag = secondary;
     }
 
     static isUsedBy(key: string) {
-        return key.indexOf(this.Delimiter) > 0;
-    }
-
-    static isUsedAsIdBy(key: string) {
-        return key.indexOf(this.IdDelimiter) > 0;
+        return key.indexOf(PointerDelimiter) > 0;
     }
 
     static isValid(key: string) {
-        return this.isUsedBy(key) && key.split(this.Delimiter).length === 2;
+        return this.isUsedBy(key) && key.split(PointerDelimiter).length === 2;
     }
 
-    static getAliasFrom(key: string) {
+    static parseKey(keyName: string): [string, string] {
         // Get key parts
-        const keyParts = key.split(this.Delimiter);
+        const [ className, key ] = keyName.split(PointerDelimiter, 2);
 
-        // Return the first key part
-        return keyParts[0];
+        return [ className, key ];
     }
 
-    static getIdKeyFrom(key: string) {
-        // Get key parts
-        const keyParts = key.split(this.IdDelimiter);
-
-        // Return the first key part
-        return keyParts[0];
+    static formatKey(className: string, key: string) {
+        return `${className}${PointerDelimiter}${key}`;
     }
 
-    static getPointerKeyFrom(key: string) {
-        // Get key parts
-        const keyParts = key.split(this.Delimiter);
-
-        // Return the first key part
-        return keyParts[1];
+    static formatAsId(key: string) {
+        return `${key}_${InternalKeys.Id}`;
     }
 
-    static getViaKeyFrom(key: string) {
-        // Get key parts
-        const keyParts = key.split(this.IdDelimiter);
-
-        // Return the first key part
-        return keyParts[1];
-    }
-
-    get statics() {
+    statics() {
         return this.constructor as typeof Pointer;
     }
-
+    
     get class(): typeof Class {
         return this.classType;
     }
 
-    get aliasKey(): string {
-        return this.aliasKeyName;
-    }
-
-    get viaKey(): string {
-        return this.viaKeyName;
-    }
-
-    get idKey(): string {
-        return `${this.aliasKey}${this.statics.Delimiter}${this.idKeyName}`;
-    }
-
-    get isSecondary(): boolean {
-        return this.isSecondaryFlag;
-    }
-
-    get parentAliasKey(): string {
-        return this.parentAliasKeyName;
-    }
-
-    get parentViaKey(): string {
-        return this.parentViaKeyName;
+    get secondary(): boolean {
+        return this.secondaryFlag;
     }
 
     /**
-     * The key inside the current class that has the foreign key
-     * @param key
+     * The foreign key inside the current class
      */
-    via(key: string): this {
-        this.viaKeyName = key;
-        return this;
+    get sourceClassKey(): string {
+        return this.statics().formatKey(this.sourceClassName, this.sourceKey);
     }
 
     /**
      * The key inside the other class that the foreign key matches
-     * @param key
      */
-    to(key: string): this {
-        this.idKeyName = key;
-        return this;
-    }
-
-    /**
-     * The key inside the other class that the secondary pointer matches
-     * @param key
-     */
-    from(key: string): this {
-        // Check if key is for a pointer
-        if(!this.statics.isUsedBy(key))
-            throw new Error(Error.Code.ForbiddenOperation, `Secondary key \`key\` must be a pointer to an existing key`);
-
-        // TODO: Allow parentViaKeys that do not have '_id'
-        // Set new via key and set isSecondary to true
-        this.parentAliasKeyName = this.statics.getAliasFrom(key);
-        this.parentViaKeyName = this.statics.getPointerKeyFrom(key); 
-        this.via(`${this.parentAliasKey}${this.statics.Delimiter}${this.parentViaKey}_${InternalKeys.Id}`);
-        this.isSecondaryFlag = true;
-        
-        return this;
+    get parentClassKey(): string {
+        return this.statics().formatKey(this.parentClassName, this.parentKey);
     }
 
     isImplementedBy(value: object) {
@@ -152,7 +89,7 @@ export default class Pointer {
         if(typeof value !== 'object') return false;
         if(value[InternalKeys.Pointers.Type] !== 'Pointer') return false;
         if(value[InternalKeys.Pointers.ClassName] !== this.class.className) return false;
-        if(value[InternalKeys.Id] <= 0) return false;
+        if(value[InternalKeys.Id] === null || typeof value[InternalKeys.Id] === 'undefined') return false;
         return true;
     }
 }
@@ -160,52 +97,89 @@ export default class Pointer {
 export class PointerDefinition<C extends typeof Class> {
 
     private classCaller: ClassCaller<C>;
-    private keyName: string;
-    private via?: string;
+    private sourceClassName: string;
+    private sourceKey: string;
+    private parentClassName: string;
+    private parentKey: string;
+    private secondary: boolean;
 
-    constructor(classDefinition: ClassCaller<C>, keyName: string, via?: string) {
+    constructor(
+        classDefinition: ClassCaller<C>, 
+        sourceClassName: string, 
+        sourceKey: string,
+        parentClassName: string,
+        parentKey: string,
+        secondary: boolean
+    ) {
         this.classCaller = classDefinition;
-        this.keyName = keyName;
-        this.via = via;
+        this.sourceClassName = sourceClassName;
+        this.sourceKey = sourceKey;
+        this.parentClassName = parentClassName;
+        this.parentKey = parentKey;
+        this.secondary = secondary;
     }
 
     toPointer() {
-        const pointer = new Pointer(this.classCaller(), this.keyName);
-        // If via key is provided
-        if(typeof this.via === 'string') {
-            // And it is a pointer
-            if(Pointer.isUsedBy(this.via)) {
-                // Use it as a secondary pointer
-                return pointer.from(this.via);
+        const classType = this.classCaller();
+        const definition = classType.prototype.getDefinition();
+        const { sourceClassName, sourceKey, parentClassName, parentKey, secondary } = this;
+        let actualSourceKey = sourceKey;
+        
+        // Check if pointer is secondary
+        if(this.secondary) {
+            if(typeof definition.relations[sourceKey] !== 'undefined') {
+                // Get parent definition
+                const parentDefinition = definition.relations[sourceKey];
+                actualSourceKey = parentDefinition.toPointer().sourceKey;
             }
-            // Use it as a regular pointer
-            else pointer.via(this.via);
+            else throw new Error(Error.Code.ForbiddenOperation, `Pointer \`${this.sourceKey}\` does not exist in ${this.sourceClassName}`);
         }
+
+        // Create a pointer
+        const pointer = new Pointer(
+            classType, 
+            sourceClassName,
+            actualSourceKey,
+            parentClassName,
+            parentKey,
+            secondary
+        );
+    
+        // Return pointer
         return pointer;
     }
 }
 
 /**
  * BelongsTo decorator for pointers
- * @param classDefinition 
+ * @param classCaller 
  */
-export const BelongsTo = <C extends typeof Class>(classDefinition: ClassCaller<C>, via?: string) => {
+export const BelongsTo = <C extends typeof Class>(classCaller: ClassCaller<C>, from?: string, to?: string) => {
     return <T extends Class>(classInstance: T, name: string): any => {
         // Get pointer name
         const keyName = toSnakeCase(name);
-        const sourceName = via && !Pointer.isUsedBy(via) && via || keyName;
 
+        // Set default values
+        from = from || Pointer.formatKey(classInstance.statics().className, Pointer.formatAsId(keyName));
+        to = to || Pointer.formatKey(keyName, InternalKeys.Id);
+
+        // Extract keys
+        const [ sourceClassName, sourceKey ] = Pointer.parseKey(from);
+        const [ parentClassName, parentKey ] = Pointer.parseKey(to);
+
+        // Check if pointer is secondary
+        const secondary = sourceClassName !== classInstance.statics().className;
+        
         // Prepare pointer definition
-        const pointerDefinition = new PointerDefinition(classDefinition, keyName, via);
+        const pointerDefinition = new PointerDefinition(classCaller, sourceClassName, sourceKey, parentClassName, parentKey, secondary);
 
         // Prepare key manager
-        const keyManager = PointerKey(sourceName, pointerDefinition);
+        const keyManager = PointerKey(keyName, pointerDefinition);
 
         // Set definition
         const definition = classInstance.getDefinition();
         if(!definition.keys.includes(keyName)) definition.keys.push(keyName);
-        definition.joins[keyName] = pointerDefinition;
-        classInstance.setDefinition(definition);
+        definition.relations[keyName] = pointerDefinition;
 
         // Override pointer getter and setter
         return {

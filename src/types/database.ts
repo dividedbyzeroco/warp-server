@@ -9,22 +9,14 @@ export interface IDatabaseAdapter {
     currentTimestamp: string;
     initialize(): Promise<void>;
     find(
-        source: string,
-        className: string, 
-        select: Array<string>, 
-        joins: { [key: string]: JoinKeyType },
-        where: ConstraintMap,
-        sort: Array<string>,
-        skip: number,
-        limit: number 
+        source: [string, string],
+        columns: Map<string, string>, 
+        relations: Map<string, Pointer>,
+        constraints: ConstraintMap,
+        sorting: Array<string>,
+        skipped: number,
+        limitation: number 
     ): Promise<Array<KeyMap>>;
-    get(source: string,
-        className: string, 
-        select: Array<string>, 
-        joins: { [key: string]: JoinKeyType },
-        where: ConstraintMap,
-        id: number
-    ): Promise<KeyMap | null>;
     create(source: string, keys: KeyMap): Promise<number>;
     update(source: string, keys: KeyMap, id: number): Promise<void>;
     destroy(source: string, keys: KeyMap, id: number): Promise<void>;  
@@ -59,26 +51,25 @@ export type ConnectionCollection = {
     read: ConnectionConfig[]
 };
 
-export type FindOptionsType = {
-    source: string,
-    classAlias: string,
-    select: Array<string>,
-    joins: {[key: string]: JoinKeyType},
-    where: ConstraintMap
+export type QueryOptionsType = {
+    source: [string, string],
+    columns: Map<string, string>, 
+    relations: Map<string, Pointer>,
+    constraints: ConstraintMap,
+    sorting: Array<string>,
+    skipped: number,
+    limitation: number 
+};
+
+export type FindClauseOptionsType = {
+    source: [string, string],
+    columns: Map<string, string>,
+    relations: Map<string, Pointer>,
+    constraints: ConstraintMap
 };
 
 export type SubqueryOptionsType = {
     className: string,
-    select: string,
+    select: Map<string, string>,
     where: { [key: string]: { [key: string]: any } }
-};
-
-export type DatabaseResult = {
-    id: number,
-    rows: Array<object>
-}
-
-export type JoinKeyType = {
-    join: Pointer,
-    included: boolean
 };

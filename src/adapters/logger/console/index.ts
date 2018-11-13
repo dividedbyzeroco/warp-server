@@ -7,14 +7,14 @@ export default class ConsoleLoggerAdapter implements ILogger  {
     /**
      * Private properties
      */
-    _appName: string;
-    _level: Levels;
+    private appLogName: string;
+    private logLevel: Levels;
 
     /**
      * Constructor
      */
     constructor(appName: string) {
-        this._appName = appName;
+        this.appLogName = appName;
     }
 
     static get Levels(): {[name: string]: Levels} {
@@ -31,7 +31,7 @@ export default class ConsoleLoggerAdapter implements ILogger  {
     }
 
     get appName(): string {
-        return 'Warp Server';
+        return this.appLogName;
     }
 
     get timestamp(): string {
@@ -41,13 +41,13 @@ export default class ConsoleLoggerAdapter implements ILogger  {
 
     set level(value: Levels) {
         if(!Object.values(this.statics.Levels).includes(value)) return;
-        this._level = value;
+        this.logLevel = value;
     }
 
     get level(): Levels {
-        if(!this._level)
+        if(!this.logLevel)
             return this.statics.Levels.Verbose;
-        return this._level;
+        return this.logLevel;
     }
 
     header(type: LogTypes): string  {
