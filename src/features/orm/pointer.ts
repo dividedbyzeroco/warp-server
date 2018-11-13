@@ -151,10 +151,10 @@ export class PointerDefinition<C extends typeof Class> {
 }
 
 /**
- * BelongsTo decorator for pointers
+ * belongsTo decorator for pointers
  * @param classCaller 
  */
-export const BelongsTo = <C extends typeof Class>(classCaller: ClassCaller<C>, from?: string, to?: string) => {
+export const belongsTo = <C extends typeof Class>(classCaller: ClassCaller<C>, from?: string, to?: string) => {
     return <T extends Class>(classInstance: T, name: string): any => {
         // Get pointer name
         const keyName = toSnakeCase(name);

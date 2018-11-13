@@ -27,9 +27,8 @@ With `Warp`, you can:
     - **[Defining a User class](#defining-a-user-class)**
     - **[Authentication](#authentication)**
 - **[Relations](#relations)**
-    - **[BelongsTo](#belongs-to)**
-    - **[HasOne](#has-one)**
-    - **[HasMany](#has-many)**
+    - **[belongsTo](#belongs-to)**
+    - **[hasMany](#has-many)**
 - **[Objects](#objects)**
     - **[Creating an Object](#creating-an-object)**
     - **[Updating an Object](#updating-an-object)**
@@ -101,7 +100,7 @@ Aside from `databaseURI`, there are other options that you can configure for you
 
 ## URI
 
-The [URI](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier) format follows the below syntax.
+The [URI](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier) format follows the syntax below.
 
 ```
 databaseURI: 'protocol://user:password@server:port/database?optionalParamter1=value&optionalParamter2=value'
@@ -269,7 +268,7 @@ In addition, the `User` class has built-in `Triggers` that check whether the sup
 
 ## Authentication
 
-Starting at version __6.0.0__, `Warp` no longer implements its own auth mechanism. However, this now opens up an opportunity for developers to make use of other popular and stable implementations such as [passport](https://npmjs.org/package/passport), OAuth2, and OpenID Connect.
+Starting from version __6.0.0__, `Warp` no longer implements its own auth mechanism. However, this now opens up an opportunity for developers to make use of other popular and stable implementations such as [passport](https://npmjs.org/package/passport), OAuth2, and OpenID Connect.
 
 Ideally, you would use an `auth` library or middleware to authenticate and retrieve the user from the database. Afterwards, you can map the user identity to your defined `User` class and use this class for database operations.
 
@@ -298,7 +297,78 @@ By default, the `restful API` tries to get the `req.user` parameter
 
 One of the biggest features of relational databases is their ability to define `relations` between tables. This makes it more convenient to link and retrieve entities.
 
-For `Warp` there are several built-in decorators for defining `relations` in your database that you can use to make querying much easier.
+For `Warp` there are several built-in decorators for defining `relations` in your database, which make querying much easier.
 
-## BelongsTo
+## belongsTo
+
+If two tables have a `one-to-many` relation, you can use the `@belongsTo` decorator. This decorator allows you to define from which class your `key` belongs to. 
+
+Later on, when you're querying, the key will automatically return an instance of the `Class` that you defined. Additionally, it validates whether the value you set to your `key` matches the correct `Class`.
+
+```javascript
+import { Class, key, belongsTo } from 'warp-server';
+
+@define class Department extends Class { /** shortened for brevity */ }
+
+@define class Employee extends Class {
+
+    @key name: string;
+    @belongsTo(() => Department) department: Department;
+
+}
+```
+
+> NOTE: The `@belongsTo` decorator's first argument accepts a function that returns a `Class`. We use a function instead of directly setting the class because it helps us avoid problems with `circular` referencing in JavaScript.
+
+In the example above, we tell `Warp` that our `department` key belongs to the `Department` class. 
+
+Inside our database, every time we save or query `Employee`, it automatically maps the column `employee.department_id` to `department.id`.
+
+If you want to define a different column for the mapping, you can set it using the second argument.
+
+```javascript
+import { Class, key, belongsTo } from 'warp-server';
+
+@define class Department extends Class { /** shortened for brevity */ }
+
+@define class Employee extends Class {
+
+    @key name: string;
+
+    @belongsTo(() => Department, { from: 'department.deparment_code', to: 'department.code' }) 
+    department: Department;
+
+}
+```
+
+Now, that we've defined our relation, you can start using it in our code.
+
+Below is an example of querying with `@belongsTo`. For more information on queries, see the [Queries](#queries) section.
+
+```javascript
+const service = new Warp({ /** some configuration **/ });
+
+// Create a query
+const employeeQuery = new Query(Employee)
+    .include('department.name');
+
+// Get employee
+const employee = await service.classes.first(employeeQuery);
+
+// employee.department is an instance of the `Department` class
+// so you can even retrieve the department's name
+const departmentName = employee.department.name;
+```
+
+Another example can be found below, this time it's about saving with `@belongsTo`. For more information on saving and destroying objects, see the [Objects](#objects) section.
+
+```javascript
+const employee = new Employee;
+employee.department = new Department(1); // OK
+employee.department = new Country(3); // This will cause an error
+
+await service.classes.save(employee);
+```
+
+# Objects
 

@@ -30,18 +30,3 @@ export type DestroyOptionsType = {
     currentUser?: User,
     id: number
 };
-
-export type LoginOptionsType = {
-    currentUser?: User,
-    username?: string,
-    email?: string,
-    password: string
-};
-
-export type MeOptionsType = {
-    currentUser?: User
-};
-
-export type LogoutOptionsType = {
-    accessToken: string
-};

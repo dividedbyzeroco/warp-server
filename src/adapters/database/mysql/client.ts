@@ -17,10 +17,10 @@ export default class DatabaseClient {
     /**
      * Private propreties
      */
-    _connectionConfigs: ConnectionCollection = { write: [], read: [] };
-    _poolCluster: mysql.PoolCluster;
-    _logger: ILogger;
-    _persistent: boolean;
+    private connectionConfigs: ConnectionCollection = { write: [], read: [] };
+    private poolCluster: mysql.PoolCluster;
+    private logger: ILogger;
+    private persistent: boolean;
 
     /**
      * Constructor
@@ -31,18 +31,18 @@ export default class DatabaseClient {
         for(const uriConfig of uris) {
             // Check if action is write
             if(uriConfig.action === DatabaseWrite) {
-                this._connectionConfigs.write.push(this.extractConfig(uriConfig.uri));
+                this.connectionConfigs.write.push(this.extractConfig(uriConfig.uri));
             }
             // Check if action is read
             else if(uriConfig.action === DatabaseRead) {
-                this._connectionConfigs.read.push(this.extractConfig(uriConfig.uri));
+                this.connectionConfigs.read.push(this.extractConfig(uriConfig.uri));
             }
             else throw new Error(Error.Code.ForbiddenOperation, `Database action must either be 'write' or 'read'`);
         }
 
         // Set connection settings
-        this._persistent = persistent;
-        this._logger = logger;
+        this.persistent = persistent;
+        this.logger = logger;
     }
 
     /**
@@ -77,10 +77,6 @@ export default class DatabaseClient {
         return config;
     }
 
-    get poolCluster(): mysql.PoolCluster {
-        return this._poolCluster;
-    }
-
     escape(value: any) {
         // Escape keys
         return mysql.escape(value);
@@ -99,18 +95,18 @@ export default class DatabaseClient {
         if(this.poolCluster) return;
         
         // Prepare pool cluster
-        this._poolCluster = mysql.createPoolCluster();
+        this.poolCluster = mysql.createPoolCluster();
 
         // Loop through write connections
         let index = 0;
-        for(const writeConfig of this._connectionConfigs.write) {
-            this._poolCluster.add(`${DatabaseWrite.toUpperCase()}${++index}`, writeConfig);
+        for(const writeConfig of this.connectionConfigs.write) {
+            this.poolCluster.add(`${DatabaseWrite.toUpperCase()}${++index}`, writeConfig);
         }
 
         // Loop through read connections
         index = 0;
-        for(const readConfig of this._connectionConfigs.read) {
-            this._poolCluster.add(`${DatabaseRead.toUpperCase()}${++index}`, readConfig);
+        for(const readConfig of this.connectionConfigs.read) {
+            this.poolCluster.add(`${DatabaseRead.toUpperCase()}${++index}`, readConfig);
         }
 
         // Test connection
@@ -148,7 +144,7 @@ export default class DatabaseClient {
         const connection = await this.connect(action);
         const onQuery = new Promise((resolve, reject) => {
             // Display query
-            this._logger.info(chalk.green(queryString)); 
+            this.logger.info(chalk.green(queryString)); 
 
             // Run the query
             connection.query(queryString, (err, result) => {
@@ -162,7 +158,7 @@ export default class DatabaseClient {
             const rows = await onQuery;
 
             // Release or destroy the connection
-            if(this._persistent) connection.release();
+            if(this.persistent) connection.release();
             else connection.destroy();
 
             // Prepare result
