@@ -175,10 +175,6 @@ export default class Class {
         return true;
     }
 
-    private hasPointer(key: string) {
-        return this.getDefinition().relations[key];
-    }
-
     /**
      * Get class definition
      */
