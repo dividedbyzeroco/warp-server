@@ -992,7 +992,7 @@ To make sure a method is run after the class is saved (whether created or update
 
     /** some keys **/
 
-    // Throwing an error will no
+    // Throwing an error will not stop the program
     @afterSave
     uselessError() {
         if(this.age > 30) throw new Error('This will not stop the program');
