@@ -275,25 +275,27 @@ export default class Warp {
             await this.classManager.initialize();
 
             // Display startup screen
-            this.loggerInstance.bare(chalk.yellow(`
-                -------------------------------------------
-                -------------------------------------------
-                ------------------------------------=/-----
-                ---------------------------------==/ ------
-                -------------------------------==/  -------
-                ----====|__    --====/   ----==/   --------
-                ------=====|   --===/    ---==/   ---------
-                -------====|   --==/     --==/   ----------
-                --------===|   --=/  |   -==/   -----------
-                ---------==|   --/  =|   ==/   ------------
-                ----------=|   -/  ==|   =/   -------------
-                ----------=|   /  -==|   /   --------------
-                ----------=|     --==|      ---------------
-                -------------------------------------------
-                -------------------------------------------
-                -------------------------------------------
+            this.loggerInstance.bare(chalk.red(`
+                MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+                MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+                MMMMMMMNmMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+                MMMMMMMMhhmMMMMMMMMMMMMMMMMMMMMMMMNNMMMMMMM
+                MMMMMMMMNyshNMMMMMMMMMMMMMMMMMMMMNhMMMMMMMM
+                MMMMMMMMMmssshNMMMMMMMMMMMMMMMMMMymMMMMMMMM
+                MMMMMMMMMMhsssshNMMMMMMmhNMMMMMMhhMMMMMMMMM
+                MMMMMMMMMMMyssssshNMMMMysshNMMMhsmMMMMMMMMM
+                MMMMMMMMMMMmssssssshNMdssssshmhshMMMMMMMMMM
+                MMMMMMMMMMMMdsssssssNNysssssssssNMMMMMMMMMM
+                MMMMMMMMMMMMMyssssshMyssssssssshMMMMMMMMMMM
+                MMMMMMMMMMMMMNyssssmdssshNmhsssNMMMMMMMMMMM
+                MMMMMMMMMMMMMMdsssyNysymMMMMNddMMMMMMMMMMMM
+                MMMMMMMMMMMMMMMhssmhshMMMMMMMMMMMMMMMMMMMMM
+                MMMMMMMMMMMMMMMNyymymMMMMMMMMMMMMMMMMMMMMMM
+                MMMMMMMMMMMMMMMMmddMMMMMMMMMMMMMMMMMMMMMMMM
+                MMMMMMMMMMMMMMMMMNMMMMMMMMMMMMMMMMMMMMMMMMM
+                MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
                                                                                                 
-                            Warp Server ${version}
+                           Warp Server ${version}
 
                 +-----------------------------------------+
                 |     The server has been initialized     |
