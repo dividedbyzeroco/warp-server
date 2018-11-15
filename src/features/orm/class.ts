@@ -25,6 +25,15 @@ export interface ClassDefinitionOptions {
     source?: string;
 }
 
+const DefaultClassDefinition = {
+    keys: [],
+    timestamps: Object.values(InternalKeys.Timestamps),
+    relations: {},
+    triggers: [],
+    hidden: [],
+    guarded: []
+};
+
 /**
  * Extend Class with className and source
  */
@@ -48,14 +57,7 @@ const ClassDecorator = (opts: ClassDefinitionOptions) => {
         };
 
         // Set class definition
-        const definition: ClassDefinition = {
-            keys: [],
-            timestamps: Object.values(InternalKeys.Timestamps),
-            relations: {},
-            triggers: [],
-            hidden: [],
-            guarded: []
-        };
+        const definition: ClassDefinition = DefaultClassDefinition;
 
         // Set metadata
         const existingDefinition = Reflect.getMetadata(ClassDefinitionSymbol, DefinedClass.prototype);
@@ -192,7 +194,7 @@ export default class Class {
         const definition = Reflect.getMetadata(ClassDefinitionSymbol, this) as ClassDefinition;
 
         // Override default definition
-        return  { ...definition };
+        return  { ...DefaultClassDefinition, ...definition };
     }
     
     statics<T extends typeof Class>(): T {
