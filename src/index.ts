@@ -92,6 +92,18 @@ export default class Warp {
         this.setRouter(restful);
     }
 
+    static get Class() {
+        return Class;
+    }
+
+    static get User() {
+        return User;
+    }
+
+    static get Query() {
+        return Query;
+    }
+
     /**
      * API Key
      */
