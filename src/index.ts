@@ -275,7 +275,7 @@ export default class Warp {
             await this.classManager.initialize();
 
             // Display startup screen
-            this.loggerInstance.bare(chalk.red(`
+            this.loggerInstance.bare(chalk.hex('#E8822F')(`
                 MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
                 MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
                 MMMMMMMNmMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM

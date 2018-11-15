@@ -3,7 +3,7 @@ import Error from '../../../../utils/error';
 import Class from '../../class';
 import { PointerDefinition } from '../../pointer';
 
-export default function PointerKey<C extends typeof Class>(name: string, pointerDefinition: PointerDefinition<C>): KeyManager {
+export default function PointerKey<C extends typeof Class, T extends Class>(name: string, pointerDefinition: PointerDefinition<C, T>): KeyManager {
     const key = new KeyManager(name, 'pointer');
 
     key.setterDefinition = value => {

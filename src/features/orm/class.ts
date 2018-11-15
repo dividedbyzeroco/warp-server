@@ -56,13 +56,6 @@ const ClassDecorator = (opts: ClassDefinitionOptions) => {
 
         };
 
-        // Set class definition
-        const definition: ClassDefinition = DefaultClassDefinition;
-
-        // Set metadata
-        const existingDefinition = Reflect.getMetadata(ClassDefinitionSymbol, DefinedClass.prototype);
-        Reflect.defineMetadata(ClassDefinitionSymbol, DefinedClass.prototype, { ...definition, ...existingDefinition });
-
         // Return defined class
         return DefinedClass;
     };

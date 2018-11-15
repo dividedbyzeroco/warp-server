@@ -94,51 +94,61 @@ export default class Pointer {
     }
 }
 
-export class PointerDefinition<C extends typeof Class> {
+export class PointerDefinition<C extends typeof Class, T extends Class> {
 
     private classCaller: ClassCaller<C>;
+    private ownerInstance: T;
     private sourceClassName: string;
     private sourceKey: string;
     private parentClassName: string;
     private parentKey: string;
-    private secondary: boolean;
+
+    static OwnerSymbol = '*';
 
     constructor(
         classDefinition: ClassCaller<C>, 
+        ownerInstance: T,
         sourceClassName: string, 
         sourceKey: string,
         parentClassName: string,
-        parentKey: string,
-        secondary: boolean
+        parentKey: string
     ) {
         this.classCaller = classDefinition;
+        this.ownerInstance = ownerInstance;
         this.sourceClassName = sourceClassName;
         this.sourceKey = sourceKey;
         this.parentClassName = parentClassName;
         this.parentKey = parentKey;
-        this.secondary = secondary;
     }
 
     toPointer() {
         const classType = this.classCaller();
         const definition = classType.prototype.getDefinition();
-        const { sourceClassName, sourceKey, parentClassName, parentKey, secondary } = this;
+        const { sourceClassName, sourceKey, parentClassName, parentKey } = this;
+        let sourceClassNameText = sourceClassName;
         let actualSourceKey = sourceKey;
-        
+        let secondary = false;
+
+        // Check if source is the owner
+        if(sourceClassName !== PointerDefinition.OwnerSymbol) secondary = true;
+
         // Check if pointer is secondary
-        if(this.secondary) {
+        if(secondary) {
             if(typeof definition.relations[sourceKey] !== 'undefined') {
                 // Get parent definition
                 const parentDefinition = definition.relations[sourceKey];
                 actualSourceKey = parentDefinition.toPointer().sourceKey;
             }
-            else throw new Error(Error.Code.ForbiddenOperation, `Pointer \`${this.sourceKey}\` does not exist in ${this.sourceClassName}`);
+            else throw new Error(Error.Code.ForbiddenOperation, `Pointer \`${this.sourceKey}\` does not exist in ${sourceClassNameText}`);
+        }
+        else {
+            sourceClassNameText = this.ownerInstance.statics().className;
         }
 
         // Create a pointer
         const pointer = new Pointer(
             classType, 
-            sourceClassName,
+            sourceClassNameText,
             actualSourceKey,
             parentClassName,
             parentKey,
@@ -160,18 +170,15 @@ export const belongsTo = <C extends typeof Class>(classCaller: ClassCaller<C>, f
         const keyName = toSnakeCase(name);
 
         // Set default values
-        from = from || Pointer.formatKey(classInstance.statics().className, Pointer.formatAsId(keyName));
+        from = from || Pointer.formatKey(PointerDefinition.OwnerSymbol, Pointer.formatAsId(keyName));
         to = to || Pointer.formatKey(keyName, InternalKeys.Id);
 
         // Extract keys
         const [ sourceClassName, sourceKey ] = Pointer.parseKey(from);
         const [ parentClassName, parentKey ] = Pointer.parseKey(to);
-
-        // Check if pointer is secondary
-        const secondary = sourceClassName !== classInstance.statics().className;
         
         // Prepare pointer definition
-        const pointerDefinition = new PointerDefinition(classCaller, sourceClassName, sourceKey, parentClassName, parentKey, secondary);
+        const pointerDefinition = new PointerDefinition(classCaller, classInstance, sourceClassName, sourceKey, parentClassName, parentKey);
 
         // Prepare key manager
         const keyManager = PointerKey(keyName, pointerDefinition);
