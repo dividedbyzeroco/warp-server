@@ -57,8 +57,7 @@ With `Warp`, you can:
 - **[Functions](#functions)**
     - **[Creating a Function](#creating-a-function)**
     - **[Registering Functions](#registering-functions)**
-- **[Restful API](#restful-api)**
-    - **[via REST](#via-rest)**
+- **[Restful API](rest.md)**
 
 # Installation
 
@@ -808,7 +807,7 @@ By default, `Warp` limits results to the top `100` objects that satisfy the quer
 dogQuery.limit(1000); // Top 1000 results
 ```
 
-Also, in order to implement pagination for the results, we can combine `.limit()` with the `.skip()`. The `.skip()` method indicates how many items are to be skipped when executing the query. In terms of performance, we suggest limiting results to a maximum of `1000` and use skip to determine pagination.
+Also, in order to implement pagination for the results, we can combine `.limit()` with `.skip()`. The `.skip()` method indicates how many items are to be skipped when executing the query. In terms of performance, we suggest limiting results to a maximum of `1000` and use skip to determine pagination.
 
 ```javascript
 dogQuery.limit(10).skip(20); // Top 10 results; Skip the first 20 results
