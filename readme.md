@@ -259,7 +259,7 @@ import { Class, define, key, hidden } from 'warp-server';
 @define class Dog extends Class {
 
     @key name: string;
-    @key @hidden secretName: string; // Will be omitted from query results
+    @hidden @key secretName: string; // Will be omitted from query results
 
 }
 ```
@@ -276,7 +276,7 @@ import { Class, define, key, guarded } from 'warp-server';
 @define class Dog extends Class {
 
     @key name: string;
-    @key @guarded eyeColor: string;
+    @guarded @key eyeColor: string;
 
 }
 
