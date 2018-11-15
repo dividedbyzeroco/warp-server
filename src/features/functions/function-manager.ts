@@ -21,8 +21,11 @@ export default class FunctionManager {
             // Check data type
             enforce`${{ [functionName]: sampleInstance }} as a ${{ Function }}`;
 
+            // Get function name
+            const functionClassName = functionType.name;
+
             // Add to functions
-            this.functions[functionType.functionName] = functionType;
+            this.functions[functionType.functionName || functionClassName] = functionType;
         }
     }
 

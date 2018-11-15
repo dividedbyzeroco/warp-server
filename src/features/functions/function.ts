@@ -54,9 +54,8 @@ export default class FunctionClass {
         return this.user;
     }
 
-    static get functionName(): string {
-        throw new Error(Error.Code.MissingConfiguration, 
-            'Functions extended from `Function.Class` must define a static getter for functionName');
+    static get functionName(): string | void {
+        return;
     }
 
     static get masterOnly(): boolean {

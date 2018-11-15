@@ -28,8 +28,8 @@ With `Warp`, you can:
     - **[Defining a User class](#defining-a-user-class)**
     - **[Authentication](#authentication)**
 - **[Relations](#relations)**
-    - **[belongsTo](#belongs-to)**
-    - **[hasMany](#has-many)**
+    - **[belongsTo](#belongsTo)**
+    - **[hasMany](#hasMany)**
 - **[Objects](#objects)**
     - **[Creating an Object](#creating-an-object)**
     - **[Updating an Object](#updating-an-object)**
@@ -974,7 +974,7 @@ To make sure a method is run before the class is saved (whether created or updat
     @beforeSave
     async checkAccess(classes, { user, master }) {
         if(!this.isNew && this.owner.id !== user.id || !master) {
-            throw new Error('Only owners of dogs or administrators can edit their info');
+            throw new Error('Only owners of dogs, or administrators can edit their info');
         }
     }
 
@@ -999,7 +999,7 @@ To make sure a method is run after the class is saved (whether created or update
     }
 
     // You can save other Objects
-    @beforeSave
+    @afterSave
     async addNewPet(classes) {
         if(this.isNew) {
             const pet = new Pet;
@@ -1009,7 +1009,7 @@ To make sure a method is run after the class is saved (whether created or update
     }
 
     // You can send a notification
-    @beforeSave
+    @afterSave
     async sendNotification(classes, { user }) {
         SomeService.Notify('You have successsfully saved a dog!', user.email);
     }
@@ -1052,7 +1052,7 @@ To make sure a method is run before the class is destroyed, describe it with `@b
     @beforeDestroy
     async checkAccess(classes, { user, master }) {
         if(!this.isNew && this.owner.id !== user.id || !master) {
-            throw new Error('Only owners of dogs or administrators can destroy their info');
+            throw new Error('Only owners of dogs, or administrators can destroy their info');
         }
     }
 
@@ -1117,9 +1117,70 @@ To make sure a method is run before the class is fetched, describe it with `@bef
     @beforeGet
     async checkAccess(query, { user, master }) {
         if(!this.isNew && this.owner.id !== user.id || !master) {
-            throw new Error('Only owners of dogs or administrators can get their info');
+            throw new Error('Only owners of dogs, or administrators can get their info');
         }
     }
 
 }
+```
+
+# Functions
+
+Ideally, you can perform a multitude of tasks using classes. However, for special operations that you need to perform inside the server, you can use `Functions`.
+
+A `Function` is a piece of code that can be executed via a named endpoint. It receives input keys that it processes in order to produce a result.
+
+## Defining a Function
+
+To define a Function, use the `Function` class.
+
+```javascript
+// Import Function from Warp Server
+import { Function } from 'warp-server';
+import getDogsPromise from './get-dogs';
+
+class GetFavoriteDogs extends Function {
+
+    // Optional method
+    static get masterOnly() {
+        return false;
+    }
+
+    async run(keys) {
+        // collection_id was passed to the request
+        const collectionID = keys.collection_id;
+
+        // Do some work here...
+        const favoriteDogs = await getDogsPromise(collectionId);
+
+        // Throw an error instead of a result
+        throw new Error('Cannot get your favorite dogs');
+
+        // Return the result
+        return favoriteDogs;
+    }
+}
+```
+
+For the above example, you can see that we declared a `run()` method to execute our logic. This is the only method you need in order to define a function.
+
+However, you might notice the `masterOnly` getter declared atop. What this does is basically limit access to the function to masters (i.e. requests made using the `X-Warp-Master-Key`). You can omit this code as this defaults to `false`.
+
+## Registering a Function
+
+Right now, the `Function` you created is still not recognized by `Warp`. To register its definition, use `functions.register()`.
+
+```javascript
+// Add the GetFavoriteDogs function
+service.functions.register({ GetFavoriteDogs });
+
+// Apply the router after
+app.use('/api/1', service.router);
+```
+
+`functions.register()` accepts a mapping of `Functions`, so you can do the following.
+
+```javascript
+// Add multiple functions
+service.functions.register({ GetFavoriteDogs, GetGoodDogs });
 ```
