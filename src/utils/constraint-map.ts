@@ -6,8 +6,8 @@ export class KeyConstraints {
     /**
      * Private properties
      */
-    _key: string;
-    _map: {[constraint: string]: any};
+    private keyName: string;
+    private map: { [constraint: string]: any };
 
     /**
      * Constructor
@@ -17,36 +17,41 @@ export class KeyConstraints {
      */
     constructor(key: string, map: {[constraint: string]: any}) {
         // Set values
-        this._key = key;
-        this._map = map;
+        this.keyName = key;
+        this.map = map;
     }
 
     get key(): string {
-        return this._key;
+        return this.keyName;
     }
 
-    get list(): Array<ConstraintObject> {
-        return Object.keys(this._map).map(constraint => {
-            return { key: this.key, constraint: constraint, value: this._map[constraint] };
+    get constraints(): Array<ConstraintObject> {
+        return Object.keys(this.map).map(constraint => {
+            return { key: this.key, constraint: constraint, value: this.map[constraint] };
         });
     }
 
     set(constraint: string, value: any) {
-        this._map[constraint] = value;
+        this.map[constraint] = value;
     }
 
     changeKey(newKey: string) {
-        this._key = newKey;
-    }
-
-    constraintExists(constraint: string) {
-        return typeof this._map[constraint] !== 'undefined';
+        this.keyName = newKey;
     }
 
     toJSON(): Object {
-        return { ...this._map };
+        return { ...this.map };
     }
 }
+
+export const Subqueries = Object.freeze({
+    FoundIn: 'fi', 
+    FoundInEither: 'fie',
+    FoundInAll: 'fia',
+    NotFoundIn: 'nfi',
+    NotFoundInEither: 'nfe',
+    NotFoundInAll: 'nfa'
+});
 
 export const Constraints = Object.freeze({
     EqualTo: 'eq',
@@ -64,19 +69,7 @@ export const Constraints = Object.freeze({
     Contains: 'has',
     ContainsEither: 'hasi',
     ContainsAll: 'hasa',
-    FoundIn: 'fi', 
-    FoundInEither: 'fie',
-    FoundInAll: 'fia',
-    NotFoundIn: 'nfi',
-    NotFoundInEither: 'nfe'
-});
-
-export const Subqueries = Object.freeze({
-    FoundIn: 'fi', 
-    FoundInEither: 'fie',
-    FoundInAll: 'fia',
-    NotFoundIn: 'nfi',
-    NotFoundInEither: 'nfe'
+    ...Subqueries
 });
 
 export default class ConstraintMap {
@@ -84,15 +77,7 @@ export default class ConstraintMap {
     /**
      * Private properties
      */
-    private _map: {[key: string]: KeyConstraints} = {};
-
-    static get Constraints(): {[name: string]: string} {
-        return Constraints;
-    }
-
-    static get Subqueries(): {[name: string]: string} {
-        return Subqueries;
-    }
+    private map: { [key: string]: KeyConstraints } = {};
 
     /**
      * Constructor
@@ -101,18 +86,22 @@ export default class ConstraintMap {
     constructor(constraints: {[key: string]: { [key: string]: any }} = {}) {
         // Populate map
         for(let key in constraints) {
-            this._map[key] = new KeyConstraints(key, constraints[key]);
+            this.map[key] = new KeyConstraints(key, constraints[key]);
         }
     }
 
+    get keys(): Array<string> {
+        return Object.keys(this.map);
+    }
+
     set(key: string, constraint: string, value: any) {
-        const constraints = this._map[key] || new KeyConstraints(key, {});
+        const constraints = this.map[key] || new KeyConstraints(key, {});
         constraints.set(constraint, value);
-        this._map[key] = constraints;
+        this.map[key] = constraints;
     }
 
     changeKey(key: string, newKey: string) {
-        const constraints = this._map[key];
+        const constraints = this.map[key];
         if(!constraints)
             throw new Error(Error.Code.MissingConfiguration, `Constraint key being changed does not exist: \`${key}\``);
 
@@ -120,114 +109,21 @@ export default class ConstraintMap {
         if(key === newKey) return;
 
         constraints.changeKey(newKey);
-        this._map[newKey] = constraints;
-        delete this._map[key];
+        this.map[newKey] = constraints;
+        delete this.map[key];
     }
 
     get(key: string): KeyConstraints {
-        return this._map[key];
+        return this.map[key];
     }
 
-    getKeys(): Array<string> {
-        return Object.keys(this._map);
-    }
-
-    getConstraints(key: string): Array<Object> {
-        // Get the value for the keyValuePair
-        return this._map[key].list;
-    }
-
-    equalTo(key: string, value: any) {
-        this.set(key, Constraints.EqualTo, value);
-    }
-
-    notEqualTo(key: string, value: any) {
-        this.set(key, Constraints.NotEqualTo, value);
-    }
-
-    greaterThan(key: string, value: any) {
-        this.set(key, Constraints.GreaterThan, value);
-    }
-
-    greaterThanOrEqualTo(key: string, value: any) {
-        this.set(key, Constraints.GreaterThanOrEqualTo, value);
-    }
-
-    lessThan(key: string, value: any) {
-        this.set(key, Constraints.LessThan, value);
-    }
-
-    lessThanOrEqualTo(key: string, value: any) {
-        this.set(key, Constraints.LessThanOrEqualTo, value);
-    }
-
-    exists(key: string) {
-        this.set(key, Constraints.Exists, true);
-    }
-
-    doesNotExist(key: string) {
-        this.set(key, Constraints.Exists, false);
-    }
-
-    containedIn(key: string, value: Array<any>) {
-        this.set(key, Constraints.ContainedIn, value);
-    }
-
-    notContainedIn(key: string, value: Array<any>) {
-        this.set(key, Constraints.NotContainedIn, value);
-    }
-
-    containedInOrDoesNotExist(key: string, value: Array<any>) {
-        this.set(key, Constraints.ContainedInOrDoesNotExist, value);
-    }
-
-    startsWith(key: string, value: string) {
-        this.set(key, Constraints.StartsWith, value);
-    }
-
-    endsWith(key: string, value: string) {
-        this.set(key, Constraints.EndsWith, value);
-    }
-
-    contains(key: string, value: string) {
-        this.set(key, Constraints.Contains, value);
-    }
-
-    containsEither(key: string, value: Array<string>) {
-        this.set(key, Constraints.ContainsEither, value);
-    }
-
-    containsAll(key: string, value: Array<string>) {
-        this.set(key, Constraints.ContainsAll, value);
-    }
-
-    foundIn(key: string, value: Object) {
-        this.set(key, Constraints.FoundIn, value);
-    }
-
-    foundInEither(key: string, value: Object) {
-        this.set(key, Constraints.FoundInEither, value);
-    }
-
-    foundInAll(key: string, value: Object) {
-        this.set(key, Constraints.FoundInAll, value);
-    }
-
-    notFoundIn(key: string, value: Object) {
-        this.set(key, Constraints.NotFoundIn, value);
-    }
-
-    notFoundInEither(key: string, value: Object) {
-        this.set(key, Constraints.NotFoundInEither, value);
-    }
-
-    toList() {
-        return Object.keys(this._map).map(key => this._map[key]);
+    toArray() {
+        return Object.keys(this.map).map(key => this.map[key]);
     }
 
     toJSON() {
-        return Object.keys(this._map).reduce((map, key) => {
-            map[key] = this._map[key].toJSON();
+        return Object.keys(this.map).reduce((map, key) => {
+            map[key] = this.map[key].toJSON();
             return map;
         }, {});
     }

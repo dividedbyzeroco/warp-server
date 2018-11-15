@@ -1,13 +1,10 @@
+import { URIConfig } from "./database";
+
 export type ServerConfigType = {
     apiKey: string,
     masterKey: string,
-    passwordSalt?: number,
-    sessionDuration?: string,
-    databaseURI?: string,
-    keepConnections?: boolean,
-    charset?: string,
-    timeout?: number,
-    requestLimit?: number,
+    databaseURI: string | URIConfig[],
+    persistent?: boolean,
     customResponse?: boolean,
-    supportLegacy?: boolean
+    restful?: boolean
 }

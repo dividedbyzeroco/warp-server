@@ -1,13 +1,15 @@
 import express from 'express';
 import enforce from 'enforce-js';
-import WarpServer from '../index';
+import Warp from '../index';
 import ClassController from '../controllers/class';
 import { FindOptionsType, GetOptionsType } from '../types/classes';
+import { InternalKeys } from '../utils/constants';
+import Error from '../utils/error';
 
 /**
  * Define router
  */
-const classes = (api: WarpServer): express.Router => {
+const classes = (api: Warp): express.Router => {
     /**
      * Define controller
      */
@@ -24,7 +26,8 @@ const classes = (api: WarpServer): express.Router => {
     router.get('/classes/:className', async (req, res, next) => {
         // Get parameters
         const { className } = req.params;
-        let { select, include, where, sort, skip, limit } = req.query;
+        const { select, include, where, sort, skip, limit } = req.query;
+        const user = req[InternalKeys.Middleware.User];
 
         try {
             // Enforce
@@ -43,18 +46,26 @@ const classes = (api: WarpServer): express.Router => {
                 where: typeof where !== 'undefined' ? JSON.parse(where) : undefined,
                 sort: typeof sort !== 'undefined' ? JSON.parse(sort) : undefined,
                 skip,
-                limit
+                limit,
+                user
             };
 
             const classCollection = await controller.find(params);
 
             // Return response
-            req.result = classCollection;
+            req[InternalKeys.Middleware.Result] = classCollection;
             api.response.success(req, res, next);
         }
         catch(err) {
-            api._log.error(err, `Could not find the objects for \`${className}\`: ${err.message}`);
-            api.response.error(err, req, res, next);
+            // Check if class was not found
+            if(err.code === Error.Code.ClassNotFound) {
+                api.logger.warn(err, `Could not find the objects for \`${className}\`: ${err.message}`);
+                next();
+            }
+            else {
+                api.logger.error(err, `Could not find the objects for \`${className}\`: ${err.message}`);
+                api.response.error(err, req, res, next);
+            }
         }
     });
     
@@ -64,30 +75,39 @@ const classes = (api: WarpServer): express.Router => {
    router.get('/classes/:className/:id', async (req, res, next) => {
         // Get parameters
         const { className, id } = req.params;
-        let { select, include } = req.query;
+        const { include, select } = req.query;
+        const user = req[InternalKeys.Middleware.User]; 
 
         try {
             // Enforce
-            enforce`${{ select }} as an optional string, equivalent to an array`;
             enforce`${{ include }} as an optional string, equivalent to an array`;
+            enforce`${{ select }} as an optional string, equivalent to an array`;
 
             // Parse parameters
             const params: GetOptionsType = {
                 className,
                 id,
+                include: typeof include !== 'undefined' ? JSON.parse(include) : undefined,
                 select: typeof select !== 'undefined' ? JSON.parse(select) : undefined,
-                include: typeof include !== 'undefined' ? JSON.parse(include) : undefined
+                user
             };
 
             const classInstance = await controller.get(params);
 
             // Return response
-            req.result = classInstance;
+            req[InternalKeys.Middleware.Result] = classInstance;
             api.response.success(req, res, next);
         }
         catch(err) {
-            api._log.error(err, `Could not find the object for \`${className}\`: ${err.message}`);
-            api.response.error(err, req, res, next);
+            // Check if class was not found
+            if(err.code === Error.Code.ClassNotFound) {
+                api.logger.warn(err, `Could not find the object for \`${className}\`: ${err.message}`);
+                next();
+            }
+            else {
+                api.logger.error(err, `Could not find the object for \`${className}\`: ${err.message}`);
+                api.response.error(err, req, res, next);
+            }
         }
     });
 
@@ -96,23 +116,28 @@ const classes = (api: WarpServer): express.Router => {
      */
     router.post('/classes/:className', async (req, res, next) => {
         // Get parameters
-        const Warp = req.Warp;
-        const metadata = req.metadata;
-        const currentUser = req.currentUser;
         const { className } = req.params;
         const keys = req.body;
+        const user = req[InternalKeys.Middleware.User];
 
         try {
             // Create class
-            const classInstance = await controller.create({ Warp, metadata, currentUser, className, keys });
+            const classInstance = await controller.create({ className, keys, user });
 
             // Return response
-            req.result = classInstance;
+            req[InternalKeys.Middleware.Result] = classInstance;
             api.response.success(req, res, next);
         }
         catch(err) {
-            api._log.error(err, `Could not create the object for \`${className}\`: ${err.message}`);
-            api.response.error(err, req, res, next);
+            // Check if class was not found
+            if(err.code === Error.Code.ClassNotFound) {
+                api.logger.warn(err, `Could not create the object for \`${className}\`: ${err.message}`);
+                next();
+            }
+            else {
+                api.logger.error(err, `Could not create the object for \`${className}\`: ${err.message}`);
+                api.response.error(err, req, res, next);
+            }
         }
     });
 
@@ -121,23 +146,28 @@ const classes = (api: WarpServer): express.Router => {
      */
     router.put('/classes/:className/:id', async (req, res, next) => {
         // Get parameters
-        const Warp = req.Warp;
-        const metadata = req.metadata;
-        const currentUser = req.currentUser;
         const { className, id } = req.params;
         const keys = req.body;
+        const user = req[InternalKeys.Middleware.User];
 
         try {
             // Update class
-            const classInstance = await controller.update({ Warp, metadata, currentUser, className, keys, id });
+            const classInstance = await controller.update({ className, keys, id, user });
 
             // Return response
-            req.result = classInstance;
+            req[InternalKeys.Middleware.Result] = classInstance;
             api.response.success(req, res, next);
         }
         catch(err) {
-            api._log.error(err, `Could not update the object for \`${className}\`: ${err.message}`);
-            api.response.error(err, req, res, next);
+            // Check if class was not found
+            if(err.code === Error.Code.ClassNotFound) {
+                api.logger.warn(err, `Could not update the object for \`${className}\`: ${err.message}`);
+                next();
+            }
+            else {
+                api.logger.error(err, `Could not update the object for \`${className}\`: ${err.message}`);
+                api.response.error(err, req, res, next);
+            }
         }
     });
 
@@ -146,22 +176,27 @@ const classes = (api: WarpServer): express.Router => {
      */
     router.delete('/classes/:className/:id', async (req, res, next) => {
         // Get parameters
-        const Warp = req.Warp;
-        const metadata = req.metadata;
-        const currentUser = req.currentUser;
         const { className, id } = req.params;
+        const user = req[InternalKeys.Middleware.User];
 
         try {
             // Destroy class
-            const classInstance = await controller.destroy({ Warp, metadata, currentUser, className, id });
+            const classInstance = await controller.destroy({ className, id, user });
 
             // Return response
-            req.result = classInstance;
+            req[InternalKeys.Middleware.Result] = classInstance;
             api.response.success(req, res, next);
         }
         catch(err) {
-            api._log.error(err, `Could not destroy the object for \`${className}\`: ${err.message}`);
-            api.response.error(err, req, res, next);
+            // Check if class was not found
+            if(err.code === Error.Code.ClassNotFound) {
+                api.logger.warn(err, `Could not destroy the object for \`${className}\`: ${err.message}`);
+                next();
+            }
+            else {
+                api.logger.error(err, `Could not destroy the object for \`${className}\`: ${err.message}`);
+                api.response.error(err, req, res, next);
+            }
         }
     });
 

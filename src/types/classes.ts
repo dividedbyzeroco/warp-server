@@ -1,45 +1,39 @@
-import { Warp } from 'warp-sdk-js';
-import User from '../classes/user';
-import { MetadataType } from './class';
+import { User } from '..';
 
 export type FindOptionsType = {
     className: string,
     select?: Array<string>,
     include?: Array<string>,
     where?: {[name: string]: {[name: string]: any}},
-    sort?: Array<string | {[name: string]: any}>,
+    sort?: Array<string>,
     skip?: number,
-    limit?: number
+    limit?: number,
+    user: User | null
 }
 
 export type GetOptionsType = {
     className: string,
     id: number,
     select?: Array<string>,
-    include?: Array<string>
+    include?: Array<string>,
+    user: User | null
 };
 
 export type CreateOptionsType = {
-    Warp?: Warp,
-    metadata: MetadataType,
-    currentUser?: User,
     className: string,
-    keys: {[name: string]: any}
+    keys: {[name: string]: any},
+    user: User | null
 };
 
 export type UpdateOptionsType = {
-    Warp?: Warp,
-    metadata: MetadataType,
-    currentUser?: User,
     className: string,
     id: number,
-    keys: {[name: string]: any}
+    keys: {[name: string]: any},
+    user: User | null
 };
 
 export type DestroyOptionsType = {
-    Warp?: Warp,
-    metadata: MetadataType,
-    currentUser?: User,
     className: string,
-    id: number
+    id: number,
+    user: User | null
 };

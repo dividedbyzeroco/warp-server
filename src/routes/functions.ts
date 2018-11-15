@@ -1,11 +1,13 @@
 import express from 'express';
-import WarpServer from '../index';
+import Warp from '../index';
 import FunctionController from '../controllers/function';
+import { InternalKeys } from '../utils/constants';
+import Error from '../utils/error';
 
 /**
  * Define router
  */
-const functions = (api: WarpServer): express.Router => {
+const functions = (api: Warp): express.Router => {
     /**
      * Define controller
      */
@@ -19,25 +21,30 @@ const functions = (api: WarpServer): express.Router => {
     /**
      * Running functions
      */
-    router.post('/functions/:functionName', async (req, res, next) => {
+    router.use('/functions/:functionName', async (req, res, next) => {
         // Get parameters
-        const Warp = req.Warp;
-        const metadata = req.metadata;
-        const currentUser = req.currentUser;
         const { functionName } = req.params;
-        const keys = req.body;
+        const user = req[InternalKeys.Middleware.User];
+        const keys = req.method.toLowerCase() === 'get' ? req.query : req.body;
 
         try {
             // Run function
-            const result = await controller.run({ Warp, metadata, currentUser, functionName, keys });
+            const result = await controller.run({ functionName, keys, user });
 
             // Return response
-            req.result = result;
+            req[InternalKeys.Middleware.Result] = result;
             api.response.success(req, res, next);
         }
         catch(err) {
-            api._log.error(err, `Could not run the function \`${functionName}\`: ${err.message}`);
-            api.response.error(err, req, res, next);
+            // Check if function was not found
+            if(err.code === Error.Code.FunctionNotFound) {
+                api.logger.warn(err, `Could not run the function \`${functionName}\`: ${err.message}`);
+                next();
+            }
+            else {
+                api.logger.error(err, `Could not run the function \`${functionName}\`: ${err.message}`);
+                api.response.error(err, req, res, next);
+            }
         }
     });
 

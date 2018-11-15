@@ -1,6 +1,4 @@
-import { Warp } from 'warp-sdk-js';
-import User from '../classes/user';
-import { MetadataType } from './class';
+import User from '../features/auth/user';
 
 export type FindOptionsType = {
     select?: Array<string>,
@@ -18,41 +16,17 @@ export type GetOptionsType = {
 };
 
 export type CreateOptionsType = {
-    Warp?: Warp,
-    metadata: MetadataType,
     currentUser?: User,
     keys: {[name: string]: any}
 };
 
 export type UpdateOptionsType = {
-    Warp?: Warp,
-    metadata: MetadataType,
     currentUser?: User,
     id: number,
     keys: {[name: string]: any}
 };
 
 export type DestroyOptionsType = {
-    Warp?: Warp,
-    metadata: MetadataType,
     currentUser?: User,
     id: number
-};
-
-export type LoginOptionsType = {
-    Warp?: Warp,
-    metadata: MetadataType,
-    currentUser?: User,
-    username?: string,
-    email?: string,
-    password: string
-};
-
-export type MeOptionsType = {
-    currentUser?: User
-};
-
-export type LogoutOptionsType = {
-    Warp: Warp,
-    sessionToken: string
 };

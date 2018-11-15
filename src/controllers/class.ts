@@ -1,9 +1,7 @@
-import WarpServer from '../index';
-import Class from '../classes/class';
-import ClassCollection from '../utils/class-collection';
+import Warp from '../index';
+import Class from '../features/orm/class';
+import Collection from '../utils/collection';
 import Error from '../utils/error';
-import { Defaults } from '../utils/constants';
-import ConstraintMap from '../utils/constraint-map';
 import { 
     GetOptionsType, 
     FindOptionsType, 
@@ -11,101 +9,95 @@ import {
     UpdateOptionsType, 
     DestroyOptionsType 
 } from '../types/classes';
+import Query from '../features/orm/query';
+import { InternalKeys } from '../utils/constants';
 
 export default class ClassController {
 
-    _api: WarpServer;
+    private api: Warp;
 
-    constructor(api: WarpServer) {
-        this._api = api;
+    constructor(api: Warp) {
+        this.api = api;
     }
 
-    async find({ className, select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<ClassCollection<Class>> {
-        // Parse subqueries
-        where = this._api.parseSubqueries(where);
-    
-        // Prepare query
-        const query = {
-            select,
-            include,
-            where: new ConstraintMap(where),
-            sort: sort || Defaults.Query.Sort,
-            skip: skip || Defaults.Query.Skip,
-            limit: limit || Defaults.Query.Limit
-        };
-    
+    async find({ user, className, select, include, where = {}, sort, skip, limit }: FindOptionsType): Promise<Collection<Class>> {
         // Get class
-        const classType = this._api.classes.get(className);
+        const classType = this.api.classes.get(className);
+
+        // Prepare query
+        const query = new Query(classType);
+
+        // Set options
+        if(typeof select !== 'undefined') query.select(select);
+        if(typeof include !== 'undefined') query.include(include);
+        if(typeof sort !== 'undefined') query.sortBy(sort);
+        if(typeof skip !== 'undefined') query.skip(skip);
+        if(typeof limit !== 'undefined') query.limit(limit);
+        if(typeof where !== 'undefined') query.where(where);
     
         // Find matching objects
-        const classCollection = await classType.find(query);
+        const classCollection = await this.api.classes.find(query, { user: user || undefined });
     
         // Return collection
         return classCollection;
     }
     
-    async get({ className, id, select, include }: GetOptionsType): Promise<Class> {
-        // Prepare query
-        const query = {
-            select: select || [],
-            include: include || [],
-            id
-        };
-    
+    async get({ user, className, id, include, select }: GetOptionsType): Promise<Class> {
         // Get class
-        const classType = this._api.classes.get(className);
+        const classType = this.api.classes.get(className);
     
         // Find matching objects
-        const classInstance = await classType.getById(query);
+        const classInstance = await this.api.classes.getById(classType, id, include, select, { user: user || undefined });
     
         // Check if class is found
-        if(typeof classInstance === 'undefined')
+        if(classInstance === null)
             throw new Error(Error.Code.ForbiddenOperation, `Object \`${classType.className}\` with id \`${id}\` not found`);
     
         // Return the class
         return classInstance;
     }
     
-    async create({ Warp, metadata, currentUser, className, keys }: CreateOptionsType): Promise<Class> {
+    async create({ user, className, keys = {} }: CreateOptionsType): Promise<Class> {
         // Get class
-        const classType = this._api.classes.get(className);
-        const classInstance = new classType({ metadata, currentUser, keys });
+        const classType = this.api.classes.get(className);
 
-        // Bind Warp
-        classInstance.bindSDK(Warp);
-    
-        // Save the object
-        await classInstance.save();
+        // Check if id was sent in keys
+        if(typeof keys[InternalKeys.Id] === 'undefined')
+            throw new Error(Error.Code.ForbiddenOperation, 'Cannot manually set the `id` key on creation');
+
+        // Prepare instance
+        const classInstance = new classType(keys);
+
+        // Save the instance
+        await this.api.classes.save(classInstance, { user: user || undefined });
     
         // Return the class
         return classInstance;
     }
     
-    async update({ Warp, metadata, currentUser, className, keys, id }: UpdateOptionsType): Promise<Class> {
+    async update({ user, className, keys = {}, id }: UpdateOptionsType): Promise<Class> {
         // Get class
-        const classType = this._api.classes.get(className);
-        const classInstance = new classType({ metadata, currentUser, keys, id });
+        const classType = this.api.classes.get(className);
 
-        // Bind Warp
-        classInstance.bindSDK(Warp);
+        // Prepare instance
+        const classInstance = new classType({ ...keys, id });
     
-        // Save the object
-        await classInstance.save();
+        // Save the instance
+        await this.api.classes.save(classInstance, { user: user || undefined });
     
         // Return the class
         return classInstance;
     }
     
-   async destroy({ Warp, metadata, currentUser, className, id }: DestroyOptionsType): Promise<Class> {
+   async destroy({ user, className, id }: DestroyOptionsType): Promise<Class> {
         // Get class
-        const classType = this._api.classes.get(className);
-        const classInstance = new classType({ metadata, currentUser, id });
+        const classType = this.api.classes.get(className);
 
-        // Bind Warp
-        classInstance.bindSDK(Warp);
+        // Prepare instance
+        const classInstance = new classType(id);
     
-        // Destroy the object
-        await classInstance.destroy();
+        // Destroy the instance
+        await this.api.classes.destroy(classInstance, { user: user || undefined });
     
         // Return the class
         return classInstance;

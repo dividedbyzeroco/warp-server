@@ -1,56 +1,17 @@
-import Class from '../classes/class';
-import User from '../classes/user';
-import KeyMap from '../utils/key-map';
-import ConstraintMap from '../utils/constraint-map';
+import Class from '../features/orm/class';
+import { InternalId } from '../utils/constants';
+import User from '../features/auth/user';
 
-export type ClassMapType = { [className: string]: typeof Class };
+export type ClassMapType<C extends typeof Class> = { [className: string]: C };
 
-export type ClassFunctionsType = {
-    add: (map: ClassMapType) => void;
-    get: (className: string) => typeof Class;
+export type ClassOptions<U extends User | undefined> = {
+    user?: U,
+    master?: boolean
 };
 
-export type ClassOptionsType = {
-    metadata?: MetadataType,
-    currentUser?: any,
-    keys?: {[name: string]: any},
-    keyMap?: KeyMap,
-    id?: number,
-    createdAt?: string,
-    updatedAt?: string,
-    isPointer?: boolean
+export type ClassKeys = { 
+    [InternalId]?: number, 
+    [key: string]: any 
 };
 
-export type QueryOptionsType = {
-    currentUser?: User,
-    select?: Array<string>,
-    include?: Array<string>,
-    where: ConstraintMap,
-    sort?: Array<string | {[key: string]: number}>,
-    skip: number,
-    limit: number
-};
-
-export type QueryGetOptionsType = {
-    currentUser?: User,
-    select?: Array<string>,
-    include?: Array<string>,
-    id: number
-};
-
-export type MetadataType = {
-    sessionToken?: string,
-    client?: string,
-    sdkVersion?: string,
-    appVersion?: string,
-    isMaster?: boolean
-};
-
-export type PointerObjectType = {
-    type: string,
-    [name: string]: any,
-    id: number,
-    attributes?: {[name: string]: any},
-    created_at?: string,
-    updated_at?: string
-};
+export type ClassJSON<C extends Class> = { [K in keyof C]?: C[K] };

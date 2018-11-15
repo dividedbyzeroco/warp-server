@@ -1,72 +1,75 @@
-import { Pointer } from '../classes/class';
+import Pointer from '../features/orm/pointer';
 import KeyMap from '../utils/key-map';
 import ConstraintMap from '../utils/constraint-map';
+import { ILogger } from './logger';
+
+export type DatabaseAction = 'read' | 'write';
+
 export interface IDatabaseAdapter {
     currentTimestamp: string;
     initialize(): Promise<void>;
     find(
-        source: string,
-        className: string, 
-        select: Array<string>, 
-        joins: { [key: string]: JoinKeyType },
-        where: ConstraintMap,
-        sort: Array<string>,
-        skip: number,
-        limit: number 
+        source: [string, string],
+        columns: Map<string, string>, 
+        relations: Map<string, Pointer>,
+        constraints: ConstraintMap,
+        sorting: Array<string>,
+        skipped: number,
+        limitation: number 
     ): Promise<Array<KeyMap>>;
-    get(source: string,
-        className: string, 
-        select: Array<string>, 
-        joins: { [key: string]: JoinKeyType },
-        id: number
-    ): Promise<KeyMap | null>;
     create(source: string, keys: KeyMap): Promise<number>;
     update(source: string, keys: KeyMap, id: number): Promise<void>;
     destroy(source: string, keys: KeyMap, id: number): Promise<void>;  
 }
 
 export declare const IDatabaseAdapter: {
-    new(config: DatabaseConfigType): IDatabaseAdapter;
+    new(config: DatabaseConfig): IDatabaseAdapter;
 }
 
-export type DatabaseOptionsType = {
-    databaseURI: string,
-    keepConnections?: boolean,
-    charset?: string,
-    timeout?: number
-};
+export type DatabaseConfig = {
+    uris: URIConfig[],
+    persistent: boolean,
+    logger: ILogger
+}
 
-export type DatabaseConfigType = {
+export type URIConfig = {
+    uri: string,
+    action: DatabaseAction
+}; 
+
+export type ConnectionConfig = {
     host: string,
-    port?: number,
+    port: number,
     user: string,
     password: string,
-    schema?: string,
-    keepConnections?: boolean,
-    charset?: string,
-    timeout?: number
+    database: string,
+    [config: string]: any
 };
 
-export type FindOptionsType = {
-    source: string,
-    classAlias: string,
-    select: Array<string>,
-    joins: {[key: string]: JoinKeyType},
-    where: ConstraintMap
+export type ConnectionCollection = {
+    write: ConnectionConfig[],
+    read: ConnectionConfig[]
+};
+
+export type QueryOptionsType = {
+    source: [string, string],
+    columns: Map<string, string>, 
+    relations: Map<string, Pointer>,
+    constraints: ConstraintMap,
+    sorting: Array<string>,
+    skipped: number,
+    limitation: number 
+};
+
+export type FindClauseOptionsType = {
+    source: [string, string],
+    columns: Map<string, string>,
+    relations: Map<string, Pointer>,
+    constraints: ConstraintMap
 };
 
 export type SubqueryOptionsType = {
     className: string,
-    select: string,
-    where: { [key: string]: { [key: string]: any }}
-};
-
-export type DatabaseResult = {
-    id: number,
-    rows: Array<object>
-}
-
-export type JoinKeyType = {
-    join: Pointer,
-    included: boolean
+    select: Map<string, string>,
+    where: { [key: string]: { [key: string]: any } }
 };

@@ -1,27 +1,55 @@
 import Client from './client';
-import Class, { Pointer } from '../../../classes/class';
 import Error from '../../../utils/error';
 import KeyMap from '../../../utils/key-map';
-import { InternalKeys } from '../../../utils/constants';
+import { InternalKeys, DatabaseWrite, DatabaseRead, SortSymbol } from '../../../utils/constants';
 import ConstraintMap, { Constraints } from '../../../utils/constraint-map';
 import { toDatabaseDate } from '../../../utils/format';
-import { DatabaseConfigType, FindOptionsType, IDatabaseAdapter, JoinKeyType } from '../../../types/database';
+import CompoundKey from '../../../utils/compound-key';
+import { FindClauseOptionsType, IDatabaseAdapter, DatabaseConfig } from '../../../types/database';
 import { ConstraintObject } from '../../../types/constraints';
+import Pointer from '../../../features/orm/pointer';
+import Query from '../../../features/orm/query';
+import Class from '../../../features/orm/class';
+import { Increment, JsonAction } from '../../../features/orm/specials';
+
+const { version } = require('../../../package.json');
 
 export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
 
     /**
      * Private properties
      */
-    _client: Client;
+    private client: Client;
+    private constraints = {
+        [Constraints.EqualTo]: (k, v) => `${k} = ${this.regularEscape(v)}`,
+        [Constraints.NotEqualTo]: (k, v) => `${k} <> ${this.regularEscape(v)}`,
+        [Constraints.GreaterThan]: (k, v) => `${k} > ${this.regularEscape(v)}`,
+        [Constraints.GreaterThanOrEqualTo]: (k, v) => `${k} >= ${this.regularEscape(v)}`,
+        [Constraints.LessThan]: (k, v) => `${k} < ${this.regularEscape(v)}`,
+        [Constraints.LessThanOrEqualTo]: (k, v) => `${k} <= ${this.regularEscape(v)}`,
+        [Constraints.Exists]: (k, v) => `${k} ${v? 'IS NOT NULL' : 'IS NULL'}`,
+        [Constraints.ContainedIn]: (k, v) => `${k} IN (${this.collectionEscape(v)})`,
+        [Constraints.NotContainedIn]: (k, v) => `${k} NOT IN (${this.collectionEscape(v)})`,
+        [Constraints.ContainedInOrDoesNotExist]: (k, v) => `(${k} IS NULL OR ${k} IN (${this.collectionEscape(v)}))`,
+        [Constraints.StartsWith]: (k, v) => `${k} LIKE ${this.regularEscape(`${v}%`)}`,
+        [Constraints.EndsWith]: (k, v) => `${k} LIKE ${this.regularEscape(`%${v}`)}`,
+        [Constraints.Contains]: (k, v) => `${k} LIKE ${this.regularEscape(`%${v}%`)}`,
+        [Constraints.ContainsEither]: (k, v) => `(${v.map(i => `${k} LIKE ${this.regularEscape(`%${i}%`)}`).join(' OR ')})`,
+        [Constraints.ContainsAll]: (k, v) => `(${v.map(i => `${k} LIKE ${this.regularEscape(`%${i}%`)}`).join(' AND ')})`,
+        [Constraints.FoundIn]: (k, v) => `${k} IN (${this.subqueryEscape(v)})`,
+        [Constraints.FoundInEither]: (k, v) => `(${v.map(i => `${k} IN (${this.subqueryEscape(i)})`).join(' OR ')})`,
+        [Constraints.FoundInAll]: (k, v) => `(${v.map(i => `${k} IN (${this.subqueryEscape(i)})`).join(' AND ')})`,
+        [Constraints.NotFoundIn]: (k, v) => `${k} NOT IN (${this.subqueryEscape(v)})`,
+        [Constraints.NotFoundInEither]: (k, v) => `(${v.map(i => `${k} NOT IN (${this.subqueryEscape(i)})`).join(' AND ')})`
+    };
 
     /**
      * Constructor
      * @param {Object} config 
      */
-    constructor(config: DatabaseConfigType) {
+    constructor(config: DatabaseConfig) {
         // Prepare parameters
-        this._client = new Client(config);
+        this.client = new Client(config);
     }
 
     /**
@@ -29,56 +57,55 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
      * @returns {String}
      */
     get currentTimestamp(): string {
-        const date = new Date();
-        return toDatabaseDate(date.toISOString());
+        return toDatabaseDate(new Date().toISOString());
     }
 
     async initialize() {
         // Initialize the client
-        await this._client.initialize();
+        await this.client.initialize();
     }
 
-    mapConstraint(key: string, constraint: string, value: any): string {
-        // Escape key
-        const escapedKey = key.indexOf('|') >= 0 ? 
+    private escapeKey(key: string, useRaw: boolean = false) {
+        return CompoundKey.isUsedBy(key) ? 
             // If key is a compound key, use concat
-            `CONCAT(${key.split('|').map(k => this._client.escapeKey(k))})`
+            `CONCAT(${CompoundKey.from(key).map(k => this.client.escapeKey(k))})`
             // Else, do a simple escape
-            : this._client.escapeKey(key);
+            : this.client.escapeKey(key, useRaw);
+    }
 
-        // Escape definitions
-        const regularEscape = value => this._client.escape(value);
-        const collectionEscape = value => value.map(item => regularEscape(item)).join(', ');
-        const subqueryEscape = (options: FindOptionsType) => this._generateFindClause(options);
+    private regularEscape = (value: any) => {
+        // Set escape methods for special types
+        if(value instanceof Increment) {
+            value.escapeKey = this.client.escapeKey;
+            value.escape = this.client.escape;
+        }
+        if(value instanceof JsonAction) {
+            value.escapeKey = this.client.escapeKey;
+            value.escape = this.client.escape;
+        }
 
-        // List of Constraints
-        const constraints = {
-            [Constraints.EqualTo]: (k, v) => `${k} = ${regularEscape(v)}`,
-            [Constraints.NotEqualTo]: (k, v) => `${k} <> ${regularEscape(v)}`,
-            [Constraints.GreaterThan]: (k, v) => `${k} > ${regularEscape(v)}`,
-            [Constraints.GreaterThanOrEqualTo]: (k, v) => `${k} >= ${regularEscape(v)}`,
-            [Constraints.LessThan]: (k, v) => `${k} < ${regularEscape(v)}`,
-            [Constraints.LessThanOrEqualTo]: (k, v) => `${k} <= ${regularEscape(v)}`,
-            [Constraints.Exists]: (k, v) => `${k} ${v? 'IS NOT NULL' : 'IS NULL'}`,
-            [Constraints.ContainedIn]: (k, v) => `${k} IN (${collectionEscape(v)})`,
-            [Constraints.NotContainedIn]: (k, v) => `${k} NOT IN (${collectionEscape(v)})`,
-            [Constraints.ContainedInOrDoesNotExist]: (k, v) => `(${k} IS NULL OR ${k} IN (${collectionEscape(v)}))`,
-            [Constraints.StartsWith]: (k, v) => `${k} LIKE ${regularEscape(`${v}%`)}`,
-            [Constraints.EndsWith]: (k, v) => `${k} LIKE ${regularEscape(`%${v}`)}`,
-            [Constraints.Contains]: (k, v) => `${k} LIKE ${regularEscape(`%${v}%`)}`,
-            [Constraints.ContainsEither]: (k, v) => `(${v.map(i => `${k} LIKE ${regularEscape(`%${i}%`)}`).join(' OR ')})`,
-            [Constraints.ContainsAll]: (k, v) => `(${v.map(i => `${k} LIKE ${regularEscape(`%${i}%`)}`).join(' AND ')})`,
-            [Constraints.FoundIn]: (k, v) => `${k} IN (${subqueryEscape(v)})`,
-            [Constraints.FoundInEither]: (k, v) => `(${v.map(i => `${k} IN (${subqueryEscape(i)})`).join(' OR ')})`,
-            [Constraints.FoundInAll]: (k, v) => `(${v.map(i => `${k} IN (${subqueryEscape(i)})`).join(' AND ')})`,
-            [Constraints.NotFoundIn]: (k, v) => `${k} NOT IN (${subqueryEscape(v)})`,
-            [Constraints.NotFoundInEither]: (k, v) => `(${v.map(i => `${k} NOT IN (${subqueryEscape(i)})`).join(' AND ')})`
-        };
+        // Return escaped value
+        return this.client.escape(value);
+    }
+
+    private collectionEscape = (value: any) => {
+        return value.map(item => this.regularEscape(item)).join(', ');
+    }
+
+    private subqueryEscape = <T extends typeof Class>(query: Query<T>) => {
+        // Get query keys
+        const { source, columns, relations, constraints } = query.toQueryOptions();
+        return this.getFindClause({ source, columns, relations, constraints });
+    }
+
+    private parseConstraint(key: string, constraint: string, value: any): string {
+        // Escape key
+        const escapedKey = this.escapeKey(key);
 
         // Check if constraint exists
-        if(typeof constraints[constraint] !== 'undefined') {
+        if(typeof this.constraints[constraint] !== 'undefined') {
             // Return constraint
-            return constraints[constraint](escapedKey, value);
+            return this.constraints[constraint](escapedKey, value);
         }
 
         // Else, throw an error
@@ -92,66 +119,37 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
      * @param {String} source 
      * @param {String} className 
      * @param {Array} select
-     * @param {Array} joins  
+     * @param {Array} relations  
      * @param {KeyMap} where
      * @param {boolean} isSubquery 
      */
-    _generateFindClause({
+    private getFindClause({
         source,
-        classAlias,
-        select,
-        joins,
-        where
-    }: FindOptionsType): string {
-        // Shorten escape method name
-        const escapeKey = this._client.escapeKey.bind(this._client);
+        columns,
+        relations,
+        constraints
+    }: FindClauseOptionsType): string {
+        // Get select
+        const select: string[] = [];
+        for(const [key, alias] of columns.entries())
+            select.push(`${this.escapeKey(key)} AS ${this.escapeKey(alias, true)}`);
 
         // Get from
-        const from = `${escapeKey(source)} AS ${escapeKey(classAlias)}`;
+        const from = `${this.escapeKey(source[0])} AS ${this.escapeKey(source[1])}`;
 
         // Get joins
-        const join = Object.keys(joins)
-        .filter(alias => joins[alias].included)
-        .map(alias => {
-            const item = joins[alias];
-            const joinKey = item.join.isSecondary? item.join.viaKey : `${classAlias}.${item.join.viaKey}`;
-            return `LEFT OUTER JOIN ${escapeKey(item.join.class.source)} AS ${escapeKey(item.join.aliasKey)}
-                ON ${escapeKey(item.join.pointerIdKey)} = ${escapeKey(joinKey)}`;
-        });
+        const joins: string[] = [];
+        for(const [alias, pointer] of relations.entries())
+            joins.push(`LEFT OUTER JOIN ${this.escapeKey(pointer.class.source)} AS ${this.escapeKey(alias, true)}`
+                + ` ON ${this.escapeKey(pointer.parentClassKey)} = ${this.escapeKey(pointer.sourceClassKey)}`);
 
-        // Get columns
-        let columns = select.map(key => {
-            // Define source key and alias key
-            let sourceKey = key;
-            let aliasKey = escapeKey(key, true);
-
-            // Check if key is a pointer id
-            if(Pointer.isUsedAsIdBy(key)) {
-                sourceKey = `${classAlias}${Pointer.Delimiter}${Pointer.getViaKeyFrom(key)}`;
-                aliasKey = escapeKey(Pointer.getPointerIdKeyFrom(key), true);
-            }
-            else if(!Pointer.isUsedBy(key)) {
-                // Add the classAlias to the key in order to avoid ambiguity
-                sourceKey = `${classAlias}${Pointer.Delimiter}${key}`;
-            }
-
-            // Return the key
-            return `${escapeKey(sourceKey)} AS ${aliasKey}`;
-        });
-        
-        // Remove deleted rows
-        where.doesNotExist(`${classAlias}${Pointer.Delimiter}${InternalKeys.Timestamps.DeletedAt}`);
-
-        // Get constraints
-        const constraints = where.toList()
-        .reduce((list: ConstraintObject[], constraint) => list.concat(constraint.list), [])
-        .map(({ key, constraint, value }) => this.mapConstraint(key, constraint, value));
+        // Get where
+        const where = constraints.toArray()
+            .reduce<ConstraintObject[]>((list, keyConstraints) => [ ...list, ...keyConstraints.constraints ], [])
+            .map(({ key, constraint, value }) => this.parseConstraint(key, constraint, value));
 
         // Prepare clause 
-        const findClause = `
-            SELECT ${columns.join(', ')}
-            FROM ${from} ${join.join(' ')}
-            WHERE ${constraints.join(' AND ')}`;
+        const findClause = `SELECT ${select.join(', ')} FROM ${from} ${joins.join('\n')} WHERE ${where.join(' AND ')}`;
 
         return findClause;
     }
@@ -161,18 +159,15 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
      * @param {String} className
      * @param {Array} sort
      */
-    _generateSortingClause(className: string, sort: Array<string>): string {
+    private getSortClause(className: string, sort: Array<string>): string {
         // Return sorting string
         return sort.map(keySort => {
-            // Add the className to the key in order to avoid ambiguity
-            const sortAlias = keySort => Pointer.isUsedBy(keySort)? keySort : `${className}${Pointer.Delimiter}${keySort}`;
-
             // If it starts with a hyphen, sort by descending order
             // Otherwise, sort by ascending order
-            if(keySort[0] === '-')
-                return `${this._client.escapeKey(sortAlias(keySort.slice(1)))} DESC`;
-            else 
-                return `${this._client.escapeKey(sortAlias(keySort))} ASC`;
+            if(keySort[0] === SortSymbol)
+                return `${this.escapeKey(keySort.slice(1))} DESC`;
+            else
+                return `${this.escapeKey(keySort)} ASC`;
         }).join(', ');
     }
 
@@ -180,113 +175,63 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
      * Map row keys into appropriate pointers
      * @param {Object} row
      */
-    _mapRowKeys(row: Object, joins: { [key: string]: JoinKeyType }): KeyMap | null {
-        // If row is empty, return null
-        if(!row) return null;
-
-        // Prepare key map and join map
-        const keyMap = new KeyMap();
-        const joinMap = {};
+    private mapRows(row: Object): KeyMap {
+        // Prepare key map
+        const keys = new KeyMap;
 
         // Iterate through the row's keys
-        for(let key in row) {
+        for(const [ key, value ] of Object.entries(row)) {
             // If key is for a pointer
             if(Pointer.isUsedBy(key)) {
-                // Prepare pointer parameters
-                const value = row[key];
-                const alias = Pointer.getAliasFrom(key);
-                const pointerKey = Pointer.getKeyFrom(key);
-                const pointer = joins[alias].join;
+                // Prepare relation parameters
+                const [ pointerName, pointerKey ] = Pointer.parseKey(key);
 
-                // Get join keys
-                const joinKeys = joinMap[alias] || {
-                    [InternalKeys.Pointers.Attributes]: {}
-                };
-                
-                // Check pointer key
-                if(InternalKeys.Id === pointerKey ||
-                    InternalKeys.Timestamps.CreatedAt === pointerKey ||
-                    InternalKeys.Timestamps.UpdatedAt === pointerKey) {
-                        joinKeys[pointerKey] = value;
-                }
-                else {
-                    // Assign the key value to attributes
-                    joinKeys[InternalKeys.Pointers.Attributes][pointerKey] = value;
-                }
+                // Assign pointer
+                const pointer = { ...keys.get(pointerName), [pointerKey]: value };
 
-                // Reassign joinKeys to the join map
-                joinMap[alias] = joinKeys;
-
-                // Set the pointer value
-                keyMap.set(pointer.viaKey, joinKeys);
-                keyMap.setAlias(pointer.viaKey, pointer.aliasKey);
+                // Set key to the latest value
+                keys.set(pointerName, pointer);
             }
             else {
                 // Set the key value
-                keyMap.set(key, row[key]);
+                keys.set(key, row[key]);
             }
         }
 
         // Return the key map
-        return keyMap;
+        return keys;
     }
 
     async find(
-        source: string,
-        className: string,
-        select: Array<string>,
-        joins: { [key: string]: JoinKeyType },
-        where: ConstraintMap,
-        sort: Array<string>,
-        skip: number,
-        limit: number
+        source: [string, string],
+        columns: Map<string, string>,
+        relations: Map<string, Pointer>,
+        constraints: ConstraintMap,
+        sorting: Array<string>,
+        skipped: number,
+        limitation: number
     ): Promise<Array<KeyMap>> {
         // Generate find clause
-        const findClause = this._generateFindClause({ source, classAlias: className, select, joins, where });
+        const findClause = this.getFindClause({ source, columns, relations, constraints });
         
         // Generate sorting clause
-        const sortingClause = this._generateSortingClause(className, sort);
+        const sortingClause = this.getSortClause(source[1], sorting);
         
         // Prepare script 
-        const selectScript = `
-            ${findClause}
-            ORDER BY ${sortingClause}
-            LIMIT ${skip}, ${limit}`;
+        const selectScript = `${findClause} ORDER BY ${sortingClause} LIMIT ${skipped}, ${limitation}; -- Warp Server ${version}`;
 
         // Get result
-        const result = await this._client.query(selectScript);
+        const result = await this.client.query(selectScript, DatabaseRead);
 
         // Map rows
         const rows: Array<KeyMap> = [];
         for(let row of result.rows) {
-            const item = this._mapRowKeys(row, joins);
-            if(item instanceof KeyMap) rows.push(item);
+            const item = this.mapRows(row);
+            rows.push(item);
         }
 
         // Return result as an array of KeyMaps
         return rows;
-    }
-
-    async get(
-        source: string,
-        className: string,
-        select: Array<string>,
-        joins: { [key: string]: JoinKeyType },
-        id: number
-    ): Promise<KeyMap | null> {
-        // Prepare where 
-        let where = new ConstraintMap();
-        where.doesNotExist(InternalKeys.Timestamps.DeletedAt);
-        where.equalTo(InternalKeys.Id, id);
-
-        // Generate get script
-        const getScript = this._generateFindClause({ source, classAlias: className, select, joins, where });
-
-        // Get result
-        const result = await this._client.query(getScript);
-
-        // Return result as a KeyMap
-        return this._mapRowKeys(result.rows[0], joins);
     }
 
     async create(source: string, keys: KeyMap): Promise<number> {
@@ -295,29 +240,11 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         keys.set(InternalKeys.Timestamps.CreatedAt, now);
         keys.set(InternalKeys.Timestamps.UpdatedAt, now);        
 
-        // Get sql input
-        const columns: Array<string> = [];
-        const values: Array<string> = [];
-        const sqlInput = keys.toList().reduce((map, keyValuePair) => {
-            // Push the values
-            const key = this._client.escapeKey(keyValuePair.key);
-            const value = this._client.escape(keyValuePair.value);
-            map.columns.push(key);
-            map.values.push(value);
-
-            // Return the map
-            return map;
-        }, { columns, values });
-
         // Prepare script
-        const createScript = `
-            INSERT INTO ${this._client.escapeKey(source)}
-            (${sqlInput.columns.join(', ')})
-            VALUES
-            (${sqlInput.values.join(', ')})`;
+        const createScript = `INSERT INTO ${this.client.escapeKey(source)} (${keys.keys.join(', ')}) VALUES (${keys.values.join(', ')}); -- Warp Server ${version}`;
 
         // Create the item and get id
-        const result = await this._client.query(createScript);
+        const result = await this.client.query(createScript, DatabaseWrite);
         
         // Return the id
         return result.id;
@@ -325,52 +252,44 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
 
     async update(source: string, keys: KeyMap, id: number): Promise<void> {
         // Prepare id
-        const idKey = this._client.escapeKey(InternalKeys.Id);
+        const idKey = this.client.escapeKey(InternalKeys.Id);
 
         // Add timestamps
         const now = this.currentTimestamp;
         keys.set(InternalKeys.Timestamps.UpdatedAt, now);        
 
         // Get sql input
-        const keyPairs: Array<string> = [];
-        const sqlInput = keys.toList().reduce((map, keyValuePair) => {
-            // Push the vlues
-            const key = this._client.escapeKey(keyValuePair.key);
-            const value = this._client.escape(keyValuePair.value);
-            map.keyPairs.push(`${key} = ${value}`);
-
-            // Return the map
-            return map;
-        }, { keyPairs });
+        const sqlInput = keys.toArray().reduce((input, [ key, value ]) => ([
+            ...input,
+            `${this.client.escapeKey(key)} = ${this.client.escape(value)}`
+        ]), []);
 
         // Prepare script
-        const updateScript = `
-            UPDATE ${this._client.escapeKey(source)}
-            SET ${sqlInput.keyPairs.join(', ')}
-            WHERE ${idKey} = ${id}`;
+        const updateScript = `UPDATE ${this.client.escapeKey(source)} SET ${sqlInput.join(', ')} WHERE ${idKey} = ${id}; -- Warp Server ${version}`;
 
         // Update the item
-        await this._client.query(updateScript);
+        await this.client.query(updateScript, DatabaseWrite);
     }
 
     async destroy(source: string, keys: KeyMap, id: number): Promise<void> {
         // Prepare id, timestamps and KeyMap
-        const idKey = this._client.escapeKey(InternalKeys.Id);
-        const updateKey = this._client.escapeKey(InternalKeys.Timestamps.UpdatedAt);
-        const deleteKey = this._client.escapeKey(InternalKeys.Timestamps.DeletedAt);
+        const idKey = this.client.escapeKey(InternalKeys.Id);
 
         // Add timestamps
         const now = this.currentTimestamp;
         keys.set(InternalKeys.Timestamps.UpdatedAt, now);
-        keys.set(InternalKeys.Timestamps.DeletedAt, now);      
+        keys.set(InternalKeys.Timestamps.DeletedAt, now);
+
+        // Get sql input
+        const sqlInput = keys.toArray().reduce((input, [ key, value ]) => ([
+            ...input,
+            `${this.client.escapeKey(key)} = ${this.client.escape(value)}`
+        ]), []);
 
         // Prepare script
-        const destroyScript = `
-            UPDATE ${this._client.escapeKey(source)}
-            SET ${updateKey} = ${this._client.escape(now)}, ${deleteKey} = ${this._client.escape(now)}
-            WHERE ${idKey} = ${id}`;
+        const destroyScript = `UPDATE ${this.client.escapeKey(source)} SET ${sqlInput.join(', ')} WHERE ${idKey} = ${id}; -- Warp Server ${version}`;
 
         // Update the item
-        await this._client.query(destroyScript);
+        await this.client.query(destroyScript, DatabaseWrite);
     }
 }

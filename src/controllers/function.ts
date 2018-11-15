@@ -1,24 +1,20 @@
-import WarpServer from '../index';
+import Warp from '../index';
 import { RunOptionsType } from '../types/functions';
 
 export default class FunctionController {
 
-    _api: WarpServer;
+    api: Warp;
 
-    constructor(api: WarpServer) {
-        this._api = api;
+    constructor(api: Warp) {
+        this.api = api;
     }
     
-    async run({ Warp, metadata, currentUser, functionName, keys }: RunOptionsType): Promise<any> {
+    async run({ user, functionName, keys = {} }: RunOptionsType): Promise<any> {
         // Get function
-        const functionClass = this._api.functions.get(functionName);
-        const func = new functionClass({ metadata, currentUser, keys });
-
-        // Bind Warp
-        func.bindSDK(Warp);
+        const functionType = this.api.functions.get(functionName);
 
         // Run the function
-        const result = await func.execute();
+        const result = await this.api.functions.run(functionType, keys, { user: user || undefined });
 
         // Return the result
         return result;
