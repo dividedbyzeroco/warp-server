@@ -30,13 +30,13 @@ import { ClassOptions } from './types/class';
 import { hidden } from './features/orm/keys/modifiers/hidden';
 import { guarded } from './features/orm/keys/modifiers/guarded';
 import {
-    BeforeFind,
-    BeforeFirst,
-    BeforeGet,
-    BeforeSave,
-    AfterSave,
-    BeforeDestroy,
-    AfterDestroy
+    beforeFind,
+    beforeFirst,
+    beforeGet,
+    beforeSave,
+    afterSave,
+    beforeDestroy,
+    afterDestroy
 } from './features/orm/keys/modifiers/triggers';
 
 const { version } = require('./package.json');
@@ -321,11 +321,11 @@ export {
     Warp,
     ClassManager,
     belongsTo,
-    BeforeFind,
-    BeforeFirst,
-    BeforeGet,
-    BeforeSave,
-    AfterSave,
-    BeforeDestroy,
-    AfterDestroy
+    beforeFind,
+    beforeFirst,
+    beforeGet,
+    beforeSave,
+    afterSave,
+    beforeDestroy,
+    afterDestroy
 };

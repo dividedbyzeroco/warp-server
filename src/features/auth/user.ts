@@ -5,7 +5,7 @@ import Query from '../orm/query';
 import { InternalKeys } from '../../utils/constants';
 import { ClassManager } from '../..';
 import { ClassOptions } from '../../types/class';
-import { BeforeFind, BeforeGet, BeforeSave, BeforeDestroy } from '../orm/keys/modifiers/triggers';
+import { beforeFind, beforeGet, beforeSave, beforeDestroy } from '../orm/keys/modifiers/triggers';
 import { hidden } from '../orm/keys/modifiers/hidden';
 
 @define export default class User extends Class {
@@ -27,7 +27,7 @@ import { hidden } from '../orm/keys/modifiers/hidden';
         return this.isCurrentUser(user) || this.isMaster(master);
     }
 
-    @BeforeFind
+    @beforeFind
     verifyFindAccess<Q extends Query<any>, U extends User | undefined>(query: Q, opts: ClassOptions<U>) {
         // Get opts
         const { master } = opts;
@@ -37,7 +37,7 @@ import { hidden } from '../orm/keys/modifiers/hidden';
             throw new Error(Error.Code.ForbiddenOperation, 'Finding users can only be done by the master');
     }
 
-    @BeforeGet
+    @beforeGet
     verifyGetAccess<Q extends Query<any>, U extends User | undefined>(query: Q, opts: ClassOptions<U>): any {
         // Get opts
         const { user, master } = opts;
@@ -50,7 +50,7 @@ import { hidden } from '../orm/keys/modifiers/hidden';
         }
     }
 
-    @BeforeSave
+    @beforeSave
     async validateCredentials<U extends User | undefined>(classes: ClassManager, opts: ClassOptions<U>) {
         // If creating a user, make sure it is unique
         if(this.isNew) {
@@ -78,7 +78,7 @@ import { hidden } from '../orm/keys/modifiers/hidden';
         }
     }
 
-    @BeforeSave
+    @beforeSave
     verifyUpdateAccess<U extends User | undefined>(classes: ClassManager, opts: ClassOptions<U>) {
         // Get opts
         const { user, master } = opts;
@@ -89,7 +89,7 @@ import { hidden } from '../orm/keys/modifiers/hidden';
         }
     }
 
-    @BeforeDestroy
+    @beforeDestroy
     verifyDestroyAccess<U extends User | undefined>(classes, opts: ClassOptions<U>) {
         // Get opts
         const { user, master } = opts;
