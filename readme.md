@@ -1,6 +1,6 @@
-# Warp
+![Warp](warp-logo-full.png)
 
-__Warp__ is a framework that helps you manage and query your database with ease. 
+__Warp__ is an ORM for the scalable web.
 
 With `Warp`, you can:
 - Define your `tables`
