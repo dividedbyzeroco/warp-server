@@ -63,17 +63,29 @@ With `Warp`, you can:
 
 To install `Warp`, use the `npm install` command.
 
-```javascript
+```bash
 npm install --save warp-server
 ```
 
-As `Warp` uses advanced javascript features, you must transpile your project using a tool like [typescript](#http://www.typescriptlang.org). 
+As `Warp` uses advanced javascript features, you must transpile your project using a tool like [typescript](#http://www.typescriptlang.org).
 
-> NOTE: For `typescript`, Make sure to add the following in your `tsconfig.json` "compilerOptions".
+For `typescript`, Make sure to add the following in your `tsconfig.json` "compilerOptions".
 
 ```
 "experimentalDecorators": true,
 "emitDecoratorMetadata": true
+```
+
+Also, you need to install and import the `reflect-metadata` library in order for `Warp` to properly define classes.
+
+> NOTE: Remember to import `reflect-metadata` only once in your project, ideally in your main `index.ts` file.
+
+```bash
+npm install --save reflect-metadata
+```
+
+```javascript
+import 'reflect-metadata';
 ```
 
 # Getting Started
