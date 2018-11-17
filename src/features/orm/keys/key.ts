@@ -1,6 +1,6 @@
 import { toSnakeCase } from '../../../utils/format';
 import { KeyOptions } from '../../../types/key';
-import Class from '../class';
+import Class, { ClassDefinitionManager } from '../class';
 import StringKey from './types/string';
 import DateKey from './types/date';
 import NumberKey from './types/number';
@@ -79,19 +79,20 @@ export const keyDecorator = (opts: KeyOptions = {}) => {
         else if(type === 'json') keyManager = JsonKey(sourceName);
 
         // Set definition
-        const definition = classInstance.getDefinition();
+        const definition = ClassDefinitionManager.get(classInstance.statics());
         if(!definition.keys.includes(keyName) && !definition.timestamps.includes(keyName)) {
             definition.keys.push(keyName);
         }
+        ClassDefinitionManager.set(classInstance.statics(), definition);
 
         // Override getter and setter
         return {
             set(value) {
                 value = keyManager.setter(value);
-                this._keys.set(keyManager.name, value);
+                this.keys.set(keyManager.name, value);
             },
             get() {
-                return keyManager.getter(this._keys.get(keyManager.name));
+                return keyManager.getter(this.keys.get(keyManager.name));
             },
             enumerable: true,
             configurable: true

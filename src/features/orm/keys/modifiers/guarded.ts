@@ -1,4 +1,4 @@
-import Class from '../../class';
+import Class, { ClassDefinitionManager } from '../../class';
 import { toSnakeCase } from '../../../../utils/format';
 
 /**
@@ -11,6 +11,7 @@ export const guarded = <C extends Class>(classInstance: C, name: string): any =>
     const keyName = toSnakeCase(name);
 
     // Set definition
-    const definition = classInstance.getDefinition();
+    const definition = ClassDefinitionManager.get(classInstance.statics());
     if(!definition.guarded.includes(keyName)) definition.guarded.push(keyName);
+    ClassDefinitionManager.set(classInstance.statics(), definition);
 };

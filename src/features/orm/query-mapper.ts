@@ -21,7 +21,7 @@ export const getColumnsFrom = (className: string, keys: string[], relationsMap: 
             const pointer = pointerDefinition.toPointer();
 
             // Set the via and alias keys
-            columns.set(pointer.sourceClassKey, key);
+            columns.set(pointer.sourceClassKey(className), key);
             continue;
         }
 

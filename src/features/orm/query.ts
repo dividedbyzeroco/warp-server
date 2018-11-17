@@ -1,5 +1,5 @@
 import enforce from 'enforce-js';
-import Class from './class';
+import Class, { ClassDefinitionManager } from './class';
 import KeyMap from '../../utils/key-map';
 import Error from '../../utils/error';
 import { InternalKeys, Defaults } from '../../utils/constants';
@@ -439,7 +439,7 @@ export default class Query<T extends typeof Class> {
      */
     private getSelection() {
         // Get definition
-        const definition = this.class.prototype.getDefinition();
+        const definition = ClassDefinitionManager.get(this.class);
 
         // Get selection
         const defaultSelect = [ InternalKeys.Id, ...definition.keys, ...definition.timestamps ];
@@ -476,7 +476,7 @@ export default class Query<T extends typeof Class> {
         const className = this.class.className;
 
         // Get class details
-        const relationsMap = this.class.prototype.getDefinition().relations;
+        const relationsMap = ClassDefinitionManager.get(this.class).relations;
 
         // Get selection
         const selection = this.getSelection();

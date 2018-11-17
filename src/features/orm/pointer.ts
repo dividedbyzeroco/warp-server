@@ -1,4 +1,4 @@
-import Class from './class';
+import Class, { ClassDefinitionManager } from './class';
 import { InternalKeys, PointerDelimiter } from '../../utils/constants';
 import { toSnakeCase } from '../../utils/format';
 import Error from '../../utils/error';
@@ -73,14 +73,15 @@ export default class Pointer {
     /**
      * The foreign key inside the current class
      */
-    get sourceClassKey(): string {
-        return this.statics().formatKey(this.sourceClassName, this.sourceKey);
+    sourceClassKey(className: string): string {
+        const sourceClass = this.sourceClassName !== PointerDefinition.OwnerSymbol ? this.sourceClassName : className;
+        return this.statics().formatKey(sourceClass, this.sourceKey);
     }
 
     /**
      * The key inside the other class that the foreign key matches
      */
-    get parentClassKey(): string {
+    parentClassKey(): string {
         return this.statics().formatKey(this.parentClassName, this.parentKey);
     }
 
@@ -94,10 +95,9 @@ export default class Pointer {
     }
 }
 
-export class PointerDefinition<C extends typeof Class, T extends Class> {
+export class PointerDefinition<C extends typeof Class> {
 
     private classCaller: ClassCaller<C>;
-    private ownerInstance: T;
     private sourceClassName: string;
     private sourceKey: string;
     private parentClassName: string;
@@ -106,15 +106,13 @@ export class PointerDefinition<C extends typeof Class, T extends Class> {
     static OwnerSymbol = '*';
 
     constructor(
-        classDefinition: ClassCaller<C>, 
-        ownerInstance: T,
+        classDefinition: ClassCaller<C>,
         sourceClassName: string, 
         sourceKey: string,
         parentClassName: string,
         parentKey: string
     ) {
         this.classCaller = classDefinition;
-        this.ownerInstance = ownerInstance;
         this.sourceClassName = sourceClassName;
         this.sourceKey = sourceKey;
         this.parentClassName = parentClassName;
@@ -123,9 +121,8 @@ export class PointerDefinition<C extends typeof Class, T extends Class> {
 
     toPointer() {
         const classType = this.classCaller();
-        const definition = classType.prototype.getDefinition();
+        const definition = ClassDefinitionManager.get(classType);
         const { sourceClassName, sourceKey, parentClassName, parentKey } = this;
-        let sourceClassNameText = sourceClassName;
         let actualSourceKey = sourceKey;
         let secondary = false;
 
@@ -139,16 +136,13 @@ export class PointerDefinition<C extends typeof Class, T extends Class> {
                 const parentDefinition = definition.relations[sourceKey];
                 actualSourceKey = parentDefinition.toPointer().sourceKey;
             }
-            else throw new Error(Error.Code.ForbiddenOperation, `Pointer \`${this.sourceKey}\` does not exist in ${sourceClassNameText}`);
-        }
-        else {
-            sourceClassNameText = this.ownerInstance.statics().className;
+            else throw new Error(Error.Code.ForbiddenOperation, `Pointer \`${this.sourceKey}\` does not exist in ${sourceClassName}`);
         }
 
         // Create a pointer
         const pointer = new Pointer(
             classType, 
-            sourceClassNameText,
+            sourceClassName,
             actualSourceKey,
             parentClassName,
             parentKey,
@@ -178,24 +172,25 @@ export const belongsTo = <C extends typeof Class>(classCaller: ClassCaller<C>, f
         const [ parentClassName, parentKey ] = Pointer.parseKey(to);
         
         // Prepare pointer definition
-        const pointerDefinition = new PointerDefinition(classCaller, classInstance, sourceClassName, sourceKey, parentClassName, parentKey);
+        const pointerDefinition = new PointerDefinition(classCaller, sourceClassName, sourceKey, parentClassName, parentKey);
 
         // Prepare key manager
         const keyManager = PointerKey(keyName, pointerDefinition);
 
         // Set definition
-        const definition = classInstance.getDefinition();
+        const definition = ClassDefinitionManager.get(classInstance.statics());
         if(!definition.keys.includes(keyName)) definition.keys.push(keyName);
         definition.relations[keyName] = pointerDefinition;
+        ClassDefinitionManager.set(classInstance.statics(), definition);
 
         // Override pointer getter and setter
         return {
             set(value) {
                 value = keyManager.setter(value);
-                this._keys.set(keyManager.name, value);
+                this.keys.set(keyManager.name, value);
             },
             get() {
-                return keyManager.getter(this._keys.get(keyManager.name));
+                return keyManager.getter(this.keys.get(keyManager.name));
             },
             enumerable: true,
             configurable: true

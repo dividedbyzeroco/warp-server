@@ -141,7 +141,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         const joins: string[] = [];
         for(const [alias, pointer] of relations.entries())
             joins.push(`LEFT OUTER JOIN ${this.escapeKey(pointer.class.source)} AS ${this.escapeKey(alias, true)}`
-                + ` ON ${this.escapeKey(pointer.parentClassKey)} = ${this.escapeKey(pointer.sourceClassKey)}`);
+                + ` ON ${this.escapeKey(pointer.parentClassKey())} = ${this.escapeKey(pointer.sourceClassKey(source[1]))}`);
 
         // Get where
         const where = constraints.toArray()

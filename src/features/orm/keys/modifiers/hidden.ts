@@ -1,4 +1,4 @@
-import Class from '../../class';
+import Class, { ClassDefinitionManager } from '../../class';
 import { toSnakeCase } from '../../../../utils/format';
 
 /**
@@ -11,6 +11,7 @@ export const hidden = <C extends Class>(classInstance: C, name: string) => {
     const keyName = toSnakeCase(name);
 
     // Set definition
-    const definition = classInstance.getDefinition();
+    const definition = ClassDefinitionManager.get(classInstance.statics());
     if(!definition.hidden.includes(keyName)) definition.hidden.push(keyName);
+    ClassDefinitionManager.set(classInstance.statics(), definition);
 };

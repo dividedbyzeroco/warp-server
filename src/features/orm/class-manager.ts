@@ -1,5 +1,5 @@
 import enforce from 'enforce-js';
-import Class from './class';
+import Class, { ClassDefinitionManager } from './class';
 import Query from './query';
 import User from '../auth/user';
 import { IDatabaseAdapter } from '../../types/database';
@@ -121,7 +121,7 @@ export default class ClassManager {
         const classInstance = new query.class;
 
         // Get definition
-        const definition = classInstance.getDefinition();
+        const definition = ClassDefinitionManager.get(classInstance.statics());
 
         // Run all beforeFind triggers
         const beforeFindTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeFind);
@@ -176,7 +176,7 @@ export default class ClassManager {
         const classInstance = new query.class;
 
         // Get definition
-        const definition = classInstance.getDefinition();
+        const definition = ClassDefinitionManager.get(classInstance.statics());
 
         // Run all beforeFirst triggers
         const beforeFirstTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeFirst);
@@ -216,7 +216,7 @@ export default class ClassManager {
         if(typeof include !== 'undefined') query.include(include);
 
         // Get definition
-        const definition = classInstance.getDefinition();
+        const definition = ClassDefinitionManager.get(classInstance.statics());
 
         // Run all beforeGet triggers
         const beforeGetTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeGet);
@@ -260,7 +260,7 @@ export default class ClassManager {
         enforce`${{ ClassToSave: classInstance }} as a ${{ Class }}`;
 
         // Get definition
-        const definition = classInstance.getDefinition();
+        const definition = ClassDefinitionManager.get(classInstance.statics());
 
         // Run all beforeSave triggers
         const beforeSaveTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeSave);
@@ -301,7 +301,7 @@ export default class ClassManager {
         enforce`${{ ClassToDestroy: classInstance }} as a ${{ Class }}`;
 
         // Get definition
-        const definition = classInstance.getDefinition();
+        const definition = ClassDefinitionManager.get(classInstance.statics());
 
         // Run all beforeDestroy triggers
         const beforeDestroyTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeDestroy);

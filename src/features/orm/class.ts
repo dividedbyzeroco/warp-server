@@ -34,6 +34,29 @@ const DefaultClassDefinition = {
     guarded: []
 };
 
+export class ClassDefinitionManager {
+
+    static get<C extends typeof Class>(classType: C) {
+        // Get definition
+        const definition = Reflect.getMetadata(ClassDefinitionSymbol, classType) as ClassDefinition || DefaultClassDefinition;
+
+        // Get immutable copy of class definition
+        return  { 
+            keys: definition.keys.slice(),
+            timestamps: definition.timestamps.slice(),
+            relations: { ...definition.relations },
+            triggers: definition.triggers.slice(),
+            hidden: definition.hidden.slice(),
+            guarded: definition.guarded.slice()
+        };
+    }
+
+    static set<C extends typeof Class>(classType: C, definition: ClassDefinition) {
+        Reflect.defineMetadata(ClassDefinitionSymbol, definition, classType);
+    }
+
+}
+
 /**
  * Extend Class with className and source
  */
@@ -94,7 +117,7 @@ export default class Class {
      */
     constructor(keys: number | ClassKeys = {}) {
         // Get definition
-        const definition = this.getDefinition();
+        const definition = ClassDefinitionManager.get(this.statics());
 
         // If 'keys' is an id, set the id
         if(typeof keys === 'number') {
@@ -136,7 +159,7 @@ export default class Class {
      */
     static has(key: string): boolean {
         // Class definition
-        const definition = this.prototype.getDefinition();
+        const definition = ClassDefinitionManager.get(this);
 
         // Check if the key is compound
         if(CompoundKey.isUsedBy(key)) {
@@ -157,8 +180,9 @@ export default class Class {
         // Get source
         const [ sourceClassName, sourceKey ] = Pointer.parseKey(key);
 
+
         // Get class pointer
-        const definition = this.prototype.getDefinition();
+        const definition = ClassDefinitionManager.get(this);
         const pointerDefinition = definition.relations[sourceClassName];
 
         // Check if pointer exists
@@ -177,17 +201,6 @@ export default class Class {
 
     static withId<C extends Class>(id: number): C {
         return new this(id) as C;
-    }
-
-    /**
-     * Get class definition
-     */
-    getDefinition(): ClassDefinition {
-        // Get definition
-        const definition = Reflect.getMetadata(ClassDefinitionSymbol, this) as ClassDefinition;
-
-        // Override default definition
-        return  { ...DefaultClassDefinition, ...definition };
     }
     
     statics<T extends typeof Class>(): T {
@@ -247,7 +260,7 @@ export default class Class {
         let body = {};
 
         // Class definition
-        const classDefinition = this.getDefinition();
+        const classDefinition = ClassDefinitionManager.get(this.statics());
         const iterables = classDefinition.keys.filter(key => !classDefinition.hidden.includes(key));
 
         // Iterate through each key in key map
