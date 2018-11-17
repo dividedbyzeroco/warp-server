@@ -36,6 +36,7 @@ const DefaultClassDefinition = {
 
 export class ClassDefinitionManager {
 
+    // Resolved issue with: https://github.com/rbuckton/reflect-metadata/issues/53#issuecomment-274906502
     static get<C extends typeof Class>(classType: C) {
         // Get definition
         const definition = Reflect.getMetadata(ClassDefinitionSymbol, classType) as ClassDefinition || DefaultClassDefinition;
