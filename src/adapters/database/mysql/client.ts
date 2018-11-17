@@ -7,10 +7,10 @@ import { ILogger } from '../../../types/logger';
 import { DatabaseConfig, ConnectionCollection, DatabaseAction } from '../../../types/database';
 import chalk from 'chalk';
 
-export type DatabaseResult = {
-    id: number,
-    rows: Array<object>
-};
+export interface DatabaseResult {
+    id: number;
+    rows: object[];
+}
 
 export default class DatabaseClient {
 
@@ -24,20 +24,17 @@ export default class DatabaseClient {
 
     /**
      * Constructor
-     * @param {Object} config 
+     * @param {Object} config
      */
     constructor({ uris, persistent, logger }: DatabaseConfig) {
         // Get connection configs
-        for(const uriConfig of uris) {
+        for (const uriConfig of uris) {
             // Check if action is write
-            if(uriConfig.action === DatabaseWrite) {
+            if (uriConfig.action === DatabaseWrite) {
                 this.connectionConfigs.write.push(this.extractConfig(uriConfig.uri));
-            }
-            // Check if action is read
-            else if(uriConfig.action === DatabaseRead) {
+            } else if (uriConfig.action === DatabaseRead) {
                 this.connectionConfigs.read.push(this.extractConfig(uriConfig.uri));
-            }
-            else throw new Error(Error.Code.ForbiddenOperation, `Database action must either be 'write' or 'read'`);
+            } else throw new Error(Error.Code.ForbiddenOperation, `Database action must either be 'write' or 'read'`);
         }
 
         // Set connection settings
@@ -63,7 +60,7 @@ export default class DatabaseClient {
             user: decodeURIComponent(identity[0]),
             password: decodeURIComponent(identity[1]),
             database: parsedURI.pathname.slice(1),
-            ...params
+            ...params,
         };
 
         // Enforce
@@ -77,35 +74,35 @@ export default class DatabaseClient {
         return config;
     }
 
-    escape(value: any) {
+    public escape(value: any) {
         // Escape keys
         return mysql.escape(value);
     }
 
-    escapeKey(value: string, useRaw: boolean = false) {
-        if(useRaw) {
+    public escapeKey(value: string, useRaw: boolean = false) {
+        if (useRaw) {
             value = mysql.escapeId(value.replace('.', '$'));
             return value.replace('$', '.');
         }
         return mysql.escapeId(value, useRaw);
     }
 
-    async initialize(): Promise<void> {
+    public async initialize(): Promise<void> {
         // If pool is already initialized, skip
-        if(this.poolCluster) return;
-        
+        if (this.poolCluster) return;
+
         // Prepare pool cluster
         this.poolCluster = mysql.createPoolCluster();
 
         // Loop through write connections
         let index = 0;
-        for(const writeConfig of this.connectionConfigs.write) {
+        for (const writeConfig of this.connectionConfigs.write) {
             this.poolCluster.add(`${DatabaseWrite.toUpperCase()}${++index}`, writeConfig);
         }
 
         // Loop through read connections
         index = 0;
-        for(const readConfig of this.connectionConfigs.read) {
+        for (const readConfig of this.connectionConfigs.read) {
             this.poolCluster.add(`${DatabaseRead.toUpperCase()}${++index}`, readConfig);
         }
 
@@ -113,10 +110,9 @@ export default class DatabaseClient {
         const result = await this.query('SELECT 1+1 AS result', DatabaseRead);
         try {
             const rows = result['rows'] || [{ result: undefined }];
-            if(rows[0]['result'] === 2) return;
+            if (rows[0]['result'] === 2) return;
             else throw new Error(Error.Code.InternalServerError, 'Could not connect to the pool');
-        }
-        catch(err) {
+        } catch (err) {
             throw new Error(Error.Code.InternalServerError, 'Could not connect to the pool');
         }
     }
@@ -125,7 +121,7 @@ export default class DatabaseClient {
         // Create a promise connect method
         const onConnect: Promise<mysql.PoolConnection> = new Promise((resolve, reject) => {
             this.poolCluster.getConnection(`${action.toUpperCase()}*`, (err, connection) => {
-                if(err) return reject(err);
+                if (err) return reject(err);
                 resolve(connection);
             });
         });
@@ -133,42 +129,41 @@ export default class DatabaseClient {
         try {
             // Await on the connection
             return await onConnect;
-        } catch(err) {
+        } catch (err) {
             // Throw errors for disconnections
             throw new Error(Error.Code.InternalServerError, `Could not connect to the database: ${err.message}`);
         }
     }
 
-    async query(queryString: string, action: DatabaseAction): Promise<DatabaseResult> {
+    public async query(queryString: string, action: DatabaseAction): Promise<DatabaseResult> {
         // Create promise query method
         const connection = await this.connect(action);
         const onQuery = new Promise((resolve, reject) => {
             // Display query
-            this.logger.info(chalk.green(queryString)); 
+            this.logger.info(chalk.green(queryString));
 
             // Run the query
             connection.query(queryString, (err, result) => {
-                if(err) return reject(err);
+                if (err) return reject(err);
                 resolve(result);
             });
         });
-        
+
         try {
             // Await row results
             const rows = await onQuery;
 
             // Release or destroy the connection
-            if(this.persistent) connection.release();
+            if (this.persistent) connection.release();
             else connection.destroy();
 
             // Prepare result
             let result;
-            if(rows instanceof Array) result = { rows };
+            if (rows instanceof Array) result = { rows };
             else result = { id: rows['insertId'] };
 
             return result;
-        }
-        catch(err) {
+        } catch (err) {
             throw new Error(Error.Code.DatabaseError, `Invalid query request: ${err.message}, ${queryString}`);
         }
     }

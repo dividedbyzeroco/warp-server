@@ -25,32 +25,32 @@ export class KeyConstraints {
         return this.keyName;
     }
 
-    get constraints(): Array<ConstraintObject> {
+    get constraints(): ConstraintObject[] {
         return Object.keys(this.map).map(constraint => {
-            return { key: this.key, constraint: constraint, value: this.map[constraint] };
+            return { key: this.key, constraint, value: this.map[constraint] };
         });
     }
 
-    set(constraint: string, value: any) {
+    public set(constraint: string, value: any) {
         this.map[constraint] = value;
     }
 
-    changeKey(newKey: string) {
+    public changeKey(newKey: string) {
         this.keyName = newKey;
     }
 
-    toJSON(): Object {
+    public toJSON(): object {
         return { ...this.map };
     }
 }
 
 export const Subqueries = Object.freeze({
-    FoundIn: 'fi', 
+    FoundIn: 'fi',
     FoundInEither: 'fie',
     FoundInAll: 'fia',
     NotFoundIn: 'nfi',
     NotFoundInEither: 'nfe',
-    NotFoundInAll: 'nfa'
+    NotFoundInAll: 'nfa',
 });
 
 export const Constraints = Object.freeze({
@@ -58,10 +58,10 @@ export const Constraints = Object.freeze({
     NotEqualTo: 'neq',
     GreaterThan: 'gt',
     GreaterThanOrEqualTo: 'gte',
-    LessThan: 'lt', 
+    LessThan: 'lt',
     LessThanOrEqualTo: 'lte',
     Exists: 'ex',
-    ContainedIn: 'in', 
+    ContainedIn: 'in',
     NotContainedIn: 'nin',
     ContainedInOrDoesNotExist: 'inx',
     StartsWith: 'str',
@@ -69,7 +69,7 @@ export const Constraints = Object.freeze({
     Contains: 'has',
     ContainsEither: 'hasi',
     ContainsAll: 'hasa',
-    ...Subqueries
+    ...Subqueries,
 });
 
 export default class ConstraintMap {
@@ -85,43 +85,43 @@ export default class ConstraintMap {
      */
     constructor(constraints: {[key: string]: { [key: string]: any }} = {}) {
         // Populate map
-        for(let key in constraints) {
+        for (const key in constraints) {
             this.map[key] = new KeyConstraints(key, constraints[key]);
         }
     }
 
-    get keys(): Array<string> {
+    get keys(): string[] {
         return Object.keys(this.map);
     }
 
-    set(key: string, constraint: string, value: any) {
+    public set(key: string, constraint: string, value: any) {
         const constraints = this.map[key] || new KeyConstraints(key, {});
         constraints.set(constraint, value);
         this.map[key] = constraints;
     }
 
-    changeKey(key: string, newKey: string) {
+    public changeKey(key: string, newKey: string) {
         const constraints = this.map[key];
-        if(!constraints)
+        if (!constraints)
             throw new Error(Error.Code.MissingConfiguration, `Constraint key being changed does not exist: \`${key}\``);
 
         // Don't change keys if they are the same
-        if(key === newKey) return;
+        if (key === newKey) return;
 
         constraints.changeKey(newKey);
         this.map[newKey] = constraints;
         delete this.map[key];
     }
 
-    get(key: string): KeyConstraints {
+    public get(key: string): KeyConstraints {
         return this.map[key];
     }
 
-    toArray() {
+    public toArray() {
         return Object.keys(this.map).map(key => this.map[key]);
     }
 
-    toJSON() {
+    public toJSON() {
         return Object.keys(this.map).reduce((map, key) => {
             map[key] = this.map[key].toJSON();
             return map;

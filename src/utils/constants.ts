@@ -29,26 +29,26 @@ export const InternalKeys = Object.freeze({
     Timestamps: Object.freeze({
         CreatedAt,
         UpdatedAt,
-        DeletedAt
+        DeletedAt,
     }),
     Middleware: Object.freeze({
         ApiKey: 'X-Warp-API-Key',
         MasterKey: 'X-Warp-Master-Key',
         User: 'user',
         Result: 'result',
-        ClassManager: 'classes'
+        ClassManager: 'classes',
     }),
     Pointers: Object.freeze({
         Type: 'type',
         ClassName: 'class_name',
-        Attributes: 'attributes'
+        Attributes: 'attributes',
     }),
     Auth: Object.freeze({
         User: 'user',
         Username: 'username',
         Email: 'email',
-        Password: 'password'
-    })
+        Password: 'password',
+    }),
 });
 
 export const DatabaseWrite = 'write';
@@ -58,8 +58,8 @@ export const Defaults = Object.freeze({
     Query: Object.freeze({
         Sort: [InternalKeys.Id],
         Skip: 0,
-        Limit: 100
-    })
+        Limit: 100,
+    }),
 });
 
 export const AccessFind = 'find';

@@ -1,11 +1,12 @@
 {
   "name": "warp-server",
-  "version": "6.3.0",
+  "version": "6.2.0",
   "description": "Warp Server",
   "main": "./index.js",
   "types": "./index.d.ts",
   "scripts": {
-    "build": "tsc && cp package.json ./dist/package.json",
+    "lint": "tslint --fix -c tslint.json -t verbose -o tslint.errors.log 'src/**/*.ts'",
+    "build": "tsc && cp package.json ./dist/package.json && cp readme.md ./dist/readme.md && cp warp-logo-full.png ./dist/warp-logo-full.png",
     "clean": "node ./node_modules/rimraf/bin dist",
     "test": "mocha"
   },

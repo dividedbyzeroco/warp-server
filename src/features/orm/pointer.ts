@@ -7,25 +7,25 @@ import { ClassCaller } from '../../types/pointer';
 
 export default class Pointer {
 
-    sourceClassName: string;
-    sourceKey: string;
-    classType: typeof Class;
-    parentClassName: string;
-    parentKey: string;
+    public sourceClassName: string;
+    public sourceKey: string;
+    public classType: typeof Class;
+    public parentClassName: string;
+    public parentKey: string;
     private secondaryFlag: boolean;
 
     /**
      * Constructor
-     * @param {Class} classType 
-     * @param {String} aliasKey 
+     * @param {Class} classType
+     * @param {String} aliasKey
      */
     constructor(
         classType: typeof Class,
-        sourceClassName: string, 
+        sourceClassName: string,
         sourceKey: string,
         parentClassName: string,
         parentKey: string,
-        secondary: boolean = false
+        secondary: boolean = false,
     ) {
         this.classType = classType;
         this.sourceClassName = sourceClassName;
@@ -35,33 +35,33 @@ export default class Pointer {
         this.secondaryFlag = secondary;
     }
 
-    static isUsedBy(key: string) {
+    public static isUsedBy(key: string) {
         return key.indexOf(PointerDelimiter) > 0;
     }
 
-    static isValid(key: string) {
+    public static isValid(key: string) {
         return this.isUsedBy(key) && key.split(PointerDelimiter).length === 2;
     }
 
-    static parseKey(keyName: string): [string, string] {
+    public static parseKey(keyName: string): [string, string] {
         // Get key parts
         const [ className, key ] = keyName.split(PointerDelimiter, 2);
 
         return [ className, key ];
     }
 
-    static formatKey(className: string, key: string) {
+    public static formatKey(className: string, key: string) {
         return `${className}${PointerDelimiter}${key}`;
     }
 
-    static formatAsId(key: string) {
+    public static formatAsId(key: string) {
         return `${key}_${InternalKeys.Id}`;
     }
 
-    statics() {
+    public statics() {
         return this.constructor as typeof Pointer;
     }
-    
+
     get class(): typeof Class {
         return this.classType;
     }
@@ -73,7 +73,7 @@ export default class Pointer {
     /**
      * The foreign key inside the current class
      */
-    sourceClassKey(className: string): string {
+    public sourceClassKey(className: string): string {
         const sourceClass = this.sourceClassName !== PointerDefinition.OwnerSymbol ? this.sourceClassName : className;
         return this.statics().formatKey(sourceClass, this.sourceKey);
     }
@@ -81,16 +81,16 @@ export default class Pointer {
     /**
      * The key inside the other class that the foreign key matches
      */
-    parentClassKey(): string {
+    public parentClassKey(): string {
         return this.statics().formatKey(this.parentClassName, this.parentKey);
     }
 
-    isImplementedBy(value: object) {
-        if(value === null) return true;
-        if(typeof value !== 'object') return false;
-        if(value[InternalKeys.Pointers.Type] !== 'Pointer') return false;
-        if(value[InternalKeys.Pointers.ClassName] !== this.class.className) return false;
-        if(value[InternalKeys.Id] === null || typeof value[InternalKeys.Id] === 'undefined') return false;
+    public isImplementedBy(value: object) {
+        if (value === null) return true;
+        if (typeof value !== 'object') return false;
+        if (value[InternalKeys.Pointers.Type] !== 'Pointer') return false;
+        if (value[InternalKeys.Pointers.ClassName] !== this.class.className) return false;
+        if (value[InternalKeys.Id] === null || typeof value[InternalKeys.Id] === 'undefined') return false;
         return true;
     }
 }
@@ -103,14 +103,14 @@ export class PointerDefinition<C extends typeof Class> {
     private parentClassName: string;
     private parentKey: string;
 
-    static OwnerSymbol = '*';
+    public static OwnerSymbol = '*';
 
     constructor(
         classDefinition: ClassCaller<C>,
-        sourceClassName: string, 
+        sourceClassName: string,
         sourceKey: string,
         parentClassName: string,
-        parentKey: string
+        parentKey: string,
     ) {
         this.classCaller = classDefinition;
         this.sourceClassName = sourceClassName;
@@ -119,7 +119,7 @@ export class PointerDefinition<C extends typeof Class> {
         this.parentKey = parentKey;
     }
 
-    toPointer() {
+    public toPointer() {
         const classType = this.classCaller();
         const definition = ClassDefinitionManager.get(classType);
         const { sourceClassName, sourceKey, parentClassName, parentKey } = this;
@@ -127,28 +127,27 @@ export class PointerDefinition<C extends typeof Class> {
         let secondary = false;
 
         // Check if source is the owner
-        if(sourceClassName !== PointerDefinition.OwnerSymbol) secondary = true;
+        if (sourceClassName !== PointerDefinition.OwnerSymbol) secondary = true;
 
         // Check if pointer is secondary
-        if(secondary) {
-            if(typeof definition.relations[sourceKey] !== 'undefined') {
+        if (secondary) {
+            if (typeof definition.relations[sourceKey] !== 'undefined') {
                 // Get parent definition
                 const parentDefinition = definition.relations[sourceKey];
                 actualSourceKey = parentDefinition.toPointer().sourceKey;
-            }
-            else throw new Error(Error.Code.ForbiddenOperation, `Pointer \`${this.sourceKey}\` does not exist in ${sourceClassName}`);
+            } else throw new Error(Error.Code.ForbiddenOperation, `Pointer \`${this.sourceKey}\` does not exist in ${sourceClassName}`);
         }
 
         // Create a pointer
         const pointer = new Pointer(
-            classType, 
+            classType,
             sourceClassName,
             actualSourceKey,
             parentClassName,
             parentKey,
-            secondary
+            secondary,
         );
-    
+
         // Return pointer
         return pointer;
     }
@@ -156,7 +155,7 @@ export class PointerDefinition<C extends typeof Class> {
 
 /**
  * belongsTo decorator for pointers
- * @param classCaller 
+ * @param classCaller
  */
 export const belongsTo = <C extends typeof Class>(classCaller: ClassCaller<C>, from?: string, to?: string) => {
     return <T extends Class>(classInstance: T, name: string): any => {
@@ -170,7 +169,7 @@ export const belongsTo = <C extends typeof Class>(classCaller: ClassCaller<C>, f
         // Extract keys
         const [ sourceClassName, sourceKey ] = Pointer.parseKey(from);
         const [ parentClassName, parentKey ] = Pointer.parseKey(to);
-        
+
         // Prepare pointer definition
         const pointerDefinition = new PointerDefinition(classCaller, sourceClassName, sourceKey, parentClassName, parentKey);
 
@@ -179,7 +178,7 @@ export const belongsTo = <C extends typeof Class>(classCaller: ClassCaller<C>, f
 
         // Set definition
         const definition = ClassDefinitionManager.get(classInstance.statics());
-        if(!definition.keys.includes(keyName)) definition.keys.push(keyName);
+        if (!definition.keys.includes(keyName)) definition.keys.push(keyName);
         definition.relations[keyName] = pointerDefinition;
         ClassDefinitionManager.set(classInstance.statics(), definition);
 
@@ -193,7 +192,7 @@ export const belongsTo = <C extends typeof Class>(classCaller: ClassCaller<C>, f
                 return keyManager.getter(this.keys.get(keyManager.name));
             },
             enumerable: true,
-            configurable: true
+            configurable: true,
         };
     };
 };

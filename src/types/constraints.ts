@@ -1,5 +1,5 @@
-export type ConstraintObject = {
-    key: string,
-    constraint: string,
-    value: any
-};
+export interface ConstraintObject {
+    key: string;
+    constraint: string;
+    value: any;
+}

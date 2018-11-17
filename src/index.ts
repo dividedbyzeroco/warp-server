@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { Request as ExpressRequest, Router } from 'express';
 import enforce from 'enforce-js';
 import chalk from 'chalk';
-import Class, { define } from './features/orm/class'
+import Class, { define } from './features/orm/class';
 import Query from './features/orm/query';
 import User from './features/auth/user';
 import Function from './features/functions/function';
@@ -36,7 +36,7 @@ import {
     beforeSave,
     afterSave,
     beforeDestroy,
-    afterDestroy
+    afterDestroy,
 } from './features/orm/keys/modifiers/triggers';
 
 const { version } = require('./package.json');
@@ -51,7 +51,7 @@ Validation.initialize();
  * @description Warp definition
  */
 export default class Warp {
-    
+
     private loggerInstance: ILogger;
     private security: SecurityConfigType;
     private classManager: ClassManager;
@@ -63,15 +63,15 @@ export default class Warp {
 
     /**
      * Constructor
-     * @param {Object} config 
+     * @param {Object} config
      */
-    constructor({ 
+    constructor({
         apiKey,
         masterKey,
         databaseURI,
         persistent = false,
         customResponse,
-        restful
+        restful,
     }: ServerConfigType) {
         // Set logger
         this.setLogger('console');
@@ -145,14 +145,14 @@ export default class Warp {
     get response(): ResponseFunctionsType {
         return this.responseInstance;
     }
- 
+
     /**
      * Get controllers
      */
     get controllers() {
         return Object.freeze({
             class: this.classController,
-            function: this.functionController
+            function: this.functionController,
         });
     }
 
@@ -190,11 +190,11 @@ export default class Warp {
         // Enforce
         enforce`${{apiKey}} as a string`;
         enforce`${{masterKey}} as a string`;
-        
+
         // Set keys
-        this.security = { 
-            apiKey, 
-            masterKey
+        this.security = {
+            apiKey,
+            masterKey,
         };
     }
 
@@ -207,17 +207,14 @@ export default class Warp {
         let uris: URIConfig[] = [];
 
         // Check if uri is a string
-        if(typeof databaseURI === 'string') {
+        if (typeof databaseURI === 'string') {
             uris = [
-                { uri: databaseURI, action: 'read' }, 
-                { uri: databaseURI, action: 'write' }
+                { uri: databaseURI, action: 'read' },
+                { uri: databaseURI, action: 'write' },
             ];
-        }
-        // Check if uri is an array
-        else if(databaseURI instanceof Array) {
+        } else if (databaseURI instanceof Array) {
             uris = [ ...databaseURI ];
-        }
-        else {
+        } else {
             throw new Error(`'databaseURI' must be a string or an array of configs`);
         }
 
@@ -230,7 +227,7 @@ export default class Warp {
         // Set data mapper
         this.classManager = new ClassManager(database);
     }
-    
+
     /**
      * Set action mapper configuration
      */
@@ -249,7 +246,7 @@ export default class Warp {
 
     /**
      * Set router
-     * @param restful 
+     * @param restful
      */
     private setRouter(restful: boolean = false) {
         // Prepare routers
@@ -258,7 +255,7 @@ export default class Warp {
         router.use(functionsRouter(this));
 
         // Only use class routers when restful
-        if(restful) router.use(classesRouter(this));
+        if (restful) router.use(classesRouter(this));
 
         // Set the router instance
         this.routerInstance = router;
@@ -267,10 +264,10 @@ export default class Warp {
     /**
      * Initialize the server and connect to the database
      */
-    async initialize() {
+    public async initialize() {
         try {
             this.loggerInstance.info('Starting Warp Server...');
-            
+
             // Attempt to connect to the database
             await this.classManager.initialize();
 
@@ -294,7 +291,7 @@ export default class Warp {
                 MMMMMMMMMMMMMMMMmddMMMMMMMMMMMMMMMMMMMMMMMM
                 MMMMMMMMMMMMMMMMMNMMMMMMMMMMMMMMMMMMMMMMMMM
                 MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-                                                                                                
+
                            Warp Server ${version}
 
                 +-----------------------------------------+
@@ -302,8 +299,7 @@ export default class Warp {
                 +-----------------------------------------+
             `));
             this.loggerInstance.info('Service started');
-        }
-        catch(err) {
+        } catch (err) {
             this.loggerInstance.error(err, err.message);
         }
     }
@@ -341,5 +337,5 @@ export {
     beforeSave,
     afterSave,
     beforeDestroy,
-    afterDestroy
+    afterDestroy,
 };

@@ -34,14 +34,12 @@ const functions = (api: Warp): express.Router => {
             // Return response
             req[InternalKeys.Middleware.Result] = result;
             api.response.success(req, res, next);
-        }
-        catch(err) {
+        } catch (err) {
             // Check if function was not found
-            if(err.code === Error.Code.FunctionNotFound) {
+            if (err.code === Error.Code.FunctionNotFound) {
                 api.logger.warn(err, `Could not run the function \`${functionName}\`: ${err.message}`);
                 next();
-            }
-            else {
+            } else {
                 api.logger.error(err, `Could not run the function \`${functionName}\`: ${err.message}`);
                 api.response.error(err, req, res, next);
             }

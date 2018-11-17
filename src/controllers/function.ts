@@ -3,13 +3,13 @@ import { RunOptionsType } from '../types/functions';
 
 export default class FunctionController {
 
-    api: Warp;
+    public api: Warp;
 
     constructor(api: Warp) {
         this.api = api;
     }
-    
-    async run({ user, functionName, keys = {} }: RunOptionsType): Promise<any> {
+
+    public async run({ user, functionName, keys = {} }: RunOptionsType): Promise<any> {
         // Get function
         const functionType = this.api.functions.get(functionName);
 

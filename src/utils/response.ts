@@ -4,15 +4,15 @@ import { InternalKeys } from './constants';
 
 export default class Response {
 
-    private _customResponse = false;
+    private customResponse = false;
 
     constructor(customize: boolean = false) {
-        this._customResponse = customize;
+        this.customResponse = customize;
     }
 
-    success(req: express.Request, res: express.Response, next: express.NextFunction) {
+    public success(req: express.Request, res: express.Response, next: express.NextFunction) {
         // Check if response success exists
-        if(this._customResponse)
+        if (this.customResponse)
             next();
         else {
             // Set result
@@ -24,21 +24,20 @@ export default class Response {
         }
     }
 
-    error(err: Error, req: express.Request, res: express.Response, next: express.NextFunction) {
+    public error(err: Error, req: express.Request, res: express.Response, next: express.NextFunction) {
         // Check if response error exists
-        if(this._customResponse)
+        if (this.customResponse)
             next(err);
         else {
             // Set code and message
-            let status = err.status;
+            const status = err.status;
             let code = err.code;
             let message = err.message;
 
             // Check error code
-            if(typeof err.code === 'undefined') {
+            if (typeof err.code === 'undefined') {
                 code = 400;
-            }
-            else if(err.code === Error.Code.DatabaseError) {
+            } else if (err.code === Error.Code.DatabaseError) {
                 message = 'Invalid query request';
             }
 

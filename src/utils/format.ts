@@ -10,7 +10,7 @@ export const toPascalCase = (value: string) => {
 
 export const toSnakeCase = (value: string) => {
     return value.replace(/\.?([A-Z]+)/g, word => '_' + word.toLowerCase()).replace(/^_/, '');
-}
+};
 
 export const toDatabaseDate = (value: string) => {
     return (new Date(value)).toISOString().slice(0, 19).replace('T', ' ');
@@ -25,22 +25,22 @@ export const addToDate = (value: string, span: string) => {
     const date = new Date(value);
     const result = new Date(date);
     const unitMap = {
-        'minute': () => result.setMinutes(result.getMinutes() + parseFloat(duration)),
-        'minutes': () => result.setMinutes(result.getMinutes() + parseFloat(duration)),
-        'hour': () => result.setHours(result.getHours() + parseFloat(duration)),
-        'hours': () => result.setHours(result.getHours() + parseFloat(duration)),
-        'day': () => result.setDate(result.getDate() + parseFloat(duration)),
-        'days': () => result.setDate(result.getDate() + parseFloat(duration)),
-        'month': () => result.setMonth(result.getMonth() + parseFloat(duration)),
-        'months': () => result.setMonth(result.getMonth() + parseFloat(duration)),
-        'year': () => result.setFullYear(result.getFullYear() + parseFloat(duration)),
-        'years': () => result.setFullYear(result.getFullYear() + parseFloat(duration))
+        minute: () => result.setMinutes(result.getMinutes() + parseFloat(duration)),
+        minutes: () => result.setMinutes(result.getMinutes() + parseFloat(duration)),
+        hour: () => result.setHours(result.getHours() + parseFloat(duration)),
+        hours: () => result.setHours(result.getHours() + parseFloat(duration)),
+        day: () => result.setDate(result.getDate() + parseFloat(duration)),
+        days: () => result.setDate(result.getDate() + parseFloat(duration)),
+        month: () => result.setMonth(result.getMonth() + parseFloat(duration)),
+        months: () => result.setMonth(result.getMonth() + parseFloat(duration)),
+        year: () => result.setFullYear(result.getFullYear() + parseFloat(duration)),
+        years: () => result.setFullYear(result.getFullYear() + parseFloat(duration)),
     };
     unitMap[unit]();
     return result;
 };
 
 export const toDateTime = (value?: string) => {
-    if(!value) return new Date();
+    if (!value) return new Date();
     else return new Date(value);
 };

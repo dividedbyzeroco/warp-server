@@ -12,41 +12,39 @@ export default class FunctionClass {
 
     constructor(keys: { [name: string]: any } = {}, user?: User) {
         // Check if current user is provided
-        if(typeof user !== 'undefined' && user !== null) this.user = user;
-        
+        if (typeof user !== 'undefined' && user !== null) this.user = user;
+
         // Iterate through each param
-        if(typeof keys !== 'undefined') {
-            for(let key in keys) {
+        if (typeof keys !== 'undefined') {
+            for (const key in keys) {
 
                 // Get value
-                let value = keys[key];
+                const value = keys[key];
 
                 // Check if setter exists
                 const keyDescriptor = Object.getOwnPropertyDescriptor(this.constructor.prototype, toCamelCase(key));
-                if(keyDescriptor && typeof keyDescriptor.set === 'function') {
+                if (keyDescriptor && typeof keyDescriptor.set === 'function') {
                     const setter = keyDescriptor.set.bind(this);
                     setter(value);
-                }
-                // Otherwise, generically set the value
-                else this.set(key, value);
+                } else this.set(key, value);
             }
-        } 
+        }
 
         // After setting values, make the key map immutable
         this.keys.freeze();
     }
 
-    statics<T extends typeof FunctionClass>(): T {
+    public statics<T extends typeof FunctionClass>(): T {
         return this.constructor as T;
     }
 
     // @deprecated
-    set(key: string, value: any) {
+    public set(key: string, value: any) {
         this.keys.set(key, value);
     }
 
     // @deprecated
-    get(key: string) {
+    public get(key: string) {
         return this.keys.get(key);
     }
 
@@ -62,7 +60,7 @@ export default class FunctionClass {
         return false;
     }
 
-    run<U extends User | undefined>(params?: object, opts?: FunctionOptions<U>): any {
+    public run<U extends User | undefined>(params?: object, opts?: FunctionOptions<U>): any {
         return;
     }
 

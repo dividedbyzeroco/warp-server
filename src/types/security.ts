@@ -1,4 +1,4 @@
-export type SecurityConfigType = {
-    apiKey: string,
-    masterKey: string
+export interface SecurityConfigType {
+    apiKey: string;
+    masterKey: string;
 }

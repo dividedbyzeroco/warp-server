@@ -22,7 +22,7 @@ export default class ConsoleLoggerAdapter implements ILogger  {
             Verbose: 'verbose' as Levels,
             Warning: 'warning' as Levels,
             Error: 'error' as Levels,
-            Disabled: 'disabled' as Levels
+            Disabled: 'disabled' as Levels,
         });
     }
 
@@ -40,53 +40,53 @@ export default class ConsoleLoggerAdapter implements ILogger  {
     }
 
     set level(value: Levels) {
-        if(!Object.values(this.statics.Levels).includes(value)) return;
+        if (!Object.values(this.statics.Levels).includes(value)) return;
         this.logLevel = value;
     }
 
     get level(): Levels {
-        if(!this.logLevel)
+        if (!this.logLevel)
             return this.statics.Levels.Verbose;
         return this.logLevel;
     }
 
-    header(type: LogTypes): string  {
+    public header(type: LogTypes): string  {
         return `[${this.appName} ${this.timestamp}][${type}]`;
     }
 
-    bare(...message: Array<any>) {
+    public bare(...message: any[]) {
         /* eslint-disable no-console */
         console.log.apply(this, [...message]);
         /* eslint-enable no-console */
     }
 
-    info(...message: Array<any>) {
+    public info(...message: any[]) {
         /* eslint-disable no-console */
-        if(this.level === this.statics.Levels.Verbose)
+        if (this.level === this.statics.Levels.Verbose)
             console.log.apply(this, [this.header('INFO'), ...message]);
         /* eslint-enable no-console */
     }
 
-    warn(...message: Array<any>) {
+    public warn(...message: any[]) {
         /* eslint-disable no-console */
-        if(this.level !== this.statics.Levels.Error && this.level !== this.statics.Levels.Disabled)
+        if (this.level !== this.statics.Levels.Error && this.level !== this.statics.Levels.Disabled)
             console.warn.apply(this, [this.header('WARNING'), ...message]);
         /* eslint-enable no-console */
     }
 
-    error(err: Error, ...message: Array<any>) {
+    public error(err: Error, ...message: any[]) {
         // Prepare header
         let header = this.header('ERROR');
-        
+
         // Get code if applicable
-        if(err instanceof InternalError) {
+        if (err instanceof InternalError) {
             header = header.concat(`[Code: ${err.code}]`);
         }
 
         /* eslint-disable no-console */
-        if(this.level === this.statics.Levels.Disabled)
+        if (this.level === this.statics.Levels.Disabled)
             return;
-        else if(this.level === this.statics.Levels.Verbose)
+        else if (this.level === this.statics.Levels.Verbose)
             console.error.apply(this, [header, ...message, err.stack]);
         else
             console.error.apply(this, [header, ...message]);

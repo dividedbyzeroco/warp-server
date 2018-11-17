@@ -12,12 +12,12 @@ export const getColumnsFrom = (className: string, keys: string[], relationsMap: 
     const columns: Map<string, string> = new Map([]);
 
     // Iterate through select keys
-    for(const key of keys) {
+    for (const key of keys) {
 
         // Check if the key is a pointer
         const pointerDefinition = relationsMap[key];
-        if(typeof pointerDefinition !== 'undefined') {
-            // Get pointer 
+        if (typeof pointerDefinition !== 'undefined') {
+            // Get pointer
             const pointer = pointerDefinition.toPointer();
 
             // Set the via and alias keys
@@ -26,7 +26,7 @@ export const getColumnsFrom = (className: string, keys: string[], relationsMap: 
         }
 
         // Set source key
-        const sourceKey = Pointer.isUsedBy(key)? key : Pointer.formatKey(className, key);
+        const sourceKey = Pointer.isUsedBy(key) ? key : Pointer.formatKey(className, key);
 
         // Set column values
         columns.set(sourceKey, key);
@@ -44,16 +44,16 @@ export const getRelationsFrom = (keys: string[], relationsMap: RelationsMap) => 
     const relations: Map<string, Pointer> = new Map([]);
 
     // Iterate through the selected keys
-    for(const key of keys) {
+    for (const key of keys) {
         // Check if the key is a key from a pointer
-        if(Pointer.isUsedBy(key)) {
+        if (Pointer.isUsedBy(key)) {
             // Get alias
             const [ sourceClassName ] = Pointer.parseKey(key);
 
             // If the key is from a secondary pointer, add the parent pointer
-            const pointerDefinition = relationsMap[sourceClassName];
-            const relation = pointerDefinition.toPointer();
-            if(relation.secondary) {
+            const keyPointerDefinition = relationsMap[sourceClassName];
+            const relation = keyPointerDefinition.toPointer();
+            if (relation.secondary) {
                 // Get parent pointer
                 const parentDefinition = relationsMap[relation.sourceClassName];
                 const parentRelation = parentDefinition.toPointer();
@@ -67,8 +67,8 @@ export const getRelationsFrom = (keys: string[], relationsMap: RelationsMap) => 
 
         // Check if the key is a pointer
         const pointerDefinition = relationsMap[key];
-        if(typeof pointerDefinition !== 'undefined') {
-            // Get pointer 
+        if (typeof pointerDefinition !== 'undefined') {
+            // Get pointer
             const relation = pointerDefinition.toPointer();
 
             // Add pointer
@@ -86,13 +86,13 @@ export const getRelationsFrom = (keys: string[], relationsMap: RelationsMap) => 
  */
 const getConstraintFrom = (className: string, key: string) => {
     // Check if the key is for a pointer
-    if(Pointer.isUsedBy(key)) return key;
+    if (Pointer.isUsedBy(key)) return key;
     else return Pointer.formatKey(className, key);
-}
+};
 
 /**
  * Determine constraints
- * @param prefix 
+ * @param prefix
  */
 export const getConstraintsFrom = (className: string, constraints: ConstraintMap)  => {
     // Create a new instance of where
@@ -102,13 +102,12 @@ export const getConstraintsFrom = (className: string, constraints: ConstraintMap
     where.set(InternalKeys.Timestamps.DeletedAt, Constraints.Exists, false);
 
     // Iterate through keys
-    for(let key of where.keys) {
+    for (const key of where.keys) {
         // Check if key is compound
-        if(CompoundKey.isUsedBy(key)) {
+        if (CompoundKey.isUsedBy(key)) {
             const keys = CompoundKey.from(key).map(k => getConstraintFrom(className, k));
             where.changeKey(key, CompoundKey.toString(keys));
-        }
-        else where.changeKey(key, getConstraintFrom(className, key));
+        } else where.changeKey(key, getConstraintFrom(className, key));
     }
 
     return where;
@@ -122,18 +121,18 @@ export function getSortingFrom(className: string, sort: string[]) {
     const sorting: string[] = [];
 
     // Iterate through each sort
-    for(const sortKey of sort) {
+    for (const sortKey of sort) {
         // Order
         const order = sortKey[0] === SortSymbol ? SortDescending : SortAscending;
         let key = order === SortDescending ? sortKey.slice(1) : sortKey;
 
         // Add className to sort key if it is not a pointer
-        if(!Pointer.isUsedBy(key))
-            key = `${order === SortDescending? SortSymbol : ''}${Pointer.formatKey(className, key)}`;
-        
+        if (!Pointer.isUsedBy(key))
+            key = `${order === SortDescending ? SortSymbol : ''}${Pointer.formatKey(className, key)}`;
+
         // Push the key
         sorting.push(key);
     }
 
     return sorting;
-};
+}

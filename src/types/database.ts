@@ -10,66 +10,66 @@ export interface IDatabaseAdapter {
     initialize(): Promise<void>;
     find(
         source: [string, string],
-        columns: Map<string, string>, 
+        columns: Map<string, string>,
         relations: Map<string, Pointer>,
         constraints: ConstraintMap,
-        sorting: Array<string>,
+        sorting: string[],
         skipped: number,
-        limitation: number 
-    ): Promise<Array<KeyMap>>;
+        limitation: number,
+    ): Promise<KeyMap[]>;
     create(source: string, keys: KeyMap): Promise<number>;
     update(source: string, keys: KeyMap, id: number): Promise<void>;
-    destroy(source: string, keys: KeyMap, id: number): Promise<void>;  
+    destroy(source: string, keys: KeyMap, id: number): Promise<void>;
 }
 
 export declare const IDatabaseAdapter: {
     new(config: DatabaseConfig): IDatabaseAdapter;
+};
+
+export interface DatabaseConfig {
+    uris: URIConfig[];
+    persistent: boolean;
+    logger: ILogger;
 }
 
-export type DatabaseConfig = {
-    uris: URIConfig[],
-    persistent: boolean,
-    logger: ILogger
+export interface URIConfig {
+    uri: string;
+    action: DatabaseAction;
 }
 
-export type URIConfig = {
-    uri: string,
-    action: DatabaseAction
-}; 
+export interface ConnectionConfig {
+    host: string;
+    port: number;
+    user: string;
+    password: string;
+    database: string;
+    [config: string]: any;
+}
 
-export type ConnectionConfig = {
-    host: string,
-    port: number,
-    user: string,
-    password: string,
-    database: string,
-    [config: string]: any
-};
+export interface ConnectionCollection {
+    write: ConnectionConfig[];
+    read: ConnectionConfig[];
+}
 
-export type ConnectionCollection = {
-    write: ConnectionConfig[],
-    read: ConnectionConfig[]
-};
+export interface QueryOptionsType {
+    source: [string, string];
+    columns: Map<string, string>;
+    relations: Map<string, Pointer>;
+    constraints: ConstraintMap;
+    sorting: string[];
+    skipped: number;
+    limitation: number;
+}
 
-export type QueryOptionsType = {
-    source: [string, string],
-    columns: Map<string, string>, 
-    relations: Map<string, Pointer>,
-    constraints: ConstraintMap,
-    sorting: Array<string>,
-    skipped: number,
-    limitation: number 
-};
+export interface FindClauseOptionsType {
+    source: [string, string];
+    columns: Map<string, string>;
+    relations: Map<string, Pointer>;
+    constraints: ConstraintMap;
+}
 
-export type FindClauseOptionsType = {
-    source: [string, string],
-    columns: Map<string, string>,
-    relations: Map<string, Pointer>,
-    constraints: ConstraintMap
-};
-
-export type SubqueryOptionsType = {
-    className: string,
-    select: Map<string, string>,
-    where: { [key: string]: { [key: string]: any } }
-};
+export interface SubqueryOptionsType {
+    className: string;
+    select: Map<string, string>;
+    where: { [key: string]: { [key: string]: any } };
+}

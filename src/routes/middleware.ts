@@ -10,7 +10,7 @@ const middleware = (api: Warp) => {
      * Define router
      */
     const router = express.Router();
-    
+
     /**
      * Enable CORS
      */
@@ -28,11 +28,10 @@ const middleware = (api: Warp) => {
     router.use((req, res, next) => {
         const key = req.get(InternalKeys.Middleware.ApiKey);
 
-        if(!key || key !== api.apiKey) {
+        if (!key || key !== api.apiKey) {
             const error = new Error(Error.Code.InvalidAPIKey, 'Invalid API Key');
             next(error);
-        }
-        else next();
+        } else next();
     });
 
     /**

@@ -2,3 +2,4 @@
 node_modules/
 dist/
 to-do.md
+tslint-errors.log

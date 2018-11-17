@@ -11,11 +11,11 @@ export default function PointerKey<C extends typeof Class>(name: string, pointer
         const pointer = pointerDefinition.toPointer();
 
         // Prevent secondary pointers from being set
-        if(pointer.secondary) throw new Error(Error.Code.ForbiddenOperation, `Cannot manually set secondary pointers`);
+        if (pointer.secondary) throw new Error(Error.Code.ForbiddenOperation, `Cannot manually set secondary pointers`);
 
         // If the value is a Class, set as-is
-        if(value instanceof pointer.class) return value;
-        else if(pointer.isImplementedBy(value)) return new pointer.class(value.id);
+        if (value instanceof pointer.class) return value;
+        else if (pointer.isImplementedBy(value)) return new pointer.class(value.id);
         else throw new Error(Error.Code.ForbiddenOperation, `Key \`${name}\` must be a pointer to \`${pointer.class.className}\``);
     };
 

@@ -1,10 +1,10 @@
-import { URIConfig } from "./database";
+import { URIConfig } from './database';
 
-export type ServerConfigType = {
-    apiKey: string,
-    masterKey: string,
-    databaseURI: string | URIConfig[],
-    persistent?: boolean,
-    customResponse?: boolean,
-    restful?: boolean
+export interface ServerConfigType {
+    apiKey: string;
+    masterKey: string;
+    databaseURI: string | URIConfig[];
+    persistent?: boolean;
+    customResponse?: boolean;
+    restful?: boolean;
 }

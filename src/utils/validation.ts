@@ -1,14 +1,13 @@
 import enforce from 'enforce-js';
 
 export default class Validation {
-    static initialize() {
+    public static initialize() {
         enforce.extend(/^equivalent to an array$/i, val => {
             try {
                 const parsedValue = JSON.parse(val);
-                if(parsedValue instanceof Array) return true;
+                if (parsedValue instanceof Array) return true;
                 else return false;
-            }
-            catch(err) {
+            } catch (err) {
                 return false;
             }
         });
@@ -16,10 +15,9 @@ export default class Validation {
         enforce.extend(/^equivalent to an object$/i, val => {
             try {
                 const parsedValue = JSON.parse(val);
-                if(typeof parsedValue === 'object') return true;
+                if (typeof parsedValue === 'object') return true;
                 else return false;
-            }
-            catch(err) {
+            } catch (err) {
                 return false;
             }
         });

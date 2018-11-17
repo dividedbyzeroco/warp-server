@@ -33,47 +33,47 @@ export default class KeyMap {
         return [ ...this.map.values() ];
     }
 
-    has(key: string) {
+    public has(key: string) {
         return this.map.has(key);
     }
 
-    set(key: string, value: any): void {
+    public set(key: string, value: any): void {
         // Check if immutable
-        if(this.immutable)    
-            throw new Error(Error.Code.ForbiddenOperation, 'Cannot set a value for an immutable KeyMap');       
-        
+        if (this.immutable)
+            throw new Error(Error.Code.ForbiddenOperation, 'Cannot set a value for an immutable KeyMap');
+
         // Set the key value
         this.map.set(key, value);
     }
 
-    get(key: string): any {
+    public get(key: string): any {
         // Return the value
         return this.map.get(key);
     }
 
-    remove(key: string): void {
+    public remove(key: string): void {
         // Check if immutable
-        if(this.immutable) 
-            throw new Error(Error.Code.ForbiddenOperation, 'Cannot remove from an immutable KeyMap');  
+        if (this.immutable)
+            throw new Error(Error.Code.ForbiddenOperation, 'Cannot remove from an immutable KeyMap');
 
         // Remove the key from the map
         this.map.delete(key);
     }
 
-    toArray() {
+    public toArray() {
         return [ ...this.map.entries() ];
     }
 
-    freeze() {
+    public freeze() {
         this.immutable = true;
     }
 
-    toJSON(): Object {
+    public toJSON(): object {
         // Get json
         const json = this.toArray().reduce((map, [key, value]) => ({ ...map, [key]: value }), {});
 
         // Set immutability
-        if(this.immutable) return Object.freeze(json);
+        if (this.immutable) return Object.freeze(json);
 
         // Return json
         return json;

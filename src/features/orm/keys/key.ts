@@ -16,8 +16,8 @@ export class KeyManager {
     private keyType: string;
     private keyName: string;
     private isNewFlag: boolean = false;
-    setterDefinition: (value: any) => any = value => value;
-    getterDefinition: (value: any) => any = value => value;
+    public setterDefinition: (value: any) => any = value => value;
+    public getterDefinition: (value: any) => any = value => value;
 
     constructor(name: string, type?: string) {
         this.keyName = name;
@@ -56,7 +56,8 @@ export class KeyManager {
 export const keyDecorator = (opts: KeyOptions = {}) => {
     return <C extends Class>(classInstance: C, name: string): any => {
         // Get type name
-        let { type, via } = opts;
+        let { type } = opts;
+        const { via } = opts;
 
         // Infer data type
         const inferredType = Reflect.getMetadata('design:type', classInstance, name);
@@ -67,20 +68,20 @@ export const keyDecorator = (opts: KeyOptions = {}) => {
         let keyManager = new KeyManager(keyName);
 
         // Get type from metadata
-        if(typeof inferredType !== 'undefined') type = inferredType.name.toLowerCase();
+        if (typeof inferredType !== 'undefined') type = inferredType.name.toLowerCase();
 
         // Determine key manager
-        if(type === 'string') keyManager = StringKey(sourceName, opts);
-        else if(type === 'date') keyManager = DateKey(sourceName);
-        else if(type === 'boolean') keyManager = BooleanKey(sourceName);
-        else if(type === 'number') keyManager = NumberKey(sourceName, opts);
-        else if(type === 'array') keyManager = JsonKey(sourceName);
-        else if(type === 'object') keyManager = JsonKey(sourceName);
-        else if(type === 'json') keyManager = JsonKey(sourceName);
+        if (type === 'string') keyManager = StringKey(sourceName, opts);
+        else if (type === 'date') keyManager = DateKey(sourceName);
+        else if (type === 'boolean') keyManager = BooleanKey(sourceName);
+        else if (type === 'number') keyManager = NumberKey(sourceName, opts);
+        else if (type === 'array') keyManager = JsonKey(sourceName);
+        else if (type === 'object') keyManager = JsonKey(sourceName);
+        else if (type === 'json') keyManager = JsonKey(sourceName);
 
         // Set definition
         const definition = ClassDefinitionManager.get(classInstance.statics());
-        if(!definition.keys.includes(keyName) && !definition.timestamps.includes(keyName)) {
+        if (!definition.keys.includes(keyName) && !definition.timestamps.includes(keyName)) {
             definition.keys.push(keyName);
         }
         ClassDefinitionManager.set(classInstance.statics(), definition);
@@ -95,29 +96,29 @@ export const keyDecorator = (opts: KeyOptions = {}) => {
                 return keyManager.getter(this.keys.get(keyManager.name));
             },
             enumerable: true,
-            configurable: true
+            configurable: true,
         };
-    }
+    };
 };
 
 /**
  * Key Instance definition for legacy usage
  */
 export class KeyInstance {
-    
-    _name: string;
-    
+
+    private keyName: string;
+
     constructor(name: string) {
-        this._name = name;
+        this.keyName = name;
     }
 
-    asString = (minLength?: number, maxLength?: number) => StringKey(this._name, { minLength, maxLength });
-    asDate = () => DateKey(this._name);
-    asBoolean = () => BooleanKey(this._name);
-    asNumber = (max?: number, min?: number) => NumberKey(this._name, { type: 'number', min, max });
-    asInteger = (min?: number, max?: number) => NumberKey(this._name, { type: 'integer', min, max });
-    asFloat = (decimals: number = 2, min?: number, max?: number) => NumberKey(this._name, { type: 'float', decimals, min, max });
-    asJSON = () => JsonKey(this._name);
+    public asString = (minLength?: number, maxLength?: number) => StringKey(this.keyName, { minLength, maxLength });
+    public asDate = () => DateKey(this.keyName);
+    public asBoolean = () => BooleanKey(this.keyName);
+    public asNumber = (max?: number, min?: number) => NumberKey(this.keyName, { type: 'number', min, max });
+    public asInteger = (min?: number, max?: number) => NumberKey(this.keyName, { type: 'integer', min, max });
+    public asFloat = (decimals: number = 2, min?: number, max?: number) => NumberKey(this.keyName, { type: 'float', decimals, min, max });
+    public asJSON = () => JsonKey(this.keyName);
 
 }
 
@@ -131,24 +132,18 @@ function key<C extends Class>(classInstance: C, name: string, descriptor: any): 
 function key(name: string): KeyInstance;
 function key<C extends Class>(...args: [] | [KeyOptions] | [C, string] | [C, string, any] | [string]) {
     // As property decorator
-    if(args.length === 2 || args.length === 3) {
+    if (args.length === 2 || args.length === 3) {
         return keyDecorator()(args[0], args[1]);
-    }
-    // With args
-    else {
+    } else {
         // As property decorator without args
-        if(args.length === 0) {
+        if (args.length === 0) {
             return keyDecorator();
-        }
-        // For legacy usage of Key
-        else if(typeof args[0] === 'string') {
+        } else if (typeof args[0] === 'string') {
             // Get name value
             const name = args[0];
 
             return new KeyInstance(name);
-        }
-        // As property decorator with args
-        else { 
+        } else {
             return keyDecorator(args[0]);
         }
     }

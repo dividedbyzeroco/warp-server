@@ -3,5 +3,5 @@ import { JsonAction } from './json';
 
 export {
     Increment,
-    JsonAction
+    JsonAction,
 };
