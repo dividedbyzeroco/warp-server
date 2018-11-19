@@ -66,9 +66,9 @@ export default class Warp {
      * @param {Object} config
      */
     constructor({
-        apiKey,
-        masterKey,
         databaseURI,
+        apiKey = '',
+        masterKey = '',
         persistent = false,
         customResponse,
         restful,

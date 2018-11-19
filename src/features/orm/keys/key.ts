@@ -86,14 +86,36 @@ export const keyDecorator = (opts: KeyOptions = {}) => {
         }
         ClassDefinitionManager.set(classInstance.statics(), definition);
 
+        // Get existing descriptor
+        const descriptor = Object.getOwnPropertyDescriptor(classInstance, name);
+
         // Override getter and setter
         return {
             set(value) {
+                // Parse value
                 value = keyManager.setter(value);
-                this.keys.set(keyManager.name, value);
+
+                // If descriptor is defined
+                if (descriptor && typeof descriptor.set === 'function') {
+                    // Set value
+                    descriptor.set.apply(this, [value]);
+                } else this.keys.set(keyManager.name, value);
             },
             get() {
-                return keyManager.getter(this.keys.get(keyManager.name));
+                // Prepare value
+                let value = this.keys.get(keyManager.name);
+
+                // If descriptor is defined
+                if (descriptor && typeof descriptor.get === 'function') {
+                    // Get formatted value
+                    value = descriptor.get.apply(this);
+                }
+
+                // Format value
+                value = keyManager.getter(value);
+
+                // Return value
+                return value;
             },
             enumerable: true,
             configurable: true,

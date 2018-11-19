@@ -888,10 +888,10 @@ dogs.forEach(dog => console.log(`I am ${dog.name}`));
 const names = dogs.map(dog => dog.name);
 
 // Loops through each Object and asynchronously executes every function one after the other
-dogs.each(dog => dog.destroy());
+dogs.each(dog => service.classes.destroy(dog));
 
 // Loops through each Object and asynchronously executes all functions in parallel
-dogs.all(dog => dog.destroy());
+dogs.all(dog => service.classes.destroy(dog));
 
 // Iterate through every Object
 for(const dog of dogs) {

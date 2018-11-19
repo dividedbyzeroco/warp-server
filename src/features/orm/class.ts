@@ -91,8 +91,8 @@ const ClassDecorator = (opts: ClassDefinitionOptions) => {
  * @param {String} className
  * @param {String} source
  */
-export function define<C extends { new(...args: any[]): Class }>(constructor: C): C;
-export function define<C extends { new(...args: any[]): Class }>(opts: ClassDefinitionOptions): C;
+export function define<C extends { new(...args: any[]): Class }>(constructor: C): any;
+export function define<C extends { new(...args: any[]): Class }>(opts: ClassDefinitionOptions): (constructor: C) => any;
 export function define<C extends { new(...args: any[]): Class }>(...args: [ClassDefinitionOptions] | [C]) {
     if (typeof args[0] !== 'object') {
         const className = toSnakeCase(args[0].name);
