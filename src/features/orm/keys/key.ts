@@ -59,13 +59,13 @@ export const keyDecorator = (opts: KeyOptions = {}) => {
         let { type } = opts;
         const { via } = opts;
 
-        // Infer data type
-        const inferredType = Reflect.getMetadata('design:type', classInstance, name);
-
-        // Convert key name to snake case, then add to the key map
+        // Convert key name to snake case, prepare key manager
         const keyName = toSnakeCase(name);
         const sourceName = via || keyName;
         let keyManager = new KeyManager(keyName);
+
+        // Infer data type
+        const inferredType = Reflect.getMetadata('design:type', classInstance, name);
 
         // Get type from metadata
         if (typeof inferredType !== 'undefined') type = inferredType.name.toLowerCase();
@@ -90,7 +90,7 @@ export const keyDecorator = (opts: KeyOptions = {}) => {
         const descriptor = Object.getOwnPropertyDescriptor(classInstance, name);
 
         // Override getter and setter
-        return {
+        Object.defineProperty(classInstance, name, {
             set(value) {
                 // Parse value
                 value = keyManager.setter(value);
@@ -119,7 +119,7 @@ export const keyDecorator = (opts: KeyOptions = {}) => {
             },
             enumerable: true,
             configurable: true,
-        };
+        });
     };
 };
 

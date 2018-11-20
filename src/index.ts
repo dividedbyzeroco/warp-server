@@ -29,6 +29,9 @@ import { URIConfig } from './types/database';
 import { ClassOptions } from './types/class';
 import { hidden } from './features/orm/keys/modifiers/hidden';
 import { guarded } from './features/orm/keys/modifiers/guarded';
+import { length } from './features/orm/keys/modifiers/length';
+import { range } from './features/orm/keys/modifiers/range';
+import { round } from './features/orm/keys/modifiers/round';
 import {
     beforeFind,
     beforeFirst,
@@ -328,6 +331,9 @@ export {
     key,
     hidden,
     guarded,
+    length,
+    range,
+    round,
     Warp,
     ClassManager,
     belongsTo,
