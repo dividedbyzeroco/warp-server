@@ -298,6 +298,52 @@ dog.eyeColor = 'green'; // OK
 const corgi = new Dog({ eye_color: 'brown' }); // Will throw an error
 ```
 
+### @length
+
+If you want to limit the length of a string key, you can use the `@length` decorator.
+
+```javascript
+import { Class, define, key, length } from 'warp-server';
+
+@define class Dog extends Class {
+
+    @length(3) name: string; // Minimum of 3 characters
+    @length(0, 5) alias: string; // Maximum of 5 characters
+    @length(3, 5) code: string; // Between 3 to 5 characters
+
+}
+```
+
+### @range
+
+If you want to limit the range of values for a number key, you can use the `@range` decorator.
+
+```javascript
+import { Class, define, key, range } from 'warp-server';
+
+@define class Dog extends Class {
+
+    @range(3) age: number; // Minimum value of 3
+    @range(0, 5) height: number; // Maximum value of 5
+    @range(3, 5.5) weight: number; // Between 3 to 5.5
+
+}
+```
+
+### @rounded
+
+If you want to add rounding to the value of a number key, you can use the `@rounded` decorator.
+
+```javascript
+import { Class, define, key, range } from 'warp-server';
+
+@define class Dog extends Class {
+
+    @rounded(2) weight: number; // Round to 2 decimals places
+
+}
+```
+
 ## Registering Classes
 
 Now that we've created our `Class`, we can start using it in our application. For more information, see the [Objects](#objects) section. 

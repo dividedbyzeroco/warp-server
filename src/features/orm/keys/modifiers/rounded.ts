@@ -6,15 +6,15 @@ import { toSnakeCase } from '../../../../utils/format';
  * @param classInstance
  * @param name
  */
-export const round = (decimals: number) => <C extends Class>(classInstance: C, name: string): any => {
+export const rounded = (decimals: number) => <C extends Class>(classInstance: C, name: string): any => {
     // Convert key name to snake case, then add to the key map
     const keyName = toSnakeCase(name);
 
     // Infer data type
     const inferredType = Reflect.getMetadata('design:type', classInstance, name);
-    
+
     // Get type from metadata
-    if (!inferredType || inferredType.name.toLowerCase() !== 'number') 
+    if (!inferredType || inferredType.name.toLowerCase() !== 'number')
         throw new Error(`Property \`${name}\` cannot be modified by \`@round()\` because it is not a number type`);
 
     // Get existing descriptor
@@ -29,10 +29,10 @@ export const round = (decimals: number) => <C extends Class>(classInstance: C, n
     Object.defineProperty(classInstance, name, {
         set(value) {
             // Validate value
-            if(typeof value === 'number') {
+            if (typeof value === 'number') {
                 value = Number(Number(value).toFixed(decimals));
             }
-            
+
             // Set value
             descriptor && descriptor.set && descriptor.set.apply(this, [value]);
         },

@@ -30,8 +30,10 @@ import { ClassOptions } from './types/class';
 import { hidden } from './features/orm/keys/modifiers/hidden';
 import { guarded } from './features/orm/keys/modifiers/guarded';
 import { length } from './features/orm/keys/modifiers/length';
-import { range } from './features/orm/keys/modifiers/range';
-import { round } from './features/orm/keys/modifiers/round';
+import { min } from './features/orm/keys/modifiers/min';
+import { max } from './features/orm/keys/modifiers/max';
+import { between } from './features/orm/keys/modifiers/between';
+import { rounded } from './features/orm/keys/modifiers/rounded';
 import {
     beforeFind,
     beforeFirst,
@@ -332,8 +334,10 @@ export {
     hidden,
     guarded,
     length,
-    range,
-    round,
+    min,
+    max,
+    between,
+    rounded,
     Warp,
     ClassManager,
     belongsTo,

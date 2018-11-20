@@ -2,19 +2,19 @@ import Class, { ClassDefinitionManager } from '../../class';
 import { toSnakeCase } from '../../../../utils/format';
 
 /**
- * Validates the range of values of a number
+ * Validates the minimum value of a number
  * @param classInstance
  * @param name
  */
-export const range = (min: number, max?: number) => <C extends Class>(classInstance: C, name: string): any => {
+export const min = (limit: number) => <C extends Class>(classInstance: C, name: string): any => {
     // Convert key name to snake case, then add to the key map
     const keyName = toSnakeCase(name);
 
     // Infer data type
     const inferredType = Reflect.getMetadata('design:type', classInstance, name);
-    
+
     // Get type from metadata
-    if (!inferredType || inferredType.name.toLowerCase() !== 'number') 
+    if (!inferredType || inferredType.name.toLowerCase() !== 'number')
         throw new Error(`Property \`${name}\` cannot be modified by \`@range()\` because it is not a number type`);
 
     // Get existing descriptor
@@ -29,11 +29,9 @@ export const range = (min: number, max?: number) => <C extends Class>(classInsta
     Object.defineProperty(classInstance, name, {
         set(value) {
             // Validate value
-            if(typeof value === 'number') {
-                if(value < min)
+            if (typeof value === 'number') {
+                if (value < limit)
                     throw new Error(`Key \`${keyName}\` must be at least \`${min}\``);
-                else if(typeof max !== 'undefined' && value > max)
-                    throw new Error(`Key \`${keyName}\` cannot exceed \`${max}\``);
             }
 
             // Set value
