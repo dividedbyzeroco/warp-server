@@ -314,18 +314,18 @@ import { Class, define, key, length } from 'warp-server';
 }
 ```
 
-### @range
+### @min, @max, @between
 
-If you want to limit the range of values for a number key, you can use the `@range` decorator.
+If you want to limit the range of values for a number key, you can use the `@min`, `@max`, and `@between` decorators.
 
 ```javascript
 import { Class, define, key, range } from 'warp-server';
 
 @define class Dog extends Class {
 
-    @range(3) age: number; // Minimum value of 3
-    @range(0, 5) height: number; // Maximum value of 5
-    @range(3, 5.5) weight: number; // Between 3 to 5.5
+    @min(3) age: number; // Minimum value of 3
+    @max(5) height: number; // Maximum value of 5
+    @between(3, 5.5) weight: number; // Between 3 to 5.5
 
 }
 ```
