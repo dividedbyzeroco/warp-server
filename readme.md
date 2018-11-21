@@ -307,9 +307,9 @@ import { Class, define, key, length } from 'warp-server';
 
 @define class Dog extends Class {
 
-    @length(3) name: string; // Minimum of 3 characters
-    @length(0, 5) alias: string; // Maximum of 5 characters
-    @length(3, 5) code: string; // Between 3 to 5 characters
+    @length(3) @key name: string; // Minimum of 3 characters
+    @length(0, 5) @key alias: string; // Maximum of 5 characters
+    @length(3, 5) @key code: string; // Between 3 to 5 characters
 
 }
 ```
@@ -323,9 +323,9 @@ import { Class, define, key, range } from 'warp-server';
 
 @define class Dog extends Class {
 
-    @min(3) age: number; // Minimum value of 3
-    @max(5) height: number; // Maximum value of 5
-    @between(3, 5.5) weight: number; // Between 3 to 5.5
+    @min(3) @key age: number; // Minimum value of 3
+    @max(5) @key height: number; // Maximum value of 5
+    @between(3, 5.5) @key weight: number; // Between 3 to 5.5
 
 }
 ```
@@ -339,7 +339,7 @@ import { Class, define, key, range } from 'warp-server';
 
 @define class Dog extends Class {
 
-    @rounded(2) weight: number; // Round to 2 decimals places
+    @rounded(2) @key weight: number; // Round to 2 decimals places
 
 }
 ```
