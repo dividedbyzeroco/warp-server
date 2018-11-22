@@ -28,8 +28,8 @@ With `Warp`, you can:
     - **[Defining a User class](#defining-a-user-class)**
     - **[Authentication](#authentication)**
 - **[Relations](#relations)**
-    - **[belongsTo](#belongsTo)**
-    - **[hasMany](#hasMany)**
+    - **[belongsTo](#@belongsTo)**
+    - **[hasMany](#@hasMany)**
 - **[Objects](#objects)**
     - **[Creating an Object](#creating-an-object)**
     - **[Updating an Object](#updating-an-object)**
@@ -319,7 +319,7 @@ import { Class, define, key, length } from 'warp-server';
 If you want to limit the range of values for a number key, you can use the `@min`, `@max`, and `@between` decorators.
 
 ```javascript
-import { Class, define, key, range } from 'warp-server';
+import { Class, define, key, min, max, between } from 'warp-server';
 
 @define class Dog extends Class {
 
@@ -498,6 +498,31 @@ employee.department = new Department(1); // OK
 employee.department = new Country(3); // This will cause an error
 
 await service.classes.save(employee);
+```
+
+# @hasMany
+
+On the other side of the `one-to-many` relationship, we can use the `@hasMany` decorator. This decorator allows us to define which `Class` our `key` relates to. This is useful when you want to fetch the `children` of a `Class`, without needing to build a new `Query`.
+
+By decorating the `key` with `@hasMany`, it automatically returns a `Query` of the child `Class` that already has a constraint relating to the parent `Class`.
+
+> NOTE: The `key` decorated with `@hasMany` cannot be set as it is a readonly key. For the `restful` API, this key will also not be returned.
+
+```javascript
+import { Class, define, key, hasMany } from 'warp-server';
+
+@define class Dog extends Class {
+
+    @key name: string;
+    @hasMany(type => Dog) friends: Query<typeof Dog>;
+
+}
+
+// Get the Dog
+const corgi = await service.classes.getById(Dog, 5);
+
+// Get the dog's friends
+const friends = await service.classes.find(corgi.friends);
 ```
 
 # Objects

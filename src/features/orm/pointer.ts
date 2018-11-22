@@ -4,6 +4,7 @@ import { toSnakeCase } from '../../utils/format';
 import Error from '../../utils/error';
 import PointerKey from './keys/types/pointer';
 import { ClassCaller } from '../../types/pointer';
+import { Query } from '../..';
 
 export default class Pointer {
 
@@ -183,7 +184,7 @@ export const belongsTo = <C extends typeof Class>(classCaller: ClassCaller<C>, f
         ClassDefinitionManager.set(classInstance.statics(), definition);
 
         // Override pointer getter and setter
-        return {
+        Object.defineProperty(classInstance, name, {
             set(value) {
                 value = keyManager.setter(value);
                 this.keys.set(keyManager.name, value);
@@ -193,6 +194,30 @@ export const belongsTo = <C extends typeof Class>(classCaller: ClassCaller<C>, f
             },
             enumerable: true,
             configurable: true,
-        };
+        });
+    };
+};
+
+/**
+ * hasMany decorator for relations
+ * @param classCaller 
+ * @param key 
+ */
+export const hasMany = <C extends typeof Class>(classCaller: ClassCaller<C>, key?: string) => {
+    return <T extends Class>(classInstance: T, name: string): any => {
+        // Override pointer getter and setter
+        Object.defineProperty(classInstance, name, {
+            set(value) {
+                throw new Error(Error.Code.ForbiddenOperation, 'Cannot set the value of a `hasMany` relation');
+            },
+            get() {
+                if(this.isNew) throw new Error(Error.Code.ForbiddenOperation, 'Cannot get a `hasMany` relation for a new object');
+                const pointerKey: string = Pointer.formatKey(this.statics().className, InternalKeys.Id);
+                key = key || pointerKey;
+                return new Query(classCaller()).equalTo(key, this.id);
+            },
+            enumerable: true,
+            configurable: true,
+        });
     };
 };
