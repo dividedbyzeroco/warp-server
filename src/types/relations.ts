@@ -1,4 +1,6 @@
 import Class from '../features/orm/class';
-import { PointerDefinition } from '../features/orm/pointer';
+import { RelationDefinition } from '../features/orm/relation';
 
-export interface RelationsMap { [name: string]: PointerDefinition<typeof Class>; }
+export type ClassCaller<C extends typeof Class> = (type?: any) => C;
+
+export interface RelationsMap { [name: string]: RelationDefinition<typeof Class>; }

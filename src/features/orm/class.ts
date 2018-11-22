@@ -1,8 +1,8 @@
 import Error from '../../utils/error';
 import KeyMap from '../../utils/key-map';
 import { toCamelCase, toSnakeCase } from '../../utils/format';
-import { InternalKeys, InternalId, PointerTypeName } from '../../utils/constants';
-import Pointer, { PointerDefinition } from './pointer';
+import { InternalKeys, InternalId, RelationTypeName } from '../../utils/constants';
+import Relation, { RelationDefinition } from './relation';
 import CompoundKey from '../../utils/compound-key';
 import { ClassKeys, ClassJSON } from '../../types/class';
 import DateKey from './keys/types/date';
@@ -161,31 +161,31 @@ export default class Class {
         // Check if the key is compound
         if (CompoundKey.isUsedBy(key)) {
             return CompoundKey.from(key).every(k => this.has(k));
-        } else if (Pointer.isUsedBy(key) && this.hasPointerKey(key)) return true;
+        } else if (Relation.isUsedBy(key) && this.hasRelationKey(key)) return true;
         else if (key === InternalKeys.Id) return true;
         else if (definition.timestamps.includes(key)) return true;
         else if (definition.keys.includes(key)) return true;
         else return false;
     }
 
-    public static hasPointerKey(key: string) {
+    public static hasRelationKey(key: string) {
         // Check if key parts are valid
-        if (!Pointer.isValid(key)) return false;
+        if (!Relation.isValid(key)) return false;
 
         // Get source
-        const [ sourceClassName, sourceKey ] = Pointer.parseKey(key);
+        const [ sourceClassName, sourceKey ] = Relation.parseKey(key);
 
-        // Get class pointer
+        // Get class relation
         const definition = ClassDefinitionManager.get(this);
-        const pointerDefinition = definition.relations[sourceClassName];
+        const relationDefinition = definition.relations[sourceClassName];
 
-        // Check if pointer exists
-        if (!(pointerDefinition instanceof PointerDefinition)) {
+        // Check if relation exists
+        if (!(relationDefinition instanceof RelationDefinition)) {
             return false;
         } else {
-            // Check if pointer has the key
-            const pointer = pointerDefinition.toPointer();
-            if (!pointer.class.has(sourceKey)) {
+            // Check if relation has the key
+            const relation = relationDefinition.toRelation();
+            if (!relation.class.has(sourceKey)) {
                 return false;
             }
         }
@@ -246,7 +246,7 @@ export default class Class {
      * toJSON
      * @description Executed every time the object is being stringified to an object literal
      */
-    public toJSON<C extends this>(isPointer: boolean = false): ClassJSON<C> {
+    public toJSON<C extends this>(isRelation: boolean = false): ClassJSON<C> {
         // Get keys
         const { id, createdAt, updatedAt } = this;
         const keys = {};
@@ -261,19 +261,19 @@ export default class Class {
             // Get value
             let value = this[toCamelCase(key)];
 
-            // Check if key is a pointer and has a value
+            // Check if key is a relation and has a value
             if (typeof classDefinition.relations[key] !== 'undefined' && value instanceof Class) value = value.toJSON(true);
 
             // Set value
             keys[key] = value;
         }
 
-        // If class is a pointer, use attributes
-        if (isPointer) {
+        // If class is a relation, use attributes
+        if (isRelation) {
             body = {
-                type: PointerTypeName,
-                [InternalKeys.Pointers.ClassName]: this.statics().className,
-                [InternalKeys.Pointers.Attributes]: Object.keys(keys).length > 0 ? keys : undefined,
+                type: RelationTypeName,
+                [InternalKeys.Relations.ClassName]: this.statics().className,
+                [InternalKeys.Relations.Attributes]: Object.keys(keys).length > 0 ? keys : undefined,
             };
         } else body = keys; // Else use the keys as-is
 

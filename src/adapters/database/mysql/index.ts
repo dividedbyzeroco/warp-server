@@ -7,7 +7,7 @@ import { toDatabaseDate } from '../../../utils/format';
 import CompoundKey from '../../../utils/compound-key';
 import { FindClauseOptionsType, IDatabaseAdapter, DatabaseConfig } from '../../../types/database';
 import { ConstraintObject } from '../../../types/constraints';
-import Pointer from '../../../features/orm/pointer';
+import Relation from '../../../features/orm/relation';
 import Query from '../../../features/orm/query';
 import Class from '../../../features/orm/class';
 import { Increment, JsonAction } from '../../../features/orm/specials';
@@ -139,9 +139,9 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
 
         // Get joins
         const joins: string[] = [];
-        for (const [alias, pointer] of relations.entries())
-            joins.push(`LEFT OUTER JOIN ${this.escapeKey(pointer.class.source)} AS ${this.escapeKey(alias, true)}`
-                + ` ON ${this.escapeKey(pointer.parentClassKey())} = ${this.escapeKey(pointer.sourceClassKey(source[1]))}`);
+        for (const [alias, relation] of relations.entries())
+            joins.push(`LEFT OUTER JOIN ${this.escapeKey(relation.class.source)} AS ${this.escapeKey(alias, true)}`
+                + ` ON ${this.escapeKey(relation.parentClassKey())} = ${this.escapeKey(relation.sourceClassKey(source[1]))}`);
 
         // Get where
         const where = constraints.toArray()
@@ -172,7 +172,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
     }
 
     /**
-     * Map row keys into appropriate pointers
+     * Map row keys into appropriate relations
      * @param {Object} row
      */
     private mapRows(row: object): KeyMap {
@@ -181,16 +181,16 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
 
         // Iterate through the row's keys
         for (const [ key, value ] of Object.entries(row)) {
-            // If key is for a pointer
-            if (Pointer.isUsedBy(key)) {
+            // If key is for a relation
+            if (Relation.isUsedBy(key)) {
                 // Prepare relation parameters
-                const [ pointerName, pointerKey ] = Pointer.parseKey(key);
+                const [ relationName, relationKey ] = Relation.parseKey(key);
 
-                // Assign pointer
-                const pointer = { ...keys.get(pointerName), [pointerKey]: value };
+                // Assign relation
+                const relation = { ...keys.get(relationName), [relationKey]: value };
 
                 // Set key to the latest value
-                keys.set(pointerName, pointer);
+                keys.set(relationName, relation);
             } else {
                 // Set the key value
                 keys.set(key, row[key]);
@@ -204,7 +204,7 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
     public async find(
         source: [string, string],
         columns: Map<string, string>,
-        relations: Map<string, Pointer>,
+        relations: Map<string, Relation>,
         constraints: ConstraintMap,
         sorting: string[],
         skipped: number,

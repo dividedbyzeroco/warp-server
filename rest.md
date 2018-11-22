@@ -194,7 +194,7 @@ The expected response would be similar to the following.
 
 In order to pass `relation` keys when creating or updating an object, the keys must have a value similar to the following:
 
-`{ "type": "Pointer", "class_name": "{CLASS_NAME}", "id": "{ID}" }`
+`{ "type": "Relation", "class_name": "{CLASS_NAME}", "id": "{ID}" }`
 
 For example
 
@@ -202,7 +202,7 @@ For example
 curl -X POST \
 -H 'X-Warp-API-Key: 12345678abcdefg' \
 -H 'Content-Type: application/json' \
---data '{"name":"The Doctor", "planet": { "type": "Pointer", "class_name": "planet", "id": 8 }}' \
+--data '{"name":"The Doctor", "planet": { "type": "Relation", "class_name": "planet", "id": 8 }}' \
 http://localhost:3000/api/1/classes/alien
 ```
 

@@ -506,7 +506,7 @@ On the other side of the `one-to-many` relationship, we can use the `@hasMany` d
 
 By decorating the `key` with `@hasMany`, it automatically returns a `Query` of the child `Class` that already has a constraint relating to the parent `Class`.
 
-> NOTE: The `key` decorated with `@hasMany` cannot be set as it is a readonly key. For the `restful` API, this key will also not be returned.
+> NOTE: The `key` decorated with `@hasMany` cannot be set as it is readonly. For the `restful` API, this key will also not be returned.
 
 ```javascript
 import { Class, define, key, hasMany } from 'warp-server';

@@ -1,4 +1,4 @@
-import Pointer from '../features/orm/pointer';
+import Relation from '../features/orm/relation';
 import KeyMap from '../utils/key-map';
 import ConstraintMap from '../utils/constraint-map';
 import { ILogger } from './logger';
@@ -11,7 +11,7 @@ export interface IDatabaseAdapter {
     find(
         source: [string, string],
         columns: Map<string, string>,
-        relations: Map<string, Pointer>,
+        relations: Map<string, Relation>,
         constraints: ConstraintMap,
         sorting: string[],
         skipped: number,
@@ -54,7 +54,7 @@ export interface ConnectionCollection {
 export interface QueryOptionsType {
     source: [string, string];
     columns: Map<string, string>;
-    relations: Map<string, Pointer>;
+    relations: Map<string, Relation>;
     constraints: ConstraintMap;
     sorting: string[];
     skipped: number;
@@ -64,7 +64,7 @@ export interface QueryOptionsType {
 export interface FindClauseOptionsType {
     source: [string, string];
     columns: Map<string, string>;
-    relations: Map<string, Pointer>;
+    relations: Map<string, Relation>;
     constraints: ConstraintMap;
 }
 

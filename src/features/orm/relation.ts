@@ -1,12 +1,12 @@
 import Class, { ClassDefinitionManager } from './class';
-import { InternalKeys, PointerDelimiter } from '../../utils/constants';
+import { InternalKeys, RelationDelimiter, RelationTypeName } from '../../utils/constants';
 import { toSnakeCase } from '../../utils/format';
 import Error from '../../utils/error';
-import PointerKey from './keys/types/pointer';
-import { ClassCaller } from '../../types/pointer';
+import RelationKey from './keys/types/relation';
+import { ClassCaller } from '../../types/relations';
 import { Query } from '../..';
 
-export default class Pointer {
+export default class Relation {
 
     public sourceClassName: string;
     public sourceKey: string;
@@ -37,22 +37,22 @@ export default class Pointer {
     }
 
     public static isUsedBy(key: string) {
-        return key.indexOf(PointerDelimiter) > 0;
+        return key.indexOf(RelationDelimiter) > 0;
     }
 
     public static isValid(key: string) {
-        return this.isUsedBy(key) && key.split(PointerDelimiter).length === 2;
+        return this.isUsedBy(key) && key.split(RelationDelimiter).length === 2;
     }
 
     public static parseKey(keyName: string): [string, string] {
         // Get key parts
-        const [ className, key ] = keyName.split(PointerDelimiter, 2);
+        const [ className, key ] = keyName.split(RelationDelimiter, 2);
 
         return [ className, key ];
     }
 
     public static formatKey(className: string, key: string) {
-        return `${className}${PointerDelimiter}${key}`;
+        return `${className}${RelationDelimiter}${key}`;
     }
 
     public static formatAsId(key: string) {
@@ -60,7 +60,7 @@ export default class Pointer {
     }
 
     public statics() {
-        return this.constructor as typeof Pointer;
+        return this.constructor as typeof Relation;
     }
 
     get class(): typeof Class {
@@ -75,7 +75,7 @@ export default class Pointer {
      * The foreign key inside the current class
      */
     public sourceClassKey(className: string): string {
-        const sourceClass = this.sourceClassName !== PointerDefinition.OwnerSymbol ? this.sourceClassName : className;
+        const sourceClass = this.sourceClassName !== RelationDefinition.OwnerSymbol ? this.sourceClassName : className;
         return this.statics().formatKey(sourceClass, this.sourceKey);
     }
 
@@ -89,14 +89,14 @@ export default class Pointer {
     public isImplementedBy(value: object) {
         if (value === null) return true;
         if (typeof value !== 'object') return false;
-        if (value[InternalKeys.Pointers.Type] !== 'Pointer') return false;
-        if (value[InternalKeys.Pointers.ClassName] !== this.class.className) return false;
+        if (value[InternalKeys.Relations.Type] !== RelationTypeName) return false;
+        if (value[InternalKeys.Relations.ClassName] !== this.class.className) return false;
         if (value[InternalKeys.Id] === null || typeof value[InternalKeys.Id] === 'undefined') return false;
         return true;
     }
 }
 
-export class PointerDefinition<C extends typeof Class> {
+export class RelationDefinition<C extends typeof Class> {
 
     private classCaller: ClassCaller<C>;
     private sourceClassName: string;
@@ -120,7 +120,7 @@ export class PointerDefinition<C extends typeof Class> {
         this.parentKey = parentKey;
     }
 
-    public toPointer() {
+    public toRelation() {
         const classType = this.classCaller();
         const definition = ClassDefinitionManager.get(classType);
         const { sourceClassName, sourceKey, parentClassName, parentKey } = this;
@@ -128,19 +128,19 @@ export class PointerDefinition<C extends typeof Class> {
         let secondary = false;
 
         // Check if source is the owner
-        if (sourceClassName !== PointerDefinition.OwnerSymbol) secondary = true;
+        if (sourceClassName !== RelationDefinition.OwnerSymbol) secondary = true;
 
-        // Check if pointer is secondary
+        // Check if relation is secondary
         if (secondary) {
             if (typeof definition.relations[sourceKey] !== 'undefined') {
                 // Get parent definition
                 const parentDefinition = definition.relations[sourceKey];
-                actualSourceKey = parentDefinition.toPointer().sourceKey;
-            } else throw new Error(Error.Code.ForbiddenOperation, `Pointer \`${this.sourceKey}\` does not exist in ${sourceClassName}`);
+                actualSourceKey = parentDefinition.toRelation().sourceKey;
+            } else throw new Error(Error.Code.ForbiddenOperation, `Relation \`${this.sourceKey}\` does not exist in ${sourceClassName}`);
         }
 
-        // Create a pointer
-        const pointer = new Pointer(
+        // Create a relation
+        const relation = new Relation(
             classType,
             sourceClassName,
             actualSourceKey,
@@ -149,51 +149,71 @@ export class PointerDefinition<C extends typeof Class> {
             secondary,
         );
 
-        // Return pointer
-        return pointer;
+        // Return relation
+        return relation;
     }
 }
 
 /**
- * belongsTo decorator for pointers
+ * belongsTo decorator for relations
  * @param classCaller
  */
 export const belongsTo = <C extends typeof Class>(classCaller: ClassCaller<C>, from?: string, to?: string) => {
     return <T extends Class>(classInstance: T, name: string): any => {
-        // Get pointer name
+        // Get relation name
         const keyName = toSnakeCase(name);
 
         // Set default values
-        from = from || Pointer.formatKey(PointerDefinition.OwnerSymbol, Pointer.formatAsId(keyName));
-        to = to || Pointer.formatKey(keyName, InternalKeys.Id);
+        from = from || Relation.formatKey(RelationDefinition.OwnerSymbol, Relation.formatAsId(keyName));
+        to = to || Relation.formatKey(keyName, InternalKeys.Id);
 
         // Extract keys
-        const [ sourceClassName, sourceKey ] = Pointer.parseKey(from);
-        const [ parentClassName, parentKey ] = Pointer.parseKey(to);
+        const [ sourceClassName, sourceKey ] = Relation.parseKey(from);
+        const [ parentClassName, parentKey ] = Relation.parseKey(to);
 
-        // Prepare pointer definition
-        const pointerDefinition = new PointerDefinition(classCaller, sourceClassName, sourceKey, parentClassName, parentKey);
+        // Prepare relation definition
+        const relationDefinition = new RelationDefinition(classCaller, sourceClassName, sourceKey, parentClassName, parentKey);
 
         // Prepare key manager
-        const keyManager = PointerKey(keyName, pointerDefinition);
+        const keyManager = RelationKey(keyName, relationDefinition);
 
         // Set definition
         const definition = ClassDefinitionManager.get(classInstance.statics());
         if (!definition.keys.includes(keyName)) definition.keys.push(keyName);
-        definition.relations[keyName] = pointerDefinition;
+        definition.relations[keyName] = relationDefinition;
         ClassDefinitionManager.set(classInstance.statics(), definition);
 
-        // Override pointer getter and setter
+        // Get existing descriptor
+        const descriptor = Object.getOwnPropertyDescriptor(classInstance, name);
+
+        // Extend relation getter and setter
         Object.defineProperty(classInstance, name, {
             set(value) {
+                // Parse value
                 value = keyManager.setter(value);
-                this.keys.set(keyManager.name, value);
+
+                // If descriptor is defined
+                if (descriptor && typeof descriptor.set === 'function') {
+                    // Set value
+                    descriptor.set.apply(this, [value]);
+                } else this.keys.set(keyManager.name, value);
             },
             get() {
-                return keyManager.getter(this.keys.get(keyManager.name));
+                // Prepare value
+                let value = this.keys.get(keyManager.name);
+
+                // If descriptor is defined
+                if (descriptor && typeof descriptor.get === 'function') {
+                    // Get formatted value
+                    value = descriptor.get.apply(this);
+                }
+
+                // Format value
+                value = keyManager.getter(value);
+
+                // Return value
+                return value;
             },
-            enumerable: true,
-            configurable: true,
         });
     };
 };
@@ -205,19 +225,19 @@ export const belongsTo = <C extends typeof Class>(classCaller: ClassCaller<C>, f
  */
 export const hasMany = <C extends typeof Class>(classCaller: ClassCaller<C>, key?: string) => {
     return <T extends Class>(classInstance: T, name: string): any => {
-        // Override pointer getter and setter
+        // Override getter and setter
         Object.defineProperty(classInstance, name, {
             set(value) {
                 throw new Error(Error.Code.ForbiddenOperation, 'Cannot set the value of a `hasMany` relation');
             },
             get() {
                 if(this.isNew) throw new Error(Error.Code.ForbiddenOperation, 'Cannot get a `hasMany` relation for a new object');
-                const pointerKey: string = Pointer.formatKey(this.statics().className, InternalKeys.Id);
-                key = key || pointerKey;
+                const relationKey: string = Relation.formatKey(this.statics().className, InternalKeys.Id);
+                key = key || relationKey;
                 return new Query(classCaller()).equalTo(key, this.id);
             },
             enumerable: true,
             configurable: true,
         });
     };
-};
+}; 

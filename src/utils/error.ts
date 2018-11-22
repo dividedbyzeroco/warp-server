@@ -14,7 +14,7 @@ export default class WarpError extends Error {
             InvalidCredentials: 102, // Invalid username/password
             InvalidSessionToken: 103, // Invalid session token
             InvalidObjectKey: 104, // Key validation failed
-            InvalidPointer: 105, // Invalid pointer
+            InvalidRelation: 105, // Invalid relation
             ForbiddenOperation: 106, // Incorrect use of API
             UsernameTaken: 107, // Username registered already exists
             EmailTaken: 108, // Email registered already exists

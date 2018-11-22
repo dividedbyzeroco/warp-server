@@ -15,8 +15,8 @@ export const SortSymbol = '-';
 export const SortAscending = 'ascending';
 export const SortDescending = 'descending';
 
-export const PointerDelimiter = '.';
-export const PointerTypeName = 'Pointer';
+export const RelationDelimiter = '.';
+export const RelationTypeName = 'Relation';
 
 export const CompoundDelimiter = '|';
 
@@ -38,7 +38,7 @@ export const InternalKeys = Object.freeze({
         Result: 'result',
         ClassManager: 'classes',
     }),
-    Pointers: Object.freeze({
+    Relations: Object.freeze({
         Type: 'type',
         ClassName: 'class_name',
         Attributes: 'attributes',

@@ -89,7 +89,7 @@ export const keyDecorator = (opts: KeyOptions = {}) => {
         // Get existing descriptor
         const descriptor = Object.getOwnPropertyDescriptor(classInstance, name);
 
-        // Override getter and setter
+        // Extend getter and setter
         Object.defineProperty(classInstance, name, {
             set(value) {
                 // Parse value

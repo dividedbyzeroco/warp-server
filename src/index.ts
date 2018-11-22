@@ -9,7 +9,7 @@ import Function from './features/functions/function';
 import key from './features/orm/keys/key';
 import ClassManager from './features/orm/class-manager';
 import FunctionManager from './features/functions/function-manager';
-import { belongsTo } from './features/orm/pointer';
+import { belongsTo, hasMany } from './features/orm/relation';
 import Database from './adapters/database';
 import Logger from './adapters/logger';
 import { ServerConfigType } from './types/server';
@@ -341,6 +341,7 @@ export {
     Warp,
     ClassManager,
     belongsTo,
+    hasMany,
     beforeFind,
     beforeFirst,
     beforeGet,

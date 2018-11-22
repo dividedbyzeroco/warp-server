@@ -320,7 +320,7 @@ export default class Query<T extends typeof Class> {
     }
 
     /**
-     * Include pointer keys for the query
+     * Include relation keys for the query
      * @param {String} keys
      */
     public include(key: string): this;
