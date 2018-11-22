@@ -179,42 +179,8 @@ export const belongsTo = <C extends typeof Class>(classCaller: ClassCaller<C>, f
 
         // Set definition
         const definition = ClassDefinitionManager.get(classInstance.statics());
-        if (!definition.keys.includes(keyName)) definition.keys.push(keyName);
         definition.relations[keyName] = relationDefinition;
         ClassDefinitionManager.set(classInstance.statics(), definition);
-
-        // Get existing descriptor
-        const descriptor = Object.getOwnPropertyDescriptor(classInstance, name);
-
-        // Extend relation getter and setter
-        Object.defineProperty(classInstance, name, {
-            set(value) {
-                // Parse value
-                value = keyManager.setter(value);
-
-                // If descriptor is defined
-                if (descriptor && typeof descriptor.set === 'function') {
-                    // Set value
-                    descriptor.set.apply(this, [value]);
-                } else this.keys.set(keyManager.name, value);
-            },
-            get() {
-                // Prepare value
-                let value = this.keys.get(keyManager.name);
-
-                // If descriptor is defined
-                if (descriptor && typeof descriptor.get === 'function') {
-                    // Get formatted value
-                    value = descriptor.get.apply(this);
-                }
-
-                // Format value
-                value = keyManager.getter(value);
-
-                // Return value
-                return value;
-            },
-        });
     };
 };
 

@@ -344,6 +344,50 @@ import { Class, define, key, range } from 'warp-server';
 }
 ```
 
+Additionally, you can specify the rounding `rule` to be used. This can either be `off`, `up`, or `down`. The default rule is `off`.
+
+```javascript
+@define class Dog extends Class {
+
+    @rounded(2) @key weight: number;
+    @rounded(2, 'up') @key height: number;
+    @rounded(2, 'down') @key rating: number;
+
+}
+
+const corgi = new Dog;
+corgi.weight = 22.365; // 22.37
+corgi.height = 1.152; // 1.16
+corgi.rating = 4.318; // 4.31
+```
+
+### @enumerated
+
+If you want to check if a `key`'s value is one of pre-defined values, you can use the `@enumerated` decorator.
+
+```javascript
+import { Class, define, key, enumerated } from 'warp-server';
+
+@define class Dog extends Class {
+
+    @enumerated(['active', 'inactive']) // Can be an array of values
+    @key status: string;
+
+    @enumerated(new Map([[1, 'basic'], [2, 'intermediate'], [3, 'advanced']])) // Can be a Map
+    @key trainingLevel: number | string;
+
+}
+
+const corgi = new Dog;
+corgi.status = 'active'; // OK
+corgi.status = 'deactivated'; // throws an Error
+
+corgi.trainingLevel = 'basic'; // throws an Error
+
+corgi.trainingLevel = 1; // OK
+const trainingLevel = corgi.trainingLevel; // returns 'basic';
+```
+
 ## Registering Classes
 
 Now that we've created our `Class`, we can start using it in our application. For more information, see the [Objects](#objects) section. 
@@ -444,7 +488,9 @@ import { Class, key, belongsTo } from 'warp-server';
 @define class Employee extends Class {
 
     @key name: string;
-    @belongsTo(() => Department) department: Department;
+
+    @belongsTo(type => Department) 
+    @key department: Department;
 
 }
 ```
@@ -466,8 +512,8 @@ import { Class, key, belongsTo } from 'warp-server';
 
     @key name: string;
 
-    @belongsTo(() => Department, { from: 'employee.deparment_code', to: 'department.code' }) 
-    department: Department;
+    @belongsTo(type => Department, { from: 'employee.deparment_code', to: 'department.code' }) 
+    @key department: Department;
 
 }
 ```
@@ -514,7 +560,10 @@ import { Class, define, key, hasMany } from 'warp-server';
 @define class Dog extends Class {
 
     @key name: string;
-    @hasMany(type => Dog) friends: Query<typeof Dog>;
+
+    // Do not decorate with @key
+    @hasMany(type => Dog) 
+    friends: Query<typeof Dog>;
 
 }
 

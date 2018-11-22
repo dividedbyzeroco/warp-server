@@ -5,13 +5,13 @@ import { KeyType } from '../../../../types/key';
 
 export interface NumberKeyOptions {
     type?: KeyType;
-    decimals?: number;
+    precision?: number;
     min?: number;
     max?: number;
 }
 
 export default function NumberKey(name: string, opts: NumberKeyOptions = {}): KeyManager {
-    const { type = 'number', decimals = 2, min, max } = opts;
+    const { type = 'number', precision = 2, min, max } = opts;
 
     const key = new KeyManager(name, 'number');
     key.setterDefinition = value => {
@@ -33,7 +33,7 @@ export default function NumberKey(name: string, opts: NumberKeyOptions = {}): Ke
         }
 
         if (type === 'integer') return parseInt(value);
-        else if (type === 'float' || typeof decimals !== 'undefined') return Number(Number(value).toFixed(decimals));
+        else if (type === 'float' || typeof precision !== 'undefined') return Number(Number(value).toFixed(precision));
         else return Number(value);
     };
 
@@ -41,7 +41,7 @@ export default function NumberKey(name: string, opts: NumberKeyOptions = {}): Ke
         if (typeof value === 'undefined' || value === null) return value;
         else {
             if (type === 'integer') return parseInt(value);
-            else if (type === 'float') return Number(Number(value).toFixed(decimals));
+            else if (type === 'float') return Number(Number(value).toFixed(precision));
             else return Number(value);
         }
     };

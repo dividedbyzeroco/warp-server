@@ -139,7 +139,7 @@ export class KeyInstance {
     public asBoolean = () => BooleanKey(this.keyName);
     public asNumber = (max?: number, min?: number) => NumberKey(this.keyName, { type: 'number', min, max });
     public asInteger = (min?: number, max?: number) => NumberKey(this.keyName, { type: 'integer', min, max });
-    public asFloat = (decimals: number = 2, min?: number, max?: number) => NumberKey(this.keyName, { type: 'float', decimals, min, max });
+    public asFloat = (precision: number = 2, min?: number, max?: number) => NumberKey(this.keyName, { type: 'float', precision, min, max });
     public asJSON = () => JsonKey(this.keyName);
 
 }

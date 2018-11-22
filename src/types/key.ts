@@ -9,5 +9,5 @@ export interface KeyOptions {
     maxLength?: number;
     min?: number;
     max?: number;
-    decimals?: number;
+    precision?: number;
 }
