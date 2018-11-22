@@ -4,7 +4,7 @@ import KeyMap from '../../utils/key-map';
 import Error from '../../utils/error';
 import { InternalKeys, Defaults } from '../../utils/constants';
 import ConstraintMap, { Constraints } from '../../utils/constraint-map';
-import { toDatabaseDate } from '../../utils/format';
+import { toDatabaseDate, toSnakeCase } from '../../utils/format';
 import { QueryOptionsType } from '../../types/database';
 import { getColumnsFrom, getRelationsFrom, getConstraintsFrom, getSortingFrom } from './query-mapper';
 
@@ -33,8 +33,10 @@ export default class Query<T extends typeof Class> {
         enforce`${{ key }} as a string`;
 
         // Check if the key exists for the class
-        if (!this.class.has(key))
-            throw new Error(Error.Code.ForbiddenOperation, `Constraint key \`${key}\` does not exist in \`${this.class.className}\``);
+        if (!this.class.has(key)) {
+            const suggestion = this.class.has(toSnakeCase(key)) ? `, did you mean \`${toSnakeCase(key)}\`?` : '';
+            throw new Error(Error.Code.ForbiddenOperation, `Constraint key \`${key}\` does not exist in \`${this.class.className}\`${suggestion}`);
+        }
 
         // Convert to string if value is a date
         if (value instanceof Date) value = toDatabaseDate(value.toISOString());
@@ -310,8 +312,10 @@ export default class Query<T extends typeof Class> {
             enforce`${{key}} as a string`;
 
             // Check if the key exists for the class
-            if (!this.class.has(key))
-                throw new Error(Error.Code.InvalidObjectKey, `Select key \`${key}\` does not exist in \`${this.class.className}\``);
+            if (!this.class.has(key)) {
+                const suggestion = this.class.has(toSnakeCase(key)) ? `, did you mean \`${toSnakeCase(key)}\`?` : '';
+                throw new Error(Error.Code.InvalidObjectKey, `Select key \`${key}\` does not exist in \`${this.class.className}\`${suggestion}`);
+            }
 
             this.selection.push(key);
         }
@@ -336,8 +340,10 @@ export default class Query<T extends typeof Class> {
             enforce`${{key}} as a string`;
 
             // Check if the key exists for the class
-            if (!this.class.has(key))
-                throw new Error(Error.Code.InvalidObjectKey, `Include key \`${key}\` does not exist in \`${this.class.className}\``);
+            if (!this.class.has(key)) {
+                const suggestion = this.class.has(toSnakeCase(key)) ? `, did you mean \`${toSnakeCase(key)}\`?` : '';
+                throw new Error(Error.Code.InvalidObjectKey, `Include key \`${key}\` does not exist in \`${this.class.className}\`${suggestion}`);
+            }
 
             this.included.push(key);
         }
@@ -361,8 +367,10 @@ export default class Query<T extends typeof Class> {
             const rawKey = key[0] === '-' ? key.substr(1) : key;
 
             // Check if the key exists for the class
-            if (!this.class.has(rawKey))
-                throw new Error(Error.Code.InvalidObjectKey, `Sort key \`${key}\` does not exist in \`${this.class.className}\``);
+            if (!this.class.has(rawKey)) {
+                const suggestion = this.class.has(toSnakeCase(key)) ? `, did you mean \`${toSnakeCase(key)}\`?` : '';
+                throw new Error(Error.Code.InvalidObjectKey, `Sort key \`${key}\` does not exist in \`${this.class.className}\`${suggestion}`);
+            }
 
             this.sorting.push(key);
         }
@@ -383,8 +391,10 @@ export default class Query<T extends typeof Class> {
             enforce`${{key}} as a string`;
 
             // Check if the key exists for the class
-            if (!this.class.has(key))
-                throw new Error(Error.Code.InvalidObjectKey, `Sort key \`${key}\` does not exist in \`${this.class.className}\``);
+            if (!this.class.has(key)) {
+                const suggestion = this.class.has(toSnakeCase(key)) ? `, did you mean \`${toSnakeCase(key)}\`?` : '';
+                throw new Error(Error.Code.InvalidObjectKey, `Sort key \`${key}\` does not exist in \`${this.class.className}\`${suggestion}`);
+            }
 
             this.sorting.push(`-${key}`);
         }
