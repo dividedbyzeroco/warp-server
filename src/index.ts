@@ -34,6 +34,7 @@ import { min } from './features/orm/keys/modifiers/min';
 import { max } from './features/orm/keys/modifiers/max';
 import { between } from './features/orm/keys/modifiers/between';
 import { rounded } from './features/orm/keys/modifiers/rounded';
+import { enumerated } from './features/orm/keys/modifiers/enumerated';
 import {
     beforeFind,
     beforeFirst,
@@ -338,6 +339,7 @@ export {
     max,
     between,
     rounded,
+    enumerated,
     Warp,
     ClassManager,
     belongsTo,
