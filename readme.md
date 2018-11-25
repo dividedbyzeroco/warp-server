@@ -901,7 +901,7 @@ const urbanCityQuery = new Query(Location).equalTo('type', 'urban');
 const ruralCityQuery = new Query(Location).equalTo('type', 'rural');
 
 // Prepare main query
-const dogQuery = new Query('dog')
+const dogQuery = new Query(Dog)
     .foundInEither('location.id', [
         { 'id': urbanCityQuery }, 
         { 'id': ruralCityQuery }
@@ -915,11 +915,11 @@ If we want to see if a value exists in all of the given queries, we can use `.fo
 
 ```javascript
 // Prepare subqueries
-var urbanCityQuery = new Warp.Query('location').equalTo('type', 'urban');
-var smallCityQuery = new Warp.Query('location').equalTo('size', 'small');
+var urbanCityQuery = new Query(Location).equalTo('type', 'urban');
+var smallCityQuery = new Query(Location).equalTo('size', 'small');
 
 // Prepare main query
-var dogQuery = new Warp.Query('dog')
+var dogQuery = new Query(Dog)
     .foundInAll('location.id', [
         { 'id': urbanCityQuery }, 
         { 'id': smallCityQuery }
