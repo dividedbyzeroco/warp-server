@@ -30,14 +30,12 @@ export const rounded = (precision: number, rule: 'off' | 'up' | 'down' = 'off') 
         set(value) {
             // Validate value
             if (typeof value === 'number') {
-                if(rule === 'off') {
+                if (rule === 'off') {
                     value = Number(Number(value).toFixed(precision));
-                }
-                else if(rule === 'up') {
+                } else if (rule === 'up') {
                     const multiplier = 10 * precision;
                     value = Math.ceil(Number(value) * multiplier) / multiplier;
-                }
-                else {
+                } else {
                     const multiplier = 10 * precision;
                     value = Math.floor(Number(value) * multiplier) / multiplier;
                 }

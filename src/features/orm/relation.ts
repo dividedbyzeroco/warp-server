@@ -186,8 +186,8 @@ export const belongsTo = <C extends typeof Class>(classCaller: ClassCaller<C>, f
 
 /**
  * hasMany decorator for relations
- * @param classCaller 
- * @param key 
+ * @param classCaller
+ * @param key
  */
 export const hasMany = <C extends typeof Class>(classCaller: ClassCaller<C>, key?: string) => {
     return <T extends Class>(classInstance: T, name: string): any => {
@@ -197,7 +197,7 @@ export const hasMany = <C extends typeof Class>(classCaller: ClassCaller<C>, key
                 throw new Error(Error.Code.ForbiddenOperation, 'Cannot set the value of a `hasMany` relation');
             },
             get() {
-                if(this.isNew) throw new Error(Error.Code.ForbiddenOperation, 'Cannot get a `hasMany` relation for a new object');
+                if (this.isNew) throw new Error(Error.Code.ForbiddenOperation, 'Cannot get a `hasMany` relation for a new object');
                 const relationKey: string = Relation.formatKey(this.statics().className, InternalKeys.Id);
                 key = key || relationKey;
                 return new Query(classCaller()).equalTo(key, this.id);
@@ -206,4 +206,4 @@ export const hasMany = <C extends typeof Class>(classCaller: ClassCaller<C>, key
             configurable: true,
         });
     };
-}; 
+};

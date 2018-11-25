@@ -22,11 +22,10 @@ export const enumerated = (values: any[] | Map<any, any>) => <C extends Class>(c
     Object.defineProperty(classInstance, name, {
         set(value) {
             // Validate value
-            if(values instanceof Array) {
-                if(!values.includes(value))
+            if (values instanceof Array) {
+                if (!values.includes(value))
                     throw new Error(`Key \`${keyName}\` can only be set to either of the following values: ${values.join(', ')}`);
-            }
-            else if (!values.has(value))
+            } else if (!values.has(value))
                 throw new Error(`Key \`${keyName}\` can only be set to either of the following values: ${[...values.keys()].join(', ')}`);
 
             // Set value
@@ -37,7 +36,7 @@ export const enumerated = (values: any[] | Map<any, any>) => <C extends Class>(c
             let value = descriptor && descriptor.get && descriptor.get.apply(this) || undefined;
 
             // Translate value
-            if(values instanceof Map) {
+            if (values instanceof Map) {
                 value = values.get(value);
             }
 
