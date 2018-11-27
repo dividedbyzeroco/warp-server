@@ -184,7 +184,7 @@ export default class ClassManager {
         for (const trigger of beforeFirstTriggers) await trigger.action.apply(classInstance, [ query, opts ]);
 
         // Get result
-        const result = await this.find(query);
+        const result = await this.find(query, opts);
 
         // If collection is empty, return null
         if (result.count() === 0) return null;
