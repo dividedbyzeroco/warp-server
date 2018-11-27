@@ -28,8 +28,6 @@ With `Warp`, you can:
     - **[Defining a User class](#defining-a-user-class)**
     - **[Authentication](#authentication)**
 - **[Relations](#relations)**
-    - **[belongsTo](#@belongsTo)**
-    - **[hasMany](#@hasMany)**
 - **[Objects](#objects)**
     - **[Creating an Object](#creating-an-object)**
     - **[Updating an Object](#updating-an-object)**
@@ -472,39 +470,31 @@ By default, the `restful API` tries to get the `req.user` parameter
 
 One of the biggest features of relational databases is their ability to define `relations` between tables. This makes it more convenient to link and retrieve entities.
 
-For `Warp` there are several built-in decorators for defining `relations` in your database, which make querying much easier.
-
-## @belongsTo
-
-If two tables have a `one-to-many` relation, we can use the `@belongsTo` decorator. This decorator allows us to define from which class our `key` belongs to. 
+If two tables have a `one-to-many` relation, we can define the type of the `key` with an instance of a `Class`. This type allows us to define from which class our `key` belongs to.
 
 Later on, when we're querying, the key will automatically return an instance of the `Class` that we defined. Additionally, it validates whether the value we set to our `key` matches the correct `Class`.
 
 ```javascript
-import { Class, key, belongsTo } from 'warp-server';
+import { Class, key } from 'warp-server';
 
 @define class Department extends Class { /** shortened for brevity */ }
 
 @define class Employee extends Class {
 
     @key name: string;
-
-    @belongsTo(type => Department) 
     @key department: Department;
 
 }
 ```
 
-> NOTE: The `@belongsTo` decorator's first argument accepts a function that returns a `Class`. We use a function instead of directly setting the class because it helps us avoid problems with `circular` referencing in JavaScript.
-
 In the example above, we tell `Warp` that our `department` key belongs to the `Department` class. 
 
 Inside our database, every time we save or query `Employee`, it automatically maps the column `employee.department_id` to `department.id`.
 
-If you want to define a different column for the mapping, you can set it using the second argument.
+If you want to define a different column for the mapping, you can set it using the `from` and `to` options.
 
 ```javascript
-import { Class, key, belongsTo } from 'warp-server';
+import { Class, key } from 'warp-server';
 
 @define class Department extends Class { /** shortened for brevity */ }
 
@@ -512,15 +502,15 @@ import { Class, key, belongsTo } from 'warp-server';
 
     @key name: string;
 
-    @belongsTo(type => Department, { from: 'employee.deparment_code', to: 'department.code' }) 
-    @key department: Department;
+    @key({ from: 'employee.deparment_code', to: 'department.code' }) 
+    department: Department;
 
 }
 ```
 
 Now that we've defined our relation, we can start using it in our code.
 
-Below is an example of querying with `@belongsTo`. For more information on queries, see the [Queries](#queries) section.
+Below is an example of a query with a `relation`. For more information on queries, see the [Queries](#queries) section.
 
 ```javascript
 const service = new Warp({ /** some configuration **/ });
@@ -536,7 +526,7 @@ const employee = await service.classes.first(employeeQuery);
 const departmentName = employee.department.name;
 ```
 
-Another example can be found below, this time it's about saving with `@belongsTo`. For more information on saving and destroying objects, see the [Objects](#objects) section.
+Another example can be found below, this time it's about saving objects. For more information on saving and destroying objects, see the [Objects](#objects) section.
 
 ```javascript
 const employee = new Employee;
@@ -544,34 +534,6 @@ employee.department = new Department(1); // OK
 employee.department = new Country(3); // This will cause an error
 
 await service.classes.save(employee);
-```
-
-# @hasMany
-
-On the other side of the `one-to-many` relationship, we can use the `@hasMany` decorator. This decorator allows us to define which `Class` our `key` relates to. This is useful when you want to fetch the `children` of a `Class`, without needing to build a new `Query`.
-
-By decorating the `key` with `@hasMany`, it automatically returns a `Query` of the child `Class` that already has a constraint relating to the parent `Class`.
-
-> NOTE: The `key` decorated with `@hasMany` cannot be set as it is readonly. For the `restful` API, this key will also not be returned.
-
-```javascript
-import { Class, define, key, hasMany } from 'warp-server';
-
-@define class Dog extends Class {
-
-    @key name: string;
-
-    // Do not decorate with @key
-    @hasMany(type => Dog) 
-    friends: Query<typeof Dog>;
-
-}
-
-// Get the Dog
-const corgi = await service.classes.getById(Dog, 5);
-
-// Get the dog's friends
-const friends = await service.classes.find(corgi.friends);
 ```
 
 # Objects
@@ -593,8 +555,7 @@ To create an `Object`, simply instantiate the `Class`.
     @key height: number;
     @key weight: number;
     @key awardsWon: number;
-
-    @belongsTo(() => Person) owner: Person;
+    @key owner: Person;
 
     get bmi(): number {
         return this.weight / (this.height * this.height);

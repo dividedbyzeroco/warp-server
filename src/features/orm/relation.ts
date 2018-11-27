@@ -1,8 +1,6 @@
 import Class, { ClassDefinitionManager } from './class';
 import { InternalKeys, RelationDelimiter, RelationTypeName } from '../../utils/constants';
-import { toSnakeCase } from '../../utils/format';
 import Error from '../../utils/error';
-import RelationKey from './keys/types/relation';
 import { ClassCaller } from '../../types/relations';
 import { Query } from '../..';
 
@@ -153,57 +151,3 @@ export class RelationDefinition<C extends typeof Class> {
         return relation;
     }
 }
-
-/**
- * belongsTo decorator for relations
- * @param classCaller
- */
-export const belongsTo = <C extends typeof Class>(classCaller: ClassCaller<C>, from?: string, to?: string) => {
-    return <T extends Class>(classInstance: T, name: string): any => {
-        // Get relation name
-        const keyName = toSnakeCase(name);
-
-        // Set default values
-        from = from || Relation.formatKey(RelationDefinition.OwnerSymbol, Relation.formatAsId(keyName));
-        to = to || Relation.formatKey(keyName, InternalKeys.Id);
-
-        // Extract keys
-        const [ sourceClassName, sourceKey ] = Relation.parseKey(from);
-        const [ parentClassName, parentKey ] = Relation.parseKey(to);
-
-        // Prepare relation definition
-        const relationDefinition = new RelationDefinition(classCaller, sourceClassName, sourceKey, parentClassName, parentKey);
-
-        // Prepare key manager
-        const keyManager = RelationKey(keyName, relationDefinition);
-
-        // Set definition
-        const definition = ClassDefinitionManager.get(classInstance.statics());
-        definition.relations[keyName] = relationDefinition;
-        ClassDefinitionManager.set(classInstance.statics(), definition);
-    };
-};
-
-/**
- * hasMany decorator for relations
- * @param classCaller
- * @param key
- */
-export const hasMany = <C extends typeof Class>(classCaller: ClassCaller<C>, key?: string) => {
-    return <T extends Class>(classInstance: T, name: string): any => {
-        // Override getter and setter
-        Object.defineProperty(classInstance, name, {
-            set(value) {
-                throw new Error(Error.Code.ForbiddenOperation, 'Cannot set the value of a `hasMany` relation');
-            },
-            get() {
-                if (this.isNew) throw new Error(Error.Code.ForbiddenOperation, 'Cannot get a `hasMany` relation for a new object');
-                const relationKey: string = Relation.formatKey(this.statics().className, InternalKeys.Id);
-                key = key || relationKey;
-                return new Query(classCaller()).equalTo(key, this.id);
-            },
-            enumerable: true,
-            configurable: true,
-        });
-    };
-};

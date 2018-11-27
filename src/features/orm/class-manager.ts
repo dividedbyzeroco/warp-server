@@ -16,6 +16,7 @@ import {
     TriggerBeforeGet,
     SetJsonTypeName,
     AppendJsonTypeName,
+    InternalId,
 } from '../../utils/constants';
 import { ClassMapType, ClassOptions } from '../../types/class';
 import { Increment, JsonAction } from './specials';
@@ -321,6 +322,29 @@ export default class ClassManager {
 
         // Return immediately
         return;
+    }
+
+    /**
+     * Generates a batch loader function
+     * Compatible with the `dataloader` library of Facebook
+     * @param query 
+     */
+    public batch<C extends typeof Class, U extends User>(query: Query<C>, opts?: ClassOptions<U>) {
+        
+        return async (ids: number[]) => {
+            // Contained in
+            query.containedIn(InternalId, ids);
+        
+            // Get results
+            const results = await this.find(query, opts);
+        
+            // Order results
+            const resultsMap = results.toMap();
+            const orderedResults = ids.map(id => resultsMap.get(id) || null);
+        
+            return orderedResults;
+        };
+    
     }
 
 }
