@@ -464,16 +464,32 @@ export default class Query<T extends typeof Class> {
      * @param keys
      */
     public getClassFromKeys<C extends Class>(keys: KeyMap): C {
+        // Get definition
+        const definition = ClassDefinitionManager.get(this.class);
+
+        // Prepare new key map
+        const keyMap = new KeyMap;
+    
         // Get internal keys
         const id = keys.get(InternalKeys.Id);
 
         // Remove id from the key map
         keys.remove(InternalKeys.Id);
 
+        // Iterate through each key
+        for(const [key, value] of keys.toArray()) {
+            const relationDefinition = definition.relations[key];
+            if(typeof relationDefinition  !== 'undefined') {
+                const relation = relationDefinition.toRelation();
+                keyMap.set(key, new relation.class(value));
+            }
+            else keyMap.set(key, value);
+        }
+
         // Return the new class
         const classInstance = (new this.class) as C;
         classInstance.identifier = id;
-        classInstance.keys = keys;
+        classInstance.keys = keyMap;
 
         return classInstance;
     }

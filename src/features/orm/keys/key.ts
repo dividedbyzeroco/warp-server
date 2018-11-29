@@ -87,7 +87,7 @@ export const keyDecorator = (opts: KeyOptions = {}) => {
         else if (type === 'array') keyManager = JsonKey(sourceName);
         else if (type === 'object') keyManager = JsonKey(sourceName);
         else if (type === 'json') keyManager = JsonKey(sourceName);
-        else if ((new inferredType) instanceof Class) {
+        else if (inferredType && (new inferredType) instanceof Class) {
             // Set default values
             from = from || Relation.formatKey(RelationDefinition.OwnerSymbol, Relation.formatAsId(keyName));
             to = to || Relation.formatKey(keyName, InternalKeys.Id);

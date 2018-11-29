@@ -13,7 +13,6 @@ import { hidden } from '../orm/keys/modifiers/hidden';
     @key public username: string;
     @key public email: string;
     @hidden @key public password: string;
-    @key public role: string;
 
     private isCurrentUser(user: User | undefined) {
         return typeof user !== 'undefined' && user.id === this.id;

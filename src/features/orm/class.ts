@@ -201,7 +201,7 @@ export default class Class {
     }
 
     get isNew(): boolean {
-        return typeof this.identifier !== 'undefined';
+        return typeof this.identifier === 'undefined';
     }
 
     get id(): number {

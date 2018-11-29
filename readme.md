@@ -435,7 +435,6 @@ Because `User` is a special class, it has pre-defined `keys` that are helpful fo
 + `username`: a unique string used for auth
 + `email`: a valid email address that can be used for verification
 + `password`: a secret string used for auth
-+ `role`: a string defining the access level of a user
 
 In addition, the `User` class has built-in `Triggers` that check whether the supplied `username` and `email` keys are valid and unique. It also prevents users from retrieving the raw `password` field, as well as ensuring that database operations to the `user` are only made by the `user` itself or by administrators using `master` mode.
 

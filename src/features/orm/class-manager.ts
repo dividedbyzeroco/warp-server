@@ -20,6 +20,7 @@ import {
 } from '../../utils/constants';
 import { ClassMapType, ClassOptions } from '../../types/class';
 import { Increment, JsonAction } from './specials';
+import KeyMap from '../../utils/key-map';
 
 export default class ClassManager {
 
@@ -28,6 +29,44 @@ export default class ClassManager {
 
     constructor(database: IDatabaseAdapter) {
         this.database = database;
+    }
+
+    /**
+     * Get key map from instance
+     * @param classInstance 
+     */
+    private getKeyMapFrom<C extends Class>(classInstance: C) {
+        // Get definition
+        const definition = ClassDefinitionManager.get(classInstance.statics());
+        
+        // Get class keys
+        const classKeys = classInstance.keys;
+
+        // Set keys to save
+        const keys = classKeys.toArray().reduce((keyMap, keyValue) => {
+            // Get key map
+            const [ key, value ] = keyValue;
+
+            // Get relation definition
+            const relationDefinition = definition.relations[key];
+
+            // Check if relation definition exists
+            if(typeof relationDefinition  !== 'undefined') {
+                // Get key source
+                const keySource = relationDefinition.toRelation().sourceKey;
+
+                // Set key value
+                keyMap.set(keySource, value.id);
+                
+            } else keyMap.set(key, value);
+
+            // Return key map
+            return keyMap;
+
+        }, new KeyMap);
+
+        // Return keys
+        return keys;
     }
 
     /**
@@ -266,9 +305,9 @@ export default class ClassManager {
         // Run all beforeSave triggers
         const beforeSaveTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeSave);
         for (const trigger of beforeSaveTriggers) await trigger.action.apply(classInstance, [ this, opts ]);
-
-        // Get keys to save
-        const keys = classInstance.keys;
+    
+        // Get key map
+        const keys = this.getKeyMapFrom(classInstance);
 
         // If the object is new
         if (classInstance.isNew) {
@@ -306,8 +345,8 @@ export default class ClassManager {
         const beforeDestroyTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeDestroy);
         for (const trigger of beforeDestroyTriggers) await trigger.action.apply(classInstance, [this, opts]);
 
-        // Get keys
-        const keys = classInstance.keys;
+        // Get key map
+        const keys = this.getKeyMapFrom(classInstance);
 
         // Execute destroy query
         await this.database.destroy(classInstance.statics().className, keys, classInstance.id);

@@ -239,8 +239,13 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         keys.set(InternalKeys.Timestamps.CreatedAt, now);
         keys.set(InternalKeys.Timestamps.UpdatedAt, now);
 
+        // Get inputKeys
+        const sqlInputKeys = keys.keys.map(key => this.client.escapeKey(key));
+        const sqlInputValues = keys.values.map(value => this.client.escape(value));
+
         // Prepare script
-        const createScript = `INSERT INTO ${this.client.escapeKey(source)} (${keys.keys.join(', ')}) VALUES (${keys.values.join(', ')}); -- Warp Server ${version}`;
+        const createScript = `INSERT INTO ${this.client.escapeKey(source)} (${sqlInputKeys.join(', ')}) `
+            + `VALUES (${sqlInputValues.join(', ')}); -- Warp Server ${version}`;
 
         // Create the item and get id
         const result = await this.client.query(createScript, DatabaseWrite);
