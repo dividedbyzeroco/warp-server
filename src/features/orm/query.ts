@@ -469,7 +469,7 @@ export default class Query<T extends typeof Class> {
 
         // Prepare new key map
         const keyMap = new KeyMap;
-    
+
         // Get internal keys
         const id = keys.get(InternalKeys.Id);
 
@@ -477,13 +477,12 @@ export default class Query<T extends typeof Class> {
         keys.remove(InternalKeys.Id);
 
         // Iterate through each key
-        for(const [key, value] of keys.toArray()) {
+        for (const [key, value] of keys.toArray()) {
             const relationDefinition = definition.relations[key];
-            if(typeof relationDefinition  !== 'undefined') {
+            if (typeof relationDefinition  !== 'undefined') {
                 const relation = relationDefinition.toRelation();
                 keyMap.set(key, new relation.class(value));
-            }
-            else keyMap.set(key, value);
+            } else keyMap.set(key, value);
         }
 
         // Return the new class

@@ -33,12 +33,12 @@ export default class ClassManager {
 
     /**
      * Get key map from instance
-     * @param classInstance 
+     * @param classInstance
      */
     private getKeyMapFrom<C extends Class>(classInstance: C) {
         // Get definition
         const definition = ClassDefinitionManager.get(classInstance.statics());
-        
+
         // Get class keys
         const classKeys = classInstance.keys;
 
@@ -51,13 +51,13 @@ export default class ClassManager {
             const relationDefinition = definition.relations[key];
 
             // Check if relation definition exists
-            if(typeof relationDefinition  !== 'undefined') {
+            if (typeof relationDefinition  !== 'undefined') {
                 // Get key source
                 const keySource = relationDefinition.toRelation().sourceKey;
 
                 // Set key value
                 keyMap.set(keySource, value.id);
-                
+
             } else keyMap.set(key, value);
 
             // Return key map
@@ -305,7 +305,7 @@ export default class ClassManager {
         // Run all beforeSave triggers
         const beforeSaveTriggers = definition.triggers.filter(trigger => trigger.type === TriggerBeforeSave);
         for (const trigger of beforeSaveTriggers) await trigger.action.apply(classInstance, [ this, opts ]);
-    
+
         // Get key map
         const keys = this.getKeyMapFrom(classInstance);
 
