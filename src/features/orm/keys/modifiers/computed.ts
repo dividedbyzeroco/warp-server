@@ -30,8 +30,7 @@ export const computed = <C extends Class>(classInstance: C, name: string): any =
             if (descriptor && typeof descriptor.get === 'function') {
                 // Get formatted value
                 return descriptor.get.apply(this);
-            }
-            else throw new Error(Error.Code.MissingConfiguration, `Key \`${keyName}\` is a \`computed\` key but does not have a defined getter`);
+            } else throw new Error(Error.Code.MissingConfiguration, `Key \`${keyName}\` is a \`computed\` key but does not have a defined getter`);
         },
         enumerable: true,
         configurable: true,

@@ -1,16 +1,16 @@
 import Client from './client';
 import Error from '../../../utils/error';
 import KeyMap from '../../../utils/key-map';
-import { InternalKeys, DatabaseWrite, DatabaseRead, SortSymbol } from '../../../utils/constants';
-import ConstraintMap, { Constraints } from '../../../utils/constraint-map';
+import { InternalKeys, DatabaseWrite, DatabaseRead, SortSymbol, InternalId, CreatedAt, UpdatedAt, DeletedAt } from '../../../utils/constants';
+import ConstraintMap, { Constraints, ConstraintObject } from '../../../utils/constraint-map';
 import { toDatabaseDate } from '../../../utils/format';
 import CompoundKey from '../../../utils/compound-key';
 import { FindClauseOptionsType, IDatabaseAdapter, DatabaseConfig } from '../../../types/database';
-import { ConstraintObject } from '../../../types/constraints';
 import Relation from '../../../features/orm/relation';
 import Query from '../../../features/orm/query';
 import Class from '../../../features/orm/class';
 import { Increment, JsonAction } from '../../../features/orm/specials';
+import { ClassId } from '../../../types/class';
 
 const { version } = require('../../../package.json');
 
@@ -233,11 +233,11 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         return rows;
     }
 
-    public async create(source: string, keys: KeyMap): Promise<number> {
+    public async create(source: string, keys: KeyMap): Promise<ClassId> {
         // Add timestamps
         const now = this.currentTimestamp;
-        keys.set(InternalKeys.Timestamps.CreatedAt, now);
-        keys.set(InternalKeys.Timestamps.UpdatedAt, now);
+        keys.set(CreatedAt, now);
+        keys.set(UpdatedAt, now);
 
         // Get inputKeys
         const sqlInputKeys = keys.keys.map(key => this.client.escapeKey(key));
@@ -254,13 +254,13 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         return result.id;
     }
 
-    public async update(source: string, keys: KeyMap, id: number): Promise<void> {
+    public async update(source: string, keys: KeyMap, id: ClassId): Promise<void> {
         // Prepare id
-        const idKey = this.client.escapeKey(InternalKeys.Id);
+        const idKey = this.client.escapeKey(InternalId);
 
         // Add timestamps
         const now = this.currentTimestamp;
-        keys.set(InternalKeys.Timestamps.UpdatedAt, now);
+        keys.set(UpdatedAt, now);
 
         // Get sql input
         const sqlInput = keys.toArray().reduce((input, [ key, value ]) => ([
@@ -275,14 +275,14 @@ export default class MySQLDatabaseAdapter implements IDatabaseAdapter {
         await this.client.query(updateScript, DatabaseWrite);
     }
 
-    public async destroy(source: string, keys: KeyMap, id: number): Promise<void> {
+    public async destroy(source: string, keys: KeyMap, id: ClassId): Promise<void> {
         // Prepare id, timestamps and KeyMap
-        const idKey = this.client.escapeKey(InternalKeys.Id);
+        const idKey = this.client.escapeKey(InternalId);
 
         // Add timestamps
         const now = this.currentTimestamp;
-        keys.set(InternalKeys.Timestamps.UpdatedAt, now);
-        keys.set(InternalKeys.Timestamps.DeletedAt, now);
+        keys.set(UpdatedAt, now);
+        keys.set(DeletedAt, now);
 
         // Get sql input
         const sqlInput = keys.toArray().reduce((input, [ key, value ]) => ([

@@ -18,7 +18,7 @@ import {
     AppendJsonTypeName,
     InternalId,
 } from '../../utils/constants';
-import { ClassMapType, ClassOptions } from '../../types/class';
+import { ClassMapType, ClassOptions, ClassId } from '../../types/class';
 import { Increment, JsonAction } from './specials';
 import KeyMap from '../../utils/key-map';
 
@@ -233,11 +233,11 @@ export default class ClassManager {
     /**
      * Find a single object
      * @param classType
-     * @param {number} id
+     * @param {number|string} id
      */
     public async getById<C extends typeof Class, U extends User>(
         classType: C,
-        id: number,
+        id: ClassId,
         include?: string[],
         select?: string[],
         opts: ClassOptions<U> = {},
@@ -248,7 +248,7 @@ export default class ClassManager {
 
         // Prepare query
         const query = new Query(classType)
-            .equalTo(InternalKeys.Id, id)
+            .equalTo(InternalId, id)
             .skip(0)
             .limit(1);
 

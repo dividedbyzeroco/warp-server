@@ -1,4 +1,5 @@
 import { User } from '..';
+import { ClassId } from './class';
 
 export interface FindOptionsType {
     className: string;
@@ -13,7 +14,7 @@ export interface FindOptionsType {
 
 export interface GetOptionsType {
     className: string;
-    id: number;
+    id: ClassId;
     select?: string[];
     include?: string[];
     user: User | null;
@@ -27,13 +28,13 @@ export interface CreateOptionsType {
 
 export interface UpdateOptionsType {
     className: string;
-    id: number;
+    id: ClassId;
     keys: {[name: string]: any};
     user: User | null;
 }
 
 export interface DestroyOptionsType {
     className: string;
-    id: number;
+    id: ClassId;
     user: User | null;
 }

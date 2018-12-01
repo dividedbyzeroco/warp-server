@@ -2,6 +2,7 @@ import Relation from '../features/orm/relation';
 import KeyMap from '../utils/key-map';
 import ConstraintMap from '../utils/constraint-map';
 import { ILogger } from './logger';
+import { ClassId } from './class';
 
 export type DatabaseAction = 'read' | 'write';
 
@@ -17,9 +18,9 @@ export interface IDatabaseAdapter {
         skipped: number,
         limitation: number,
     ): Promise<KeyMap[]>;
-    create(source: string, keys: KeyMap): Promise<number>;
-    update(source: string, keys: KeyMap, id: number): Promise<void>;
-    destroy(source: string, keys: KeyMap, id: number): Promise<void>;
+    create(source: string, keys: KeyMap): Promise<ClassId>;
+    update(source: string, keys: KeyMap, id: ClassId): Promise<void>;
+    destroy(source: string, keys: KeyMap, id: ClassId): Promise<void>;
 }
 
 export declare const IDatabaseAdapter: {

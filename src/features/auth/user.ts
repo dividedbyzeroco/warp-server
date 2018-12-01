@@ -2,7 +2,7 @@ import Class, { define } from '../orm/class';
 import key from '../orm/keys/key';
 import Error from '../../utils/error';
 import Query from '../orm/query';
-import { InternalKeys } from '../../utils/constants';
+import { InternalKeys, InternalId } from '../../utils/constants';
 import { ClassManager } from '../..';
 import { ClassOptions } from '../../types/class';
 import { beforeFind, beforeGet, beforeSave, beforeDestroy } from '../orm/keys/modifiers/triggers';
@@ -44,7 +44,7 @@ import { hidden } from '../orm/keys/modifiers/hidden';
         // If user is master
         if (this.isMaster) return query;
         else if (!this.hasAccess(user, master)) {
-            if (user) query.equalTo(InternalKeys.Id, user.id);
+            if (user) query.equalTo(InternalId, user.id);
             else throw new Error(Error.Code.ForbiddenOperation, 'You cannot anonymously fetch user data unless you are a master');
         }
     }
@@ -59,9 +59,9 @@ import { hidden } from '../orm/keys/modifiers/hidden';
             const emailQuery = new Query(User)
                 .equalTo(InternalKeys.Auth.Email, this.email);
             const matchQuery = new Query(User)
-                .foundInEither(InternalKeys.Id, [
-                    { [InternalKeys.Id]: usernameQuery },
-                    { [InternalKeys.Id]: emailQuery },
+                .foundInEither(InternalId, [
+                    { [InternalId]: usernameQuery },
+                    { [InternalId]: emailQuery },
                 ]);
 
             // Get match

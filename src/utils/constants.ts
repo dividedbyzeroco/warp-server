@@ -2,6 +2,7 @@ export const InternalId = 'id';
 export const CreatedAt = 'created_at';
 export const UpdatedAt = 'updated_at';
 export const DeletedAt = 'deleted_at';
+export const InternalTimestamps = Object.freeze({ CreatedAt, UpdatedAt, DeletedAt });
 
 export const TriggerBeforeFind = 'before-find';
 export const TriggerBeforeFirst = 'before-first';
@@ -25,12 +26,6 @@ export const SetJsonTypeName = 'SetJson';
 export const AppendJsonTypeName = 'AppendJson';
 
 export const InternalKeys = Object.freeze({
-    Id: InternalId,
-    Timestamps: Object.freeze({
-        CreatedAt,
-        UpdatedAt,
-        DeletedAt,
-    }),
     Middleware: Object.freeze({
         ApiKey: 'X-Warp-API-Key',
         MasterKey: 'X-Warp-Master-Key',
@@ -56,7 +51,7 @@ export const DatabaseRead = 'read';
 
 export const Defaults = Object.freeze({
     Query: Object.freeze({
-        Sort: [InternalKeys.Id],
+        Sort: [InternalId],
         Skip: 0,
         Limit: 100,
     }),

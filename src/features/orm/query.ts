@@ -2,7 +2,7 @@ import enforce from 'enforce-js';
 import Class, { ClassDefinitionManager } from './class';
 import KeyMap from '../../utils/key-map';
 import Error from '../../utils/error';
-import { InternalKeys, Defaults } from '../../utils/constants';
+import { InternalKeys, Defaults, InternalId } from '../../utils/constants';
 import ConstraintMap, { Constraints } from '../../utils/constraint-map';
 import { toDatabaseDate, toSnakeCase } from '../../utils/format';
 import { QueryOptionsType } from '../../types/database';
@@ -452,7 +452,7 @@ export default class Query<T extends typeof Class> {
         const definition = ClassDefinitionManager.get(this.class);
 
         // Get selection
-        const defaultSelect = [ InternalKeys.Id, ...definition.keys, ...definition.timestamps ];
+        const defaultSelect = [ InternalId, ...definition.keys, ...definition.timestamps ];
         const selected = this.selection.length > 0 ? this.selection : defaultSelect;
         const selection = [ ...selected, ...this.included ];
 
@@ -471,10 +471,10 @@ export default class Query<T extends typeof Class> {
         const keyMap = new KeyMap;
 
         // Get internal keys
-        const id = keys.get(InternalKeys.Id);
+        const id = keys.get(InternalId);
 
         // Remove id from the key map
-        keys.remove(InternalKeys.Id);
+        keys.remove(InternalId);
 
         // Iterate through each key
         for (const [key, value] of keys.toArray()) {

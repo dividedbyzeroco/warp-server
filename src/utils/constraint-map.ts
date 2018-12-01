@@ -1,5 +1,10 @@
 import Error from './error';
-import { ConstraintObject } from '../types/constraints';
+
+export interface ConstraintObject {
+    key: string;
+    constraint: string;
+    value: any;
+}
 
 export class KeyConstraints {
 

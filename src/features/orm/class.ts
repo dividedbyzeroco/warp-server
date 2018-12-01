@@ -1,10 +1,10 @@
 import Error from '../../utils/error';
 import KeyMap from '../../utils/key-map';
 import { toCamelCase, toSnakeCase } from '../../utils/format';
-import { InternalKeys, InternalId, RelationTypeName } from '../../utils/constants';
+import { InternalKeys, InternalId, RelationTypeName, InternalTimestamps, CreatedAt, UpdatedAt } from '../../utils/constants';
 import Relation, { RelationDefinition } from './relation';
 import CompoundKey from '../../utils/compound-key';
-import { ClassKeys, ClassJSON } from '../../types/class';
+import { ClassKeys, ClassJSON, ClassId } from '../../types/class';
 import DateKey from './keys/types/date';
 import { RelationsMap } from '../../types/relations';
 import { TriggersList } from '../../types/triggers';
@@ -28,7 +28,7 @@ export interface ClassDefinitionOptions {
 
 const DefaultClassDefinition = {
     keys: [],
-    timestamps: Object.values(InternalKeys.Timestamps),
+    timestamps: Object.values(InternalTimestamps),
     relations: {},
     triggers: [],
     hidden: [],
@@ -110,7 +110,7 @@ export function define<C extends { new(...args: any[]): Class }>(...args: [Class
  */
 export default class Class {
 
-    public identifier: number;
+    public identifier: ClassId;
     public keys: KeyMap = new KeyMap;
 
     /**
@@ -118,7 +118,7 @@ export default class Class {
      * @param {Object} params
      * @param {Number} id
      */
-    constructor(keys: number | ClassKeys = {}) {
+    constructor(keys: ClassId | ClassKeys = {}) {
         // Get definition
         const definition = ClassDefinitionManager.get(this.statics());
 
@@ -167,7 +167,7 @@ export default class Class {
         if (CompoundKey.isUsedBy(key)) {
             return CompoundKey.from(key).every(k => this.has(k));
         } else if (Relation.isUsedBy(key) && this.hasRelationKey(key)) return true;
-        else if (key === InternalKeys.Id) return true;
+        else if (key === InternalId) return true;
         else if (definition.timestamps.includes(key)) return true;
         else if (definition.keys.includes(key)) return true;
         else return false;
@@ -197,7 +197,7 @@ export default class Class {
         return true;
     }
 
-    public static withId<C extends Class>(id: number): C {
+    public static withId<C extends Class>(id: ClassId): C {
         return new this(id) as C;
     }
 
@@ -209,16 +209,16 @@ export default class Class {
         return typeof this.identifier === 'undefined';
     }
 
-    get id(): number {
+    get id(): ClassId {
         return this.identifier;
     }
 
-    set id(value: number) {
+    set id(value: ClassId) {
         throw new Error(Error.Code.ForbiddenOperation, 'Cannot manually set the `id` key');
     }
 
     get createdAt(): string {
-        const keyManager = DateKey(InternalKeys.Timestamps.CreatedAt);
+        const keyManager = DateKey(CreatedAt);
         return keyManager.getter(this.keys.get(keyManager.name));
     }
 
@@ -227,7 +227,7 @@ export default class Class {
     }
 
     get updatedAt(): string {
-        const keyManager = DateKey(InternalKeys.Timestamps.UpdatedAt);
+        const keyManager = DateKey(UpdatedAt);
         return keyManager.getter(this.keys.get(keyManager.name));
     }
 
@@ -251,7 +251,7 @@ export default class Class {
      * toJSON
      * @description Executed every time the object is being stringified to an object literal
      */
-    public toJSON<C extends this>(isRelation: boolean = false): ClassJSON<C> {
+    public toJSON<C extends this>(type?: string): ClassJSON<C> {
         // Get keys
         const { id, createdAt, updatedAt } = this;
         const keys = {};
@@ -259,7 +259,9 @@ export default class Class {
 
         // Class definition
         const classDefinition = ClassDefinitionManager.get(this.statics());
-        const iterables = classDefinition.keys.filter(key => !classDefinition.hidden.includes(key));
+        const iterables = classDefinition.keys.filter(key => (
+            !classDefinition.hidden.includes(key) && !classDefinition.timestamps.includes(key)
+        ));
 
         // Iterate through each key in key map
         for (const key of iterables) {
@@ -267,14 +269,15 @@ export default class Class {
             let value = this[toCamelCase(key)];
 
             // Check if key is a relation and has a value
-            if (typeof classDefinition.relations[key] !== 'undefined' && value instanceof Class) value = value.toJSON(true);
+            if (typeof classDefinition.relations[key] !== 'undefined' && value instanceof Class)
+                value = value.toJSON('relation');
 
             // Set value
             keys[key] = value;
         }
 
         // If class is a relation, use attributes
-        if (isRelation) {
+        if (type === 'relation') {
             body = {
                 type: RelationTypeName,
                 [InternalKeys.Relations.ClassName]: this.statics().className,
@@ -282,12 +285,12 @@ export default class Class {
             };
         } else body = keys; // Else use the keys as-is
 
+        // Set internal keys
+        body[InternalId] = id;
+        body[CreatedAt] = createdAt;
+        body[UpdatedAt] = updatedAt;
+
         // Return the object
-        return {
-            [InternalKeys.Id]: id,
-            ...body,
-            [InternalKeys.Timestamps.CreatedAt]: createdAt,
-            [InternalKeys.Timestamps.UpdatedAt]: updatedAt,
-        };
+        return body;
     }
 }

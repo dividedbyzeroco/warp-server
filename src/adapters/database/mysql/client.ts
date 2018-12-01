@@ -6,9 +6,10 @@ import { DatabaseWrite, DatabaseRead } from '../../../utils/constants';
 import { ILogger } from '../../../types/logger';
 import { DatabaseConfig, ConnectionCollection, DatabaseAction } from '../../../types/database';
 import chalk from 'chalk';
+import { ClassId } from '../../../types/class';
 
 export interface DatabaseResult {
-    id: number;
+    id: ClassId;
     rows: object[];
 }
 

@@ -1,7 +1,7 @@
 import Relation from './relation';
 import { RelationsMap } from '../../types/relations';
 import ConstraintMap, { Constraints } from '../../utils/constraint-map';
-import { InternalKeys, SortDescending, SortAscending, SortSymbol } from '../../utils/constants';
+import { InternalKeys, SortDescending, SortAscending, SortSymbol, DeletedAt } from '../../utils/constants';
 import CompoundKey from '../../utils/compound-key';
 
 /**
@@ -99,7 +99,7 @@ export const getConstraintsFrom = (className: string, constraints: ConstraintMap
     const where = new ConstraintMap(constraints.toJSON());
 
     // Remove deleted rows
-    where.set(InternalKeys.Timestamps.DeletedAt, Constraints.Exists, false);
+    where.set(DeletedAt, Constraints.Exists, false);
 
     // Iterate through keys
     for (const key of where.keys) {

@@ -8,7 +8,7 @@ import JsonKey from './types/json';
 import BooleanKey from './types/boolean';
 import RelationKey from './types/relation';
 import Relation, { RelationDefinition } from '../relation';
-import { InternalKeys } from '../../../utils/constants';
+import { InternalKeys, InternalId } from '../../../utils/constants';
 
 /**
  * Key Manager
@@ -89,7 +89,7 @@ export const keyDecorator = (opts: KeyOptions = {}) => {
         else if (inferredType && (new inferredType) instanceof Class) {
             // Set default values
             from = from || Relation.formatKey(RelationDefinition.OwnerSymbol, Relation.formatAsId(keyName));
-            to = to || Relation.formatKey(keyName, InternalKeys.Id);
+            to = to || Relation.formatKey(keyName, InternalId);
 
             // Extract keys
             const [ sourceClassName, sourceKey ] = Relation.parseKey(from);

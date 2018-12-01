@@ -1,5 +1,5 @@
 import Class, { ClassDefinitionManager } from './class';
-import { InternalKeys, RelationDelimiter, RelationTypeName } from '../../utils/constants';
+import { InternalKeys, RelationDelimiter, RelationTypeName, InternalId } from '../../utils/constants';
 import Error from '../../utils/error';
 import { ClassCaller } from '../../types/relations';
 import { Query } from '../..';
@@ -54,7 +54,7 @@ export default class Relation {
     }
 
     public static formatAsId(key: string) {
-        return `${key}_${InternalKeys.Id}`;
+        return `${key}_${InternalId}`;
     }
 
     public statics() {
@@ -89,7 +89,7 @@ export default class Relation {
         if (typeof value !== 'object') return false;
         if (value[InternalKeys.Relations.Type] !== RelationTypeName) return false;
         if (value[InternalKeys.Relations.ClassName] !== this.class.className) return false;
-        if (value[InternalKeys.Id] === null || typeof value[InternalKeys.Id] === 'undefined') return false;
+        if (value[InternalId] === null || typeof value[InternalId] === 'undefined') return false;
         return true;
     }
 }

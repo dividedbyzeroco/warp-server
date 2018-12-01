@@ -10,7 +10,7 @@ import {
     DestroyOptionsType,
 } from '../types/classes';
 import Query from '../features/orm/query';
-import { InternalKeys } from '../utils/constants';
+import { InternalKeys, InternalId } from '../utils/constants';
 
 export default class ClassController {
 
@@ -62,7 +62,7 @@ export default class ClassController {
         const classType = this.api.classes.get(className);
 
         // Check if id was sent in keys
-        if (typeof keys[InternalKeys.Id] === 'undefined')
+        if (typeof keys[InternalId] === 'undefined')
             throw new Error(Error.Code.ForbiddenOperation, 'Cannot manually set the `id` key on creation');
 
         // Prepare instance
