@@ -855,7 +855,7 @@ dogQuery.select('name').select('age').select('weight');
 If you want to include `keys` from `relation` keys. You __must__ include them in the `select()` method. Otherwise, they won't be fetched from the database.
 
 ```javascript
-dogQuery.select('location.name');
+dogQuery.select('location.id', 'location.name');
 ```
 
 If, on the other hand, you plan on fetching all visible `keys`, __and__ include `relation` keys, you can use the `include()` method instead of having to call the `select()` method on all the `keys`.
@@ -863,6 +863,8 @@ If, on the other hand, you plan on fetching all visible `keys`, __and__ include 
 ```javascript
 dogQuery.include('location.name', 'location.address');
 ```
+
+> NOTE: If you are already using `select`, there is no need to use `include`. You must put all `keys` inside `select`.
 
 ## Defining Constraints
 
