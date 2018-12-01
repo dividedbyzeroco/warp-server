@@ -85,7 +85,6 @@ export const keyDecorator = (opts: KeyOptions = {}) => {
         else if (type === 'boolean') keyManager = BooleanKey(sourceName);
         else if (type === 'number') keyManager = NumberKey(sourceName);
         else if (type === 'array') keyManager = JsonKey(sourceName);
-        else if (type === 'object') keyManager = JsonKey(sourceName);
         else if (type === 'json') keyManager = JsonKey(sourceName);
         else if (inferredType && (new inferredType) instanceof Class) {
             // Set default values

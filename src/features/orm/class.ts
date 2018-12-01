@@ -18,6 +18,7 @@ export interface ClassDefinition {
     triggers: TriggersList;
     hidden: string[];
     guarded: string[];
+    computed: string[];
 }
 
 export interface ClassDefinitionOptions {
@@ -32,6 +33,7 @@ const DefaultClassDefinition = {
     triggers: [],
     hidden: [],
     guarded: [],
+    computed: [],
 };
 
 export class ClassDefinitionManager {
@@ -49,6 +51,7 @@ export class ClassDefinitionManager {
             triggers: definition.triggers.slice(),
             hidden: definition.hidden.slice(),
             guarded: definition.guarded.slice(),
+            computed: definition.computed.slice(),
         };
     }
 
@@ -135,6 +138,8 @@ export default class Class {
                     this.identifier = value;
                 else if (definition.guarded.includes(key))
                     throw new Error(Error.Code.ForbiddenOperation, `Key \`${key}\` of \`${this.statics().className}\` cannot be mass assigned because it is guarded`);
+                else if (definition.computed.includes(key))
+                    throw new Error(Error.Code.ForbiddenOperation, `Key \`${key}\` of \`${this.statics().className}\` cannot be mass assigned because it is computed`);
                 else
                     this[toCamelCase(key)] = value;
             }

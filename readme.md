@@ -22,12 +22,12 @@ With `Warp`, you can:
 - **[Classes](#classes)**
     - **[Defining a Class](#defining-a-class)**
     - **[Defining Keys](#defining-keys)**
+    - **[Defining Relations](#defining-relations)**
     - **[Adding Key Modifiers](#adding-key-modifiers)**
     - **[Registering Classes](#registering-classes)**
 - **[Users](#users)**
     - **[Defining a User class](#defining-a-user-class)**
     - **[Authentication](#authentication)**
-- **[Relations](#relations)**
 - **[Objects](#objects)**
     - **[Creating an Object](#creating-an-object)**
     - **[Updating an Object](#updating-an-object)**
@@ -231,9 +231,7 @@ import { Class, define, key } from 'warp-server';
     @key height: number;
     @key weight: number;
 
-    get bmi(): number {
-        return this.weight / (this.height * this.height);
-    }
+    bmi: number;
 
 }
 ```
@@ -254,6 +252,110 @@ Table: __Dog__
 | ------ | -------- | -------- | -----------| ------------ | ------------------- | ------------------- | ----------- |
 | 1      | Bingo    | 4        | 1.5        | 43.2         | 2018-03-09 12:38:56 | 2018-03-09 12:38:56 | null        |
 | 2      | Ringo    | 5        | 1.25       | 36           | 2018-03-09 12:38:56 | 2018-03-09 12:38:56 | null        |
+
+If the database column name is different from the property name of the `Class`, you can define it using the `from` option.
+
+```javascript
+import { Class, define, key } from 'warp-server';
+
+@define class Dog extends Class {
+
+    @key({ from: 'nickname' }) 
+    nick: string;
+
+}
+```
+
+Also, if you want to manually define the type of the `key` instead of relying on type inference, you can use the `type` option.
+
+```javascript
+import { Class, define, key } from 'warp-server';
+
+interface FoodPreferences {
+    taste: string;
+    cuisine: string;
+}
+
+@define class Dog extends Class {
+
+    @key({ type: 'json' }) 
+    preferences: FoodPreferences;
+
+    @key({ type: 'array' })
+    pseudonyms: string[];
+
+}
+```
+
+## Defining Relations
+
+One of the biggest features of relational databases is their ability to define `relations` between tables. This makes it more convenient to link and retrieve entities.
+
+If two tables have a `one-to-many` relation, we can define the type of the `key` with an instance of a `Class`. This type allows us to define from which class our `key` belongs to.
+
+Later on, when we're querying, the key will automatically return an instance of the `Class` that we defined. Additionally, it validates whether the value we set to our `key` matches the correct `Class`.
+
+```javascript
+import { Class, key } from 'warp-server';
+
+@define class Department extends Class { /** shortened for brevity */ }
+
+@define class Employee extends Class {
+
+    @key name: string;
+    @key department: Department;
+
+}
+```
+
+In the example above, we tell `Warp` that our `department` key belongs to the `Department` class. 
+
+Inside our database, every time we save or query `Employee`, it automatically maps the column `employee.department_id` to `department.id`.
+
+If you want to define a different column for the mapping, you can set it using the `from` and `to` options.
+
+```javascript
+import { Class, key } from 'warp-server';
+
+@define class Department extends Class { /** shortened for brevity */ }
+
+@define class Employee extends Class {
+
+    @key name: string;
+
+    @key({ from: 'employee.deparment_code', to: 'department.code' }) 
+    department: Department;
+
+}
+```
+
+Now that we've defined our relation, we can start using it in our code.
+
+Below is an example of a query with a `relation`. For more information on queries, see the [Queries](#queries) section.
+
+```javascript
+const service = new Warp({ /** some configuration **/ });
+
+// Create a query
+const employeeQuery = new Query(Employee).include('department.name');
+
+// Get employee
+const employee = await service.classes.first(employeeQuery);
+
+// employee.department is an instance of the `Department` class
+// so we can even retrieve the department's name
+const departmentName = employee.department.name;
+```
+
+Another example can be found below, this time it's about saving objects. For more information on saving and destroying objects, see the [Objects](#objects) section.
+
+```javascript
+const employee = new Employee;
+employee.department = new Department(1); // OK
+employee.department = new Country(3); // This will cause an error
+
+await service.classes.save(employee);
+```
 
 ## Adding Key Modifiers
 
@@ -294,6 +396,51 @@ const daschund = new Dog;
 dog.eyeColor = 'green'; // OK
 
 const corgi = new Dog({ eye_color: 'brown' }); // Will throw an error
+```
+
+### @computed
+
+Sometimes, you have `keys` that are computed which are, hence, not stored in the database. If you want to display a key in the `restful API`, you can use the `@computed` decorator.
+
+> NOTE: Once a key is defined as `@computed`, you cannot manually set its value
+
+```javascript
+import { Class, define, key, computed } from 'warp-server';
+
+@define class Dog extends Class {
+
+    @key name: string;
+    @key weight: number;
+    @key height: number;
+
+    @computed
+    @key get bmi(): number {
+        return this.weight / (this.height * this.height);
+    }
+}
+
+const daschund = new Dog;
+dog.height = 1.5;
+dog.weight = 35;
+
+const bmi = dog.bmi; // Will return weight/(height * height)
+
+dog.bmi = 32; // Will throw an error
+```
+
+In the `restful API`, the value will also be included.
+
+```json
+{
+    "result": [
+        {
+            "id": 42,
+            "height": 1.5,
+            "weight": 35,
+            "bmi": 15.555555555555555
+        }
+    ]
+}
 ```
 
 ### @length
@@ -464,76 +611,6 @@ req.use('/api/', someAuthMiddleware, mapUser, service.router);
 ```
 
 By default, the `restful API` tries to get the `req.user` parameter
-
-# Relations
-
-One of the biggest features of relational databases is their ability to define `relations` between tables. This makes it more convenient to link and retrieve entities.
-
-If two tables have a `one-to-many` relation, we can define the type of the `key` with an instance of a `Class`. This type allows us to define from which class our `key` belongs to.
-
-Later on, when we're querying, the key will automatically return an instance of the `Class` that we defined. Additionally, it validates whether the value we set to our `key` matches the correct `Class`.
-
-```javascript
-import { Class, key } from 'warp-server';
-
-@define class Department extends Class { /** shortened for brevity */ }
-
-@define class Employee extends Class {
-
-    @key name: string;
-    @key department: Department;
-
-}
-```
-
-In the example above, we tell `Warp` that our `department` key belongs to the `Department` class. 
-
-Inside our database, every time we save or query `Employee`, it automatically maps the column `employee.department_id` to `department.id`.
-
-If you want to define a different column for the mapping, you can set it using the `from` and `to` options.
-
-```javascript
-import { Class, key } from 'warp-server';
-
-@define class Department extends Class { /** shortened for brevity */ }
-
-@define class Employee extends Class {
-
-    @key name: string;
-
-    @key({ from: 'employee.deparment_code', to: 'department.code' }) 
-    department: Department;
-
-}
-```
-
-Now that we've defined our relation, we can start using it in our code.
-
-Below is an example of a query with a `relation`. For more information on queries, see the [Queries](#queries) section.
-
-```javascript
-const service = new Warp({ /** some configuration **/ });
-
-// Create a query
-const employeeQuery = new Query(Employee).include('department.name');
-
-// Get employee
-const employee = await service.classes.first(employeeQuery);
-
-// employee.department is an instance of the `Department` class
-// so we can even retrieve the department's name
-const departmentName = employee.department.name;
-```
-
-Another example can be found below, this time it's about saving objects. For more information on saving and destroying objects, see the [Objects](#objects) section.
-
-```javascript
-const employee = new Employee;
-employee.department = new Department(1); // OK
-employee.department = new Country(3); // This will cause an error
-
-await service.classes.save(employee);
-```
 
 # Objects
 
