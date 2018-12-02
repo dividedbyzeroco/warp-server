@@ -309,6 +309,12 @@ export default class ClassManager {
         // Get key map
         const keys = this.getKeyMapFrom(classInstance);
 
+        // Get new identifier
+        const identifier = classInstance.newIdentifier; 
+
+        // Set identifier inside keys if it exists
+        if(typeof identifier !== 'undefined') keys.set(InternalId, identifier);
+
         // If the object is new
         if (classInstance.isNew) {
             // Execute create query and retrieve the new id
@@ -317,6 +323,12 @@ export default class ClassManager {
             // Execute update query
             await this.database.update(classInstance.statics().className, keys, classInstance.id);
         }
+
+        // Set identifier if it exists
+        if(typeof identifier !== 'undefined') classInstance.identifier = identifier;
+
+        // Clear temp identifier
+        classInstance.newIdentifier = undefined;
 
         // Run all afterSave triggers in the background
         const afterSaveTriggers = definition.triggers.filter(trigger => trigger.type === TriggerAfterSave);

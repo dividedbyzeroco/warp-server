@@ -1,5 +1,5 @@
 import Class, { define } from '../orm/class';
-import key from '../orm/keys/key';
+import { key } from '../orm/keys/key';
 import Error from '../../utils/error';
 import Query from '../orm/query';
 import { InternalKeys, InternalId } from '../../utils/constants';

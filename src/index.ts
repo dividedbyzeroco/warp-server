@@ -1,12 +1,11 @@
 import 'reflect-metadata';
-import { Request as ExpressRequest, Router } from 'express';
+import { Router } from 'express';
 import enforce from 'enforce-js';
 import chalk from 'chalk';
-import Class, { define } from './features/orm/class';
+import Class from './features/orm/class';
 import Query from './features/orm/query';
 import User from './features/auth/user';
 import Function from './features/functions/function';
-import key from './features/orm/keys/key';
 import ClassManager from './features/orm/class-manager';
 import FunctionManager from './features/functions/function-manager';
 import Database from './adapters/database';
@@ -23,26 +22,7 @@ import FunctionController from './controllers/function';
 import Collection from './utils/collection';
 import Response from './utils/response';
 import Validation from './utils/validation';
-import { MiddlewareRequest } from './types/request';
 import { URIConfig } from './types/database';
-import { ClassOptions } from './types/class';
-import { hidden } from './features/orm/keys/modifiers/hidden';
-import { guarded } from './features/orm/keys/modifiers/guarded';
-import { length } from './features/orm/keys/modifiers/length';
-import { min } from './features/orm/keys/modifiers/min';
-import { max } from './features/orm/keys/modifiers/max';
-import { between } from './features/orm/keys/modifiers/between';
-import { rounded } from './features/orm/keys/modifiers/rounded';
-import { enumerated } from './features/orm/keys/modifiers/enumerated';
-import {
-    beforeFind,
-    beforeFirst,
-    beforeGet,
-    beforeSave,
-    afterSave,
-    beforeDestroy,
-    afterDestroy,
-} from './features/orm/keys/modifiers/triggers';
 
 const { version } = require('./package.json');
 
@@ -311,36 +291,25 @@ export default class Warp {
 }
 
 /**
- * Request extended from Express.Request
+ * Export types
  */
-export type Request<U extends User | undefined> = ExpressRequest & MiddlewareRequest<U>;
-
-/**
- * Class options
- */
-export type ClassOptions<U extends User | undefined> = ClassOptions<U>;
+export { ClassId, ClassOptions } from './types/class';
+export { Request } from './types/request';
 
 /**
  * Export features
  */
+export { define } from './features/orm/class';
+export { key } from './features/orm/keys/key';
+export { hidden } from './features/orm/keys/modifiers/hidden';
+export { guarded } from './features/orm/keys/modifiers/guarded';
+export { length } from './features/orm/keys/modifiers/length';
+export { min } from './features/orm/keys/modifiers/min';
+export { max } from './features/orm/keys/modifiers/max';
+export { between } from './features/orm/keys/modifiers/between';
+export { rounded } from './features/orm/keys/modifiers/rounded';
+export { enumerated } from './features/orm/keys/modifiers/enumerated';
 export {
-    Class,
-    define,
-    Query,
-    Collection,
-    User,
-    Function,
-    key,
-    hidden,
-    guarded,
-    length,
-    min,
-    max,
-    between,
-    rounded,
-    enumerated,
-    Warp,
-    ClassManager,
     beforeFind,
     beforeFirst,
     beforeGet,
@@ -348,4 +317,17 @@ export {
     afterSave,
     beforeDestroy,
     afterDestroy,
+} from './features/orm/keys/modifiers/triggers';
+
+/**
+ * Export features
+ */
+export {
+    Class,
+    Query,
+    Collection,
+    User,
+    Function,
+    Warp,
+    ClassManager,
 };

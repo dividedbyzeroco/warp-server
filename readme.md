@@ -33,6 +33,7 @@ With `Warp`, you can:
     - **[Updating an Object](#updating-an-object)**
     - **[Incrementing Numeric Keys](#incrementing-numeric-keys)**
     - **[Using JSON Keys](#updating-json-keys)**
+    - **[Setting the ID](#setting-the-id)**
     - **[Destroying an Object](#destroying-an-object)**
 - **[Queries](#queries)**
     - **[Creating a Query](#creating-a-query)**
@@ -793,6 +794,53 @@ service.classes.json(labrador, 'preferences').append('$.toys', 'bone');
 
 // Update the object
 await service.classes.save(labrador);
+```
+
+## Setting the ID
+
+By default, `Warp` assumes that tables have an auto-increment `id`. However, if you want to manually define the value of the `id`, you need to use the `.setNewId()` method.
+
+```javascript
+const dog = new Dog;
+dog.setNewId('D39t2h28-ug4822G-K24u5H4-24mU24');
+
+await service.classes.save(dog);
+```
+
+You can also use `.setNewId()` for existing objects.
+
+```javascript
+const dog = new Dog('123-456-789');
+dog.setNewId('789-012-345');
+
+await service.classes.save(dog);
+
+const id = dog.id; // 789-012-345
+```
+
+> IMPORTANT: Make sure to use `.setNewId()` for manually setting the `id`. Setting the `id` with the following methods will not work.
+
+```javascript
+dog.id = 3; // Will throw an error because id is readonly
+
+const corgi = new Dog(3); // Will assume `3` already exsists in the table so `.save()` will only update the row with id `3` instead of creating a new row
+
+const shitzu = new Dog({ id: 'abc-123' }); // Will assume `abc-123` already exists in the table so `.save()` will only update the row with id `abc-123` instead of creating a new row
+```
+
+As an example of how `.setNewId()` might be useful, below, you can use the `uniqid` library and also set a `beforeSave` trigger in order to programmatically create new `id`'s.
+
+```javascript
+import uniqid from 'uniqid';
+
+class Dog extends Class {
+
+    @beforeSave
+    createNewId() {
+        if(this.isNew) this.setNewId(uniqid());
+    }
+
+}
 ```
 
 ## Destroying an Object

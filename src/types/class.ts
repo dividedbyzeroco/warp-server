@@ -14,16 +14,9 @@ export interface ClassKeys {
     [key: string]: any;
 }
 
-export type ClassKeyMap<C extends Class> = C['keys']['toJSON'] & ClassInternalKeys;
-
-export interface ClassInternalKeys {
-    [InternalId]: ClassId;
-    [CreatedAt]: string;
-    [UpdatedAt]: string;
+export interface ClassJSON {
+    [InternalId]?: ClassId;
+    [name: string]: any;
 }
-
-export type ClassJSON<C extends Class> = {
-    [K in keyof ClassKeyMap<C>]?: ClassKeyMap<C>[K];
-};
 
 export type ClassId = number | string;

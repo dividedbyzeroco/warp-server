@@ -163,4 +163,4 @@ function key<C extends Class>(...args: [] | [KeyOptions] | [C, string] | [C, str
     }
 }
 
-export default key;
+export { key };

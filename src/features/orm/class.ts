@@ -4,7 +4,7 @@ import { toCamelCase, toSnakeCase } from '../../utils/format';
 import { InternalKeys, InternalId, RelationTypeName, InternalTimestamps, CreatedAt, UpdatedAt } from '../../utils/constants';
 import Relation, { RelationDefinition } from './relation';
 import CompoundKey from '../../utils/compound-key';
-import { ClassKeys, ClassJSON, ClassId } from '../../types/class';
+import { ClassId, ClassKeys, ClassJSON } from '../../types/class';
 import DateKey from './keys/types/date';
 import { RelationsMap } from '../../types/relations';
 import { TriggersList } from '../../types/triggers';
@@ -110,6 +110,7 @@ export function define<C extends { new(...args: any[]): Class }>(...args: [Class
  */
 export default class Class {
 
+    public newIdentifier?: ClassId;
     public identifier: ClassId;
     public keys: KeyMap = new KeyMap;
 
@@ -240,6 +241,14 @@ export default class Class {
     }
 
     /**
+     * Set `id` for new objects
+     * @param id 
+     */
+    public setNewId(id: ClassId) {
+        this.newIdentifier = id;
+    }
+
+    /**
      * toSqlString
      * @description Executed every time the object is being saved to the database
      */
@@ -251,7 +260,7 @@ export default class Class {
      * toJSON
      * @description Executed every time the object is being stringified to an object literal
      */
-    public toJSON<C extends this>(type?: string): ClassJSON<C> {
+    public toJSON(type?: string): ClassJSON {
         // Get keys
         const { id, createdAt, updatedAt } = this;
         const keys = {};
