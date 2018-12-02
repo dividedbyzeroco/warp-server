@@ -310,10 +310,10 @@ export default class ClassManager {
         const keys = this.getKeyMapFrom(classInstance);
 
         // Get new identifier
-        const identifier = classInstance.newIdentifier; 
+        const identifier = classInstance.newIdentifier;
 
         // Set identifier inside keys if it exists
-        if(typeof identifier !== 'undefined') keys.set(InternalId, identifier);
+        if (typeof identifier !== 'undefined') keys.set(InternalId, identifier);
 
         // If the object is new
         if (classInstance.isNew) {
@@ -325,7 +325,7 @@ export default class ClassManager {
         }
 
         // Set identifier if it exists
-        if(typeof identifier !== 'undefined') classInstance.identifier = identifier;
+        if (typeof identifier !== 'undefined') classInstance.identifier = identifier;
 
         // Clear temp identifier
         classInstance.newIdentifier = undefined;

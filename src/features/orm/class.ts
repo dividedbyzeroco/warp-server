@@ -242,7 +242,7 @@ export default class Class {
 
     /**
      * Set `id` for new objects
-     * @param id 
+     * @param id
      */
     public setNewId(id: ClassId) {
         this.newIdentifier = id;
