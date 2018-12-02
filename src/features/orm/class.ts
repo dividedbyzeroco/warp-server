@@ -1,13 +1,14 @@
 import Error from '../../utils/error';
 import KeyMap from '../../utils/key-map';
 import { toCamelCase, toSnakeCase } from '../../utils/format';
-import { InternalKeys, InternalId, RelationTypeName, InternalTimestamps, CreatedAt, UpdatedAt } from '../../utils/constants';
+import { InternalKeys, InternalId, RelationTypeName, InternalTimestamps, CreatedAt, UpdatedAt, SetJsonTypeName, AppendJsonTypeName } from '../../utils/constants';
 import Relation, { RelationDefinition } from './relation';
 import CompoundKey from '../../utils/compound-key';
 import { ClassId, ClassKeys, ClassJSON } from '../../types/class';
 import DateKey from './keys/types/date';
 import { RelationsMap } from '../../types/relations';
 import { TriggersList } from '../../types/triggers';
+import { Increment, JsonAction } from './specials';
 
 export const ClassDefinitionSymbol = Symbol.for('warp-server:class-definition');
 
@@ -246,6 +247,44 @@ export default class Class {
      */
     public setNewId(id: ClassId) {
         this.newIdentifier = id;
+    }
+
+    /**
+     * Increment the value of a numeric key
+     * @param classInstance
+     * @param key
+     * @param value
+     */
+    public increment(key: string, value: number) {
+        // Check if key exists
+        if (!this.statics().has(key))
+            throw new Error(Error.Code.ForbiddenOperation,
+                `Key to be incremented \`${key}\` does not exist in \`${this.statics().className}\``);
+
+        // Set key to an increment value
+        this[key] = Increment.by(value);
+    }
+
+    /**
+     * Set json values
+     * @param classInstance
+     * @param key
+     * @param path
+     */
+    public json(key: string) {
+        // Check if key exists
+        if (!this.statics().has(key))
+            throw new Error(Error.Code.ForbiddenOperation,
+                `Key to be incremented \`${key}\` does not exist in \`${this.statics().className}\``);
+
+        return {
+            set(path: string, value: any) {
+                this[key] = new JsonAction(SetJsonTypeName, key, path, value);
+            },
+            append(path: string, value: any) {
+                this[key] = new JsonAction(AppendJsonTypeName, key, path, value);
+            },
+        };
     }
 
     /**

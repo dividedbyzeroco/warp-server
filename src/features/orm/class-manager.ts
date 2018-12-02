@@ -111,44 +111,6 @@ export default class ClassManager {
     }
 
     /**
-     * Increment the value of a numeric key
-     * @param classInstance
-     * @param key
-     * @param value
-     */
-    public increment<C extends Class>(classInstance: C, key: string, value: number) {
-        // Check if key exists
-        if (!classInstance.statics().has(key))
-            throw new Error(Error.Code.ForbiddenOperation,
-                `Key to be incremented \`${key}\` does not exist in \`${classInstance.statics().className}\``);
-
-        // Set key to an increment value
-        classInstance[key] = Increment.by(value);
-    }
-
-    /**
-     * Set json values
-     * @param classInstance
-     * @param key
-     * @param path
-     */
-    public json<C extends Class>(classInstance: C, key: string) {
-        // Check if key exists
-        if (!classInstance.statics().has(key))
-            throw new Error(Error.Code.ForbiddenOperation,
-                `Key to be incremented \`${key}\` does not exist in \`${classInstance.statics().className}\``);
-
-        return {
-            set(path: string, value: any) {
-                classInstance[key] = new JsonAction(SetJsonTypeName, key, path, value);
-            },
-            append(path: string, value: any) {
-                classInstance[key] = new JsonAction(AppendJsonTypeName, key, path, value);
-            },
-        };
-    }
-
-    /**
      * Find objects
      * @param query
      * @param opts

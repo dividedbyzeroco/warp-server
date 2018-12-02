@@ -1,7 +1,7 @@
 import Relation from './relation';
 import { RelationsMap } from '../../types/relations';
 import ConstraintMap, { Constraints } from '../../utils/constraint-map';
-import { InternalKeys, SortDescending, SortAscending, SortSymbol, DeletedAt, InternalId } from '../../utils/constants';
+import { SortDescending, SortAscending, SortSymbol, DeletedAt, InternalId } from '../../utils/constants';
 import CompoundKey from '../../utils/compound-key';
 
 /**

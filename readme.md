@@ -728,20 +728,20 @@ await service.classes.save(daschund);
 
 ## Incrementing Numeric Keys
 
-If the key we are trying to update is defined as a `number` and we want to atomically increase or decrease its value without knowing the original value, we can opt to use the `classes.increment()` method.
+If the key we are trying to update is defined as a `number` and we want to atomically increase or decrease its value without knowing the original value, we can opt to use the `.increment()` method.
 
 For example, if we want to increase the age by 1, we would use the following code.
 
 ```javascript
 // Increase awardsWon by 1
-service.classes.increment(corgi, 'awards_won', 1);
+corgi.increment('awards_won', 1);
 ```
 
 Conversely, if we want to decrease a `number` key, we would use a negative value.
 
 ```javascript
 // Decrease the weight by 5.2
-service.classes.increment(corgi, 'weight', -5.2);
+corgi.increment('weight', -5.2);
 ```
 
 ## Updating JSON Keys
@@ -771,7 +771,7 @@ labrador.preferences = { food: 'meat' };
 await service.classes.save(labrador);
 
 // Change preferences
-service.classes.json(labrador, 'preferences').set('$.food', 'vegetables');
+labrador.json('preferences').set('$.food', 'vegetables');
 
 // Update the object
 await service.classes.save(labrador);
@@ -790,7 +790,7 @@ labrador.preferences = { toys: ['plushie', 'ball'] };
 await service.classes.save(labrador);
 
 // Append a new toy
-service.classes.json(labrador, 'preferences').append('$.toys', 'bone');
+labrador.json('preferences').append('$.toys', 'bone');
 
 // Update the object
 await service.classes.save(labrador);
