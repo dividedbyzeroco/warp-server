@@ -1,7 +1,7 @@
 import Relation from './relation';
 import { RelationsMap } from '../../types/relations';
 import ConstraintMap, { Constraints } from '../../utils/constraint-map';
-import { InternalKeys, SortDescending, SortAscending, SortSymbol, DeletedAt } from '../../utils/constants';
+import { InternalKeys, SortDescending, SortAscending, SortSymbol, DeletedAt, InternalId } from '../../utils/constants';
 import CompoundKey from '../../utils/compound-key';
 
 /**
@@ -48,12 +48,17 @@ export const getRelationsFrom = (keys: string[], relationsMap: RelationsMap) => 
         // Check if the key is a key from a relation
         if (Relation.isUsedBy(key)) {
             // Get alias
-            const [ sourceClassName ] = Relation.parseKey(key);
+            const [ sourceClassName, sourceKeyName ] = Relation.parseKey(key);
 
-            // If the key is from a secondary relation, add the parent relation
+            // Get relation
             const keyRelationDefinition = relationsMap[sourceClassName];
             const relation = keyRelationDefinition.toRelation();
-            if (relation.secondary) {
+
+            // If the key provided is an `id`, skip it to optimize the query
+            // (i.e. no need to use left join for `id` keys)
+            if (sourceKeyName === InternalId) {
+                continue;
+            } else if (relation.secondary) {
                 // Get parent relation
                 const parentDefinition = relationsMap[relation.sourceClassName];
                 const parentRelation = parentDefinition.toRelation();
