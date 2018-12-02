@@ -69,17 +69,6 @@ export const getRelationsFrom = (keys: string[], relationsMap: RelationsMap) => 
             relations.set(sourceClassName, relation);
             continue;
         }
-
-        // Check if the key is a relation
-        const relationDefinition = relationsMap[key];
-        if (typeof relationDefinition !== 'undefined') {
-            // Get relation
-            const relation = relationDefinition.toRelation();
-
-            // Add relation
-            relations.set(key, relation);
-            continue;
-        }
     }
 
     return relations;
